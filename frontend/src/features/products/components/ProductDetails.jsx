@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
-import { clearSelectedProduct, fetchProductByIdAsync, resetProductFetchStatus, selectProductFetchStatus, selectSelectedProduct } from '../ProductSlice'
+import { useParams } from 'react-router-dom'
+import {fetchProductByIdAsync,selectProductFetchStatus, selectSelectedProduct } from '../ProductSlice'
 import { Box, Checkbox, Rating, Stack, Typography, useMediaQuery, Button, Paper, Divider } from '@mui/material'
-import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
+import { addToCartAsync,selectCartItemAddStatus} from '../../cart/CartSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import { fetchReviewsByProductIdAsync, resetReviewFetchStatus, selectReviewFetchStatus, selectReviews, } from '../../review/ReviewSlice'
+import { fetchReviewsByProductIdAsync,selectReviewFetchStatus, selectReviews, } from '../../review/ReviewSlice'
 import { Reviews } from '../../review/components/Reviews'
 import { toast } from 'react-toastify'
-import { MotionConfig, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import Favorite from '@mui/icons-material/Favorite'
-import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItems } from '../../wishlist/WishlistSlice'
+import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems } from '../../wishlist/WishlistSlice'
 import { useTheme } from '@mui/material'
 import MobileStepper from '@mui/material/MobileStepper';
 import Lottie from 'lottie-react'
@@ -29,7 +29,6 @@ export const ProductDetails = () => {
     const product = useSelector(selectSelectedProduct)
     const loggedInUser = useSelector(selectLoggedInUser)
     const dispatch = useDispatch()
-    const cartItems = useSelector(selectCartItems)
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
     
     // Wholesale packaging tier state tracking
@@ -40,7 +39,7 @@ export const ProductDetails = () => {
     })
 
     const reviews = useSelector(selectReviews)
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+    const [setSelectedImageIndex] = useState(0)
     const theme = useTheme()
     const is1420 = useMediaQuery(theme.breakpoints.down(1420))
     const is990 = useMediaQuery(theme.breakpoints.down(990))
@@ -58,11 +57,6 @@ export const ProductDetails = () => {
     const totalReviews = reviews.length
     const averageRating = parseInt(Math.ceil(totalReviewRating / totalReviews))
 
-    const wishlistItemAddStatus = useSelector(selectWishlistItemAddStatus)
-    const wishlistItemDeleteStatus = useSelector(selectWishlistItemDeleteStatus)
-    
-    const navigate = useNavigate()
-
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" })
     }, [])
@@ -72,7 +66,7 @@ export const ProductDetails = () => {
             dispatch(fetchProductByIdAsync(id))
             dispatch(fetchReviewsByProductIdAsync(id))
         }
-    }, [id])
+    })
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') {
@@ -166,7 +160,6 @@ export const ProductDetails = () => {
                             {!is1420 && <Stack sx={{ display: "flex", rowGap: '1.5rem', height: "100%", overflowY: "scroll" }}>
                                 {product && product.images.map((image, index) => (
                                     <motion.div key={index} whileHover={{ scale: 1.1 }} whileTap={{ scale: 1 }} style={{ width: "200px", cursor: "pointer" }} onClick={() => setSelectedImageIndex(index)}>
-                                        <img style={{ width: "100%", objectFit: "contain" }} src={image} alt={`${product.title} image`} />
                                     </motion.div>
                                 ))}
                             </Stack>}
@@ -195,7 +188,6 @@ export const ProductDetails = () => {
                                     </Stack>
                                     :
                                     <div style={{ width: "100%" }}>
-                                        <img style={{ width: "100%", objectFit: "contain", aspectRatio: 1 / 1 }} src={product?.images[selectedImageIndex]} alt={`${product?.title} image`} />
                                     </div>
                                 }
                             </Stack>

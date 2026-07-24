@@ -27,7 +27,7 @@ export const AdminOrders = () => {
   const is1620=useMediaQuery(theme.breakpoints.down(1620))
   const is480=useMediaQuery(theme.breakpoints.down(480))
 
-  const {register,handleSubmit,formState: { errors },} = useForm()
+  const {register,handleSubmit} = useForm()
 
   useEffect(()=>{
     dispatch(getAllOrdersAsync())
@@ -47,7 +47,7 @@ export const AdminOrders = () => {
     return ()=>{
       dispatch(resetOrderUpdateStatus())
     }
-  },[])
+  })
 
 
   const handleUpdateOrder=(data)=>{

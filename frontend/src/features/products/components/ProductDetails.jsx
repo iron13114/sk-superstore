@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { clearSelectedProduct, fetchProductByIdAsync, resetProductFetchStatus, selectProductFetchStatus, selectSelectedProduct } from '../ProductSlice'
@@ -13,15 +13,16 @@ import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import Favorite from '@mui/icons-material/Favorite'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItems } from '../../wishlist/WishlistSlice'
 import { useTheme } from '@mui/material'
-import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import SwipeableViews from 'react-swipeable-views';
-import { autoPlay } from 'react-swipeable-views-utils';
 import MobileStepper from '@mui/material/MobileStepper';
 import Lottie from 'lottie-react'
 import { loadingAnimation } from '../../../assets'
 
-const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
+// Swiper imports
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Autoplay } from 'swiper/modules'
+
+// Swiper CSS
+import 'swiper/css'
 
 export const ProductDetails = () => {
     const { id } = useParams()
@@ -128,12 +129,18 @@ export const ProductDetails = () => {
         }
     }
 
-    const [activeStep, setActiveStep] = React.useState(0);
+    // Swiper instance ref & Active Step state
+    const [activeStep, setActiveStep] = useState(0);
+    const swiperRef = useRef(null);
     const maxSteps = product?.images ? product.images.length : 0;
     
-    const handleNext = () => setActiveStep((prev) => prev + 1);
-    const handleBack = () => setActiveStep((prev) => prev - 1);
-    const handleStepChange = (step) => setActiveStep(step);
+    const handleNext = () => {
+        if (swiperRef.current) swiperRef.current.slideNext();
+    };
+    
+    const handleBack = () => {
+        if (swiperRef.current) swiperRef.current.slidePrev();
+    };
 
     // Wholesale Price Multipliers
     const getTierPrice = (basePrice, tier) => {
@@ -166,16 +173,24 @@ export const ProductDetails = () => {
                             
                             <Stack mt={is480 ? "0rem" : '5rem'}>
                                 {is1420 ?
-                                    <Stack width={is480 ? "100%" : is990 ? '400px' : "500px"} >
-                                        <AutoPlaySwipeableViews axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'} index={activeStep} onChangeIndex={handleStepChange} enableMouseEvents >
+                                    <Stack width={is480 ? "100%" : is990 ? '400px' : "500px"}>
+                                        <Swiper
+                                            modules={[Autoplay]}
+                                            autoplay={{
+                                                delay: 3000,
+                                                disableOnInteraction: false,
+                                            }}
+                                            onSwiper={(swiper) => (swiperRef.current = swiper)}
+                                            onSlideChange={(swiper) => setActiveStep(swiper.activeIndex)}
+                                            slidesPerView={1}
+                                            spaceBetween={0}
+                                        >
                                             {product?.images.map((image, index) => (
-                                                <div key={index} style={{ width: "100%", height: '100%' }}>
-                                                    {Math.abs(activeStep - index) <= 2 ?
-                                                        <Box component="img" sx={{ width: '100%', objectFit: "contain", overflow: "hidden", aspectRatio: 1 / 1 }} src={image} alt={product?.title} />
-                                                        : null}
-                                                </div>
+                                                <SwiperSlide key={index}>
+                                                    <Box component="img" sx={{ width: '100%', objectFit: "contain", overflow: "hidden", aspectRatio: 1 / 1 }} src={image} alt={product?.title} />
+                                                </SwiperSlide>
                                             ))}
-                                        </AutoPlaySwipeableViews>
+                                        </Swiper>
                                         <MobileStepper steps={maxSteps} position="static" activeStep={activeStep} nextButton={<Button size="small" onClick={handleNext} disabled={activeStep === maxSteps - 1} >Next</Button>} backButton={<Button size="small" onClick={handleBack} disabled={activeStep === 0}>Back</Button>} />
                                     </Stack>
                                     :

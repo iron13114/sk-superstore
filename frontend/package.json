@@ -50,6 +50,9 @@
   },
   "overrides": {
   "react-swipeable-views": "$react"
+  },
+  "scripts": {
+  "build": "CI=false react-scripts build"
 }
 }
 

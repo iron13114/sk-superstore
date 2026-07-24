@@ -1,50 +1,52 @@
-import SwipeableViews from 'react-swipeable-views';
-import { autoPlay } from 'react-swipeable-views-utils';
+import React, { useState, useRef } from 'react';
 import MobileStepper from '@mui/material/MobileStepper';
-import { Box, useTheme } from '@mui/material';
-import { useState } from 'react';
+import { Box } from '@mui/material';
 
-const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
+// Swiper imports
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay } from 'swiper/modules';
 
-export const ProductBanner = ({images}) => {
+// Swiper styles
+import 'swiper/css';
 
-    const theme=useTheme()
-
-    const [activeStep, setActiveStep] = useState(0);
-    const maxSteps = images.length;
-
-    const handleNext = () => {
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    };
-
-    const handleBack = () => {
-        setActiveStep((prevActiveStep) => prevActiveStep - 1);
-    };
-
-    const handleStepChange = (step) => {
-        setActiveStep(step);
-    };
+export const ProductBanner = ({ images = [] }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const swiperRef = useRef(null);
+  const maxSteps = images.length;
 
   return (
     <>
-    <AutoPlaySwipeableViews style={{overflow:"hidden"}} width={'100%'} height={'100%'} axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'} index={activeStep} onChangeIndex={handleStepChange} enableMouseEvents >
-        {
-        images.map((image,index) => (
-        <div key={index} style={{width:"100%",height:'100%'}}>
-            {
-            Math.abs(activeStep - index) <= 2 
-                ?
-                <Box component="img" sx={{width:'100%',objectFit:"contain"}} src={image} alt={'Banner Image'} />
-                :
-                    null
-            }
-        </div>
-        ))
-        }
-    </AutoPlaySwipeableViews>
-    <div style={{alignSelf:'center'}}>
-        <MobileStepper steps={maxSteps} position="static" activeStep={activeStep}/>
-    </div>
+      <Swiper
+        modules={[Autoplay]}
+        autoplay={{
+          delay: 3000,
+          disableOnInteraction: false,
+        }}
+        onSwiper={(swiper) => (swiperRef.current = swiper)}
+        onSlideChange={(swiper) => setActiveStep(swiper.activeIndex)}
+        slidesPerView={1}
+        loop={maxSteps > 1}
+        style={{ width: '100%', height: '100%', overflow: 'hidden' }}
+      >
+        {images.map((image, index) => (
+          <SwiperSlide key={index} style={{ width: '100%', height: '100%' }}>
+            <Box
+              component="img"
+              sx={{ width: '100%', objectFit: 'contain' }}
+              src={image}
+              alt={`Banner Image ${index + 1}`}
+            />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      <div style={{ alignSelf: 'center' }}>
+        <MobileStepper
+          steps={maxSteps}
+          position="static"
+          activeStep={activeStep}
+        />
+      </div>
     </>
-  )
-}
+  );
+};

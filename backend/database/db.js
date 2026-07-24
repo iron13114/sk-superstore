@@ -1,8 +1,9 @@
-const path = require("path");
 require("dotenv").config({
     path: path.resolve(__dirname, "../.env")
 });
-
+const path = require("path");
+const express = require('express');
+const { connectToDB } = require('./database/db');
 const mongoose = require("mongoose");
 
 exports.connectToDB = async () => {

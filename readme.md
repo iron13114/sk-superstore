@@ -26,7 +26,7 @@
 | Component | Platform | URL |
 | :--- | :--- | :--- |
 | **Frontend** | Vercel | `https://sksuperstore.com` |
-| **Backend API** | Render | `https://your-backend-api.onrender.com` |
+| **Backend API** | Render | `(https://sk-superstore.onrender.com/)` |
 | **Database** | MongoDB Atlas | Cloud Cluster |
 
 ### **Custom Domain Configuration (Vercel)**

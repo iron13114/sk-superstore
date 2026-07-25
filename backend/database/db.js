@@ -1,14 +1,12 @@
-require("dotenv").config({
-    path: path.resolve(__dirname, "../.env")
-});
-const path = require("path");
-const express = require('express');
-const { connectToDB } = require('./database/db');
 const mongoose = require("mongoose");
 
 exports.connectToDB = async () => {
     try {
         console.log("MONGO_URI:", process.env.MONGO_URI);
+
+        if (!process.env.MONGO_URI) {
+            throw new Error("MONGO_URI is undefined. Verify backend/.env exists and is formatted correctly.");
+        }
 
         await mongoose.connect(process.env.MONGO_URI);
 

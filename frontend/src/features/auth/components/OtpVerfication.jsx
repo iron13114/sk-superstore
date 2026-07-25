@@ -28,7 +28,7 @@ export const OtpVerfication = () => {
         else if(loggedInUser && loggedInUser?.isVerified){
             navigate("/")
         }
-    },[loggedInUser])
+    })
 
     const handleSendOtp=()=>{
         const data={user:loggedInUser?._id}
@@ -48,7 +48,7 @@ export const OtpVerfication = () => {
         return ()=>{
             dispatch(clearResendOtpError())
         }
-    },[resendOtpError])
+    })
 
     // handles resend otp success message
     useEffect(()=>{
@@ -58,7 +58,7 @@ export const OtpVerfication = () => {
         return ()=>{
             dispatch(clearResendOtpSuccessMessage())
         }
-    },[resendOtpSuccessMessage])
+    })
 
     // handles error while verifying otp
     useEffect(()=>{
@@ -68,7 +68,7 @@ export const OtpVerfication = () => {
         return ()=>{
             dispatch(clearOtpVerificationError())
         }
-    },[otpVerificationError])
+    })
 
     useEffect(()=>{
         if(otpVerificationStatus==='fullfilled'){
@@ -78,7 +78,7 @@ export const OtpVerfication = () => {
         return ()=>{
             dispatch(resetOtpVerificationStatus())
         }
-    },[otpVerificationStatus])
+    })
 
   return (
     <Stack width={'100vw'} height={'100vh'} noValidate flexDirection={'column'} rowGap={3} justifyContent="center" alignItems="center" >

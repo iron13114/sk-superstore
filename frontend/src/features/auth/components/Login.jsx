@@ -1,4 +1,4 @@
-import {FormHelperText, Stack, TextField, Typography, useMediaQuery, useTheme, Tabs, Tab, Button} from '@mui/material'
+import {FormHelperText, Stack, TextField, Typography, useMediaQuery, useTheme, Tabs, Tab} from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
@@ -27,7 +27,7 @@ export const Login = () => {
     else if(loggedInUser && !loggedInUser?.isVerified){
       navigate("/verify-otp")
     }
-  },[loggedInUser])
+  })
 
   // handles login error and toast them
   useEffect(()=>{
@@ -46,7 +46,7 @@ export const Login = () => {
       dispatch(clearLoginError())
       dispatch(resetLoginStatus())
     }
-  },[status])
+  })
 
   const handleLogin=(data)=>{
     const cred={...data}

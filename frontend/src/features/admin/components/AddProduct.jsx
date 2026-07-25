@@ -10,7 +10,7 @@ import { toast } from 'react-toastify'
 
 export const AddProduct = () => {
 
-    const {register,handleSubmit,reset,formState: { errors }} = useForm()
+    const {register,handleSubmit,reset} = useForm()
 
     const dispatch=useDispatch()
     const brands=useSelector(selectBrands)
@@ -30,13 +30,13 @@ export const AddProduct = () => {
         else if(productAddStatus==='rejected'){
             toast.error("Error adding product, please try again later")
         }
-    },[productAddStatus])
+    })
 
     useEffect(()=>{
         return ()=>{
             dispatch(resetProductAddStatus())
         }
-    },[])
+    })
 
     const handleAddProduct=(data)=>{
         const newProduct={...data,images:[data.image0,data.image1,data.image2,data.image3]}

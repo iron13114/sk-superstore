@@ -1,4 +1,3 @@
-// backend/index.js
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
@@ -28,7 +27,11 @@ const { seedReview } = require("./seed/Review");
 const { seedWishlist } = require("./seed/Wishlist");
 
 const server = express();
-
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://www.sksuperstore.com',
+    'https://sksuperstore.com'
+];
 // Connect DB after dotenv is initialized
 connectToDB();
 seedUser(); 
@@ -61,6 +64,18 @@ server.use("/categories", categoryRoutes);
 server.use("/address", addressRoutes);
 server.use("/reviews", reviewRoutes);
 server.use("/wishlist", wishlistRoutes);
+server.use(cors({
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    exposedHeaders: ['X-Total-Count'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE']
+}));
 
 server.get("/", (req, res) => {
     res.status(200).json({ message: 'running' });

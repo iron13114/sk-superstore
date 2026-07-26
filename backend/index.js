@@ -17,11 +17,29 @@ const addressRoutes = require('./routes/Address');
 const reviewRoutes = require("./routes/Review");
 const wishlistRoutes = require("./routes/Wishlist");
 const { connectToDB } = require("./database/db");
+const { seedUser } = require("./seed/User");
+const { seedBrand } = require("./seed/Brand");
+const { seedCategory } = require("./seed/Category");
+const { seedProduct } = require("./seed/Product");
+const { seedAddress } = require("./seed/Address");
+const { seedCart } = require("./seed/Cart");
+const { seedOrder } = require("./seed/Order");
+const { seedReview } = require("./seed/Review");
+const { seedWishlist } = require("./seed/Wishlist");
 
 const server = express();
 
 // Connect DB after dotenv is initialized
 connectToDB();
+seedUser(); 
+seedBrand();
+seedCategory();
+seedProduct();
+seedAddress();
+seedCart();
+seedOrder();
+seedReview();
+seedWishlist();
 
 server.use(cors({
     origin: process.env.ORIGIN,

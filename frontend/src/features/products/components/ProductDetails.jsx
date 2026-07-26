@@ -16,12 +16,8 @@ import { useTheme } from '@mui/material'
 import MobileStepper from '@mui/material/MobileStepper';
 import Lottie from 'lottie-react'
 import { loadingAnimation } from '../../../assets'
-
-// Swiper imports
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay } from 'swiper/modules'
-
-// Swiper CSS
 import 'swiper/css'
 
 export const ProductDetails = () => {
@@ -55,8 +51,7 @@ export const ProductDetails = () => {
 
     const totalReviewRating = reviews.reduce((acc, review) => acc + review.rating, 0)
     const totalReviews = reviews.length
-    const averageRating = parseInt(Math.ceil(totalReviewRating / totalReviews))
-
+    const averageRating = totalReviews > 0 ? Math.ceil(totalReviewRating / totalReviews) : 0;
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" })
     }, [])
@@ -66,7 +61,7 @@ export const ProductDetails = () => {
             dispatch(fetchProductByIdAsync(id))
             dispatch(fetchReviewsByProductIdAsync(id))
         }
-    })
+    }, [id, dispatch])
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') {

@@ -15,7 +15,7 @@ import {
   selectResendOtpStatus, 
   selectResendOtpSuccessMessage, 
   verifyOtpAsync,
-  signOutAsync 
+  logoutAsync 
 } from '../AuthSlice'
 import { LoadingButton } from '@mui/lab'
 import { useNavigate } from 'react-router-dom'
@@ -52,7 +52,7 @@ export const OtpVerfication = () => {
     }
 
     const handleBackToLogin = () => {
-        dispatch(signOutAsync())
+        dispatch(logoutAsync())
         navigate('/login')
     }
 

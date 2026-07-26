@@ -1,9 +1,9 @@
-import {FormHelperText, Stack, TextField, Typography,Box, useTheme, useMediaQuery, Tabs, Tab} from '@mui/material'
+import {FormHelperText, Stack, TextField, Typography, useTheme, useMediaQuery, Tabs, Tab, InputAdornment, IconButton} from '@mui/material'
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import React, { useEffect, useState } from 'react'
-import Lottie from 'lottie-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
-import { ecommerceOutlookAnimation, shoppingBagAnimation} from '../../../assets'
 import {useDispatch,useSelector} from 'react-redux'
 import { LoadingButton } from '@mui/lab';
 import {selectLoggedInUser, signupAsync,selectSignupStatus, selectSignupError, clearSignupError, resetSignupStatus} from '../AuthSlice'
@@ -15,6 +15,8 @@ export const Signup = () => {
   const status=useSelector(selectSignupStatus)
   const error=useSelector(selectSignupError)
   const [signupMode, setSignupMode] = useState('email');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const loggedInUser=useSelector(selectLoggedInUser)
   const {register,handleSubmit,reset,formState: { errors }} = useForm()
   const navigate=useNavigate()
@@ -52,15 +54,17 @@ export const Signup = () => {
     }
   },[status])
 
-  // this function handles signup and dispatches the signup action with credentails that api requires
-  const handleSignup=(data)=>{
-    const cred={...data}
-    delete cred.confirmPassword
+  const handleSignup = (data) => {
+    const cred = { ...data };
+
     if (signupMode === 'mobile') {
-       // dispatch mobile specific signup if your API supports it
+      delete cred.email;
+    } else {
+      delete cred.mobile;
     }
-    dispatch(signupAsync(cred))
-  }
+
+    dispatch(signupAsync(cred));
+  };
 
   return (
     <Stack width={'100vw'} height={'100vh'} flexDirection={'row'} sx={{overflowY:"hidden"}}>
@@ -81,18 +85,6 @@ export const Signup = () => {
                               <Tab label="Mobile Signup" value="mobile" />
                           </Tabs>
 
-                          {signupMode === 'email' ? (
-                              <>
-                                  {/* Keep your existing Name, Email, Password, Confirm Password fields here */}
-                              </>
-                          ) : (
-                              <>
-                                  <motion.div>
-                                      <TextField fullWidth {...register("mobile", { required: "Mobile is required" })} placeholder='Mobile Number' />
-                                  </motion.div>
-                                  {/* OTP field or automatic redirect to OTP verification screen */}
-                              </>
-                          )}
                     <MotionConfig whileHover={{y:-5}}>
 
                       <motion.div>
@@ -100,21 +92,91 @@ export const Signup = () => {
                         {errors.name && <FormHelperText error>{errors.name.message}</FormHelperText>}
                       </motion.div>
 
-                      <motion.div>
-                        <TextField fullWidth {...register("email",{required:"Email is required",pattern:{value:/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g,message:"Enter a valid email"}})} placeholder='Email'/>
-                        {errors.email && <FormHelperText error>{errors.email.message}</FormHelperText>}
-                      </motion.div>
+                    {signupMode === 'email' ? (
+                      /* ---------------- EMAIL FORM FIELDS ---------------- */
+                      <>
+                        <motion.div>
+                          <TextField 
+                            fullWidth 
+                            {...register("email", {
+                              required: "Email is required",
+                              pattern: {
+                                value: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g,
+                                message: "Enter a valid email"
+                              }
+                            })} 
+                            placeholder='Email'
+                          />
+                          {errors.email && <FormHelperText error>{errors.email.message}</FormHelperText>}
+                        </motion.div>
+                      </>
+                    ) : (
+                      /* ---------------- MOBILE FORM FIELDS ---------------- */
+                      <>
+                        <motion.div>
+                          <TextField 
+                            fullWidth 
+                            type='tel'
+                            {...register("mobile", {
+                              required: "Mobile number is required",
+                              pattern: {
+                                value: /^[0-9]{10}$/,
+                                message: "Enter a valid 10-digit mobile number"
+                              }
+                            })} 
+                            placeholder='Mobile Number'
+                          />
+                          {errors.mobile && <FormHelperText error>{errors.mobile.message}</FormHelperText>}
+                        </motion.div>
+                      </>
+                    )}
 
-                      <motion.div>
-                        <TextField type='password' fullWidth {...register("password",{required:"Password is required",pattern:{value:/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,message:`at least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number, Can contain special characters`}})} placeholder='Password'/>
-                        {errors.password && <FormHelperText error>{errors.password.message}</FormHelperText>}
-                      </motion.div>
+                        <motion.div>
+                          <TextField 
+                            type={showPassword ? 'text' : 'password'} 
+                            fullWidth 
+                            {...register("password", {
+                              required: "Password is required",
+                              pattern: {
+                                value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
+                                message: `at least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number, Can contain special characters`
+                              }
+                            })} 
+                            placeholder='Password'
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          {errors.password && <FormHelperText error>{errors.password.message}</FormHelperText>}
+                        </motion.div>
                       
                       <motion.div>
-                        <TextField type='password' fullWidth {...register("confirmPassword",{required:"Confirm Password is required",validate:(value,fromValues)=>value===fromValues.password || "Passwords doesn't match"})} placeholder='Confirm Password'/>
+                        <TextField 
+                          type={showConfirmPassword ? 'text' : 'password'} 
+                          fullWidth 
+                          {...register("confirmPassword", {
+                            required: "Confirm Password is required",
+                            validate: (value, fromValues) => value === fromValues.password || "Passwords doesn't match"
+                          })} 
+                          placeholder='Confirm Password'
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
                         {errors.confirmPassword && <FormHelperText error>{errors.confirmPassword.message}</FormHelperText>}
                       </motion.div>
-                    
                     </MotionConfig>
 
                     <motion.div whileHover={{scale:1.020}} whileTap={{scale:1}}>

@@ -1,8 +1,6 @@
-import { Box, IconButton, TextField, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { Typography, useMediaQuery, useTheme } from '@mui/material'
 import { Stack } from '@mui/material'
 import React from 'react'
-import SendIcon from '@mui/icons-material/Send';
-import { MotionConfig, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 export const Footer = () => {
@@ -39,7 +37,7 @@ export const Footer = () => {
                     <Typography component={Link} to="/login" sx={labelStyles}>Login / Register</Typography>
                     <Typography component={Link} to="/cart" sx={labelStyles}>Cart</Typography>
                     <Typography component={Link} to="/wishlist" sx={labelStyles}>Wishlist</Typography>
-                    <Typography component={Link} to="/shop" sx={labelStyles}>Shop</Typography>
+                    <Typography component={Link} to="/" sx={labelStyles}>Shop</Typography>
                 </Stack> 
 
                 <Stack rowGap={'1rem'} padding={'1rem'}>

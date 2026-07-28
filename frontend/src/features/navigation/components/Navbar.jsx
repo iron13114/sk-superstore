@@ -159,44 +159,49 @@ export const Navbar=({isProductList=false})=> {
         </Stack>
 
         {/* RIGHT SIDE: Profile, Greetings, Cart, and Wishlist */}
+                {/* RIGHT SIDE: Profile, Greetings, Cart, and Wishlist */}
         <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'center'} columnGap={2}>
-          <Tooltip title="Open settings">
-            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-              <Avatar alt={userInfo?.name} src="null" />
-            </IconButton>
-          </Tooltip>
-          <Menu
-            sx={{ mt: '45px' }}
-            id="menu-appbar"
-            anchorEl={anchorElUser}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={Boolean(anchorElUser)}
-            onClose={handleCloseUserMenu}
-          >
-            {
-              loggedInUser?.isAdmin && 
-              <MenuItem onClick={handleCloseUserMenu}>
-                <Typography component={Link} color={'text.primary'} sx={{ textDecoration: "none" }} to="/admin/add-product" textAlign="center">Add new Product</Typography>
-              </MenuItem>
-            }
-            {settings.map((setting) => (
-              <MenuItem key={setting.name} onClick={handleCloseUserMenu}>
-                <Typography component={Link} color={'text.primary'} sx={{ textDecoration: "none" }} to={setting.to} textAlign="center">{setting.name}</Typography>
-              </MenuItem>
-            ))}
-          </Menu>
           
-          <Typography variant='h6' fontWeight={300}>
-            {is480 ? `${userInfo?.name?.toString().split(" ")[0]}` : `Hey👋, ${userInfo?.name}`}
-          </Typography>
+          {loggedInUser ? (
+            <>
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  <Avatar alt={userInfo?.name} src="null" />
+                </IconButton>
+              </Tooltip>
+              
+              <Menu
+                sx={{ mt: '45px' }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                keepMounted
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                {
+                  loggedInUser?.isAdmin && 
+                  <MenuItem onClick={handleCloseUserMenu}>
+                    <Typography component={Link} color={'text.primary'} sx={{ textDecoration: "none" }} to="/admin/add-product" textAlign="center">Add new Product</Typography>
+                  </MenuItem>
+                }
+                {settings.map((setting) => (
+                  <MenuItem key={setting.name} onClick={handleCloseUserMenu}>
+                    <Typography component={Link} color={'text.primary'} sx={{ textDecoration: "none" }} to={setting.to} textAlign="center">{setting.name}</Typography>
+                  </MenuItem>
+                ))}
+              </Menu>
+              
+              <Typography variant='h6' fontWeight={300}>
+                {is480 ? `${userInfo?.name?.toString().split(" ")[0]}` : `Hey👋, ${userInfo?.name}`}
+              </Typography>
+            </>
+          ) : (
+            <Button component={Link} to="/login" variant="outlined" size="small" sx={{ textTransform: 'none' }}>
+              Login
+            </Button>
+          )}
           
           {loggedInUser?.isAdmin && <Button variant='contained'>Admin</Button>}
           
@@ -220,7 +225,6 @@ export const Navbar=({isProductList=false})=> {
             }
           </Stack>
         </Stack>
-
       </Toolbar>
     </AppBar>
   );

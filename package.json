@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "swiper": "^14.0.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

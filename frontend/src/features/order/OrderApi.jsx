@@ -1,14 +1,9 @@
 import {axiosi} from '../../config/axios'
 
-
-export const createOrder=async(order)=>{
-    try {
-        const res=await axiosi.post("/orders",order)
-        return res.data
-    } catch (error) {
-        throw error.response.data
-    }
-}
+export const createOrder = async (order) => {
+    const res = await axiosi.post("/orders", order);
+    return res.data;
+};
 
 export const getOrderByUserId=async(id)=>{
     try {

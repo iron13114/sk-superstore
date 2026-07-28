@@ -1,8 +1,5 @@
 import { useSelector } from 'react-redux';
-import {
-  Navigate,
-  Route, RouterProvider, createBrowserRouter, createRoutesFromElements
-} from "react-router-dom";
+import { Navigate,Route, RouterProvider, createBrowserRouter, createRoutesFromElements} from "react-router-dom";
 import { selectIsAuthChecked, selectLoggedInUser } from './features/auth/AuthSlice';
 import { Logout } from './features/auth/components/Logout';
 import { Protected } from './features/auth/components/Protected';
@@ -26,18 +23,19 @@ function App() {
   const routes = createBrowserRouter(
     createRoutesFromElements(
       <>
-        <Route path='/signup' element={<SignupPage/>}/>
-        <Route path='/login' element={<LoginPage/>}/>
-        <Route path='/verify-otp' element={<OtpVerificationPage/>}/>
-        <Route path='/forgot-password' element={<ForgotPasswordPage/>}/>
-        <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage/>}/>
-        <Route exact path='/logout' element={<Protected><Logout/></Protected>}/>
-        <Route exact path='/product-details/:id' element={<Protected><ProductDetailsPage/></Protected>}/>
 
         {
           loggedInUser?.isAdmin?(
             // admin routes
-            <>
+          <>
+            <Route path='/signup' element={<SignupPage/>}/>
+            <Route path='/login' element={<LoginPage/>}/>
+            <Route path='/verify-otp' element={<OtpVerificationPage/>}/>
+            <Route path='/forgot-password' element={<ForgotPasswordPage/>}/>
+            <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage/>}/>
+            <Route exact path='/logout' element={<Protected><Logout/></Protected>}/>
+            <Route exact path='/product-details/:id' element={<Protected><ProductDetailsPage/></Protected>}/>
+
             <Route path='/admin/dashboard' element={<Protected><AdminDashboardPage/></Protected>}/>
             <Route path='/admin/product-update/:id' element={<Protected><ProductUpdatePage/></Protected>}/>
             <Route path='/admin/add-product' element={<Protected><AddProductPage/></Protected>}/>
@@ -46,15 +44,27 @@ function App() {
             </>
           ):(
             // user routes
-            <>
-            <Route path='/' element={<Protected><HomePage/></Protected>}/>
-            <Route path='/cart' element={<Protected><CartPage/></Protected>}/>
-            <Route path='/profile' element={<Protected><UserProfilePage/></Protected>}/>
-            <Route path='/checkout' element={<Protected><CheckoutPage/></Protected>}/>
-            <Route path='/order-success/:id' element={<Protected><OrderSuccessPage/></Protected>}/>
-            <Route path='/orders' element={<Protected><UserOrdersPage/></Protected>}/>
-            <Route path='/wishlist' element={<Protected><WishlistPage/></Protected>}/>
-            </>
+          <>
+            {/* Public routes - Guest users can freely browse, add to cart, and reach checkout */}
+            <Route path='/' element={<HomePage />} />
+            <Route path='/product-details/:id' element={<ProductDetailsPage />} />
+            <Route path='/cart' element={<CartPage />} />
+            <Route path='/checkout' element={<CheckoutPage />} />
+
+            {/* Auth pages */}
+            <Route path='/signup' element={<SignupPage />} />
+            <Route path='/login' element={<LoginPage />} />
+            <Route path='/verify-otp' element={<OtpVerificationPage />} />
+            <Route path='/forgot-password' element={<ForgotPasswordPage />} />
+            <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage />} />
+            <Route exact path='/logout' element={<Protected><Logout /></Protected>} />
+
+            {/* User account routes (strictly protected) */}
+            <Route path='/wishlist' element={<Protected><WishlistPage /></Protected>} />
+            <Route path='/profile' element={<Protected><UserProfilePage /></Protected>} />
+            <Route path='/order-success/:id' element={<Protected><OrderSuccessPage /></Protected>} />
+            <Route path='/orders' element={<Protected><UserOrdersPage /></Protected>} />
+          </>
           )
         }
 
@@ -63,8 +73,6 @@ function App() {
       </>
     )
   )
-
-  
   return isAuthChecked ? <RouterProvider router={routes}/> : "";
 }
 

@@ -49,7 +49,9 @@ cd sk-superstore
 # Install Frontend
 cd frontend
 npm install
+npm start
 
 # Install Backend
 cd ../backend
 npm install
+npm run dev 

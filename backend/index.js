@@ -27,36 +27,28 @@ const { seedReview } = require("./seed/Review");
 const { seedWishlist } = require("./seed/Wishlist");
 
 const server = express();
+
 const allowedOrigins = [
     'http://localhost:3000',
     'https://www.sksuperstore.com',
     'https://sksuperstore.com',
-    'https://sk-superstore.vercel.app'
+    'https://sk-superstore-g6pv1bfvh-priyanshu-prince-s-projects.vercel.app' 
 ];
-// Connect DB after dotenv is initialized
-connectToDB();
-seedUser(); 
-seedBrand();
-seedCategory();
-seedProduct();
-seedAddress();
-seedCart();
-seedOrder();
-seedReview();
-seedWishlist();
 
+// CORS - ONLY ONCE
 server.use(cors({
     origin: function(origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS:' + origin));
+            callback(new Error('Not allowed by CORS: ' + origin));
         }
     },
     credentials: true,
     exposedHeaders: ['X-Total-Count'],
     methods: ['GET', 'POST', 'PATCH', 'DELETE']
 }));
+
 server.use(express.json());
 server.use(cookieParser());
 server.use(morgan("tiny"));
@@ -71,27 +63,29 @@ server.use("/categories", categoryRoutes);
 server.use("/address", addressRoutes);
 server.use("/reviews", reviewRoutes);
 server.use("/wishlist", wishlistRoutes);
-server.use(cors({
-    origin: function(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    exposedHeaders: ['X-Total-Count'],
-    methods: ['GET', 'POST', 'PATCH', 'DELETE']
-}));
 
 server.get("/", (req, res) => {
     res.status(200).json({ message: 'running' });
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    server.listen(8000, () => {
-        console.log('server [STARTED] ~ http://localhost:8000');
-    });
-}
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, () => {
+    console.log(`server [STARTED] ~ port ${PORT}`);
+});
+
+connectToDB().then(() => {
+    console.log("DB connected, starting seeds...");
+    seedUser(); 
+    seedBrand();
+    seedCategory();
+    seedProduct();
+    seedAddress();
+    seedCart();
+    seedOrder();
+    seedReview();
+    seedWishlist();
+}).catch(err => {
+    console.error("DB connection failed:", err);
+});
 
 module.exports = server;

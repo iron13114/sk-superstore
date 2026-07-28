@@ -30,7 +30,8 @@ const server = express();
 const allowedOrigins = [
     'http://localhost:3000',
     'https://www.sksuperstore.com',
-    'https://sksuperstore.com'
+    'https://sksuperstore.com',
+    'https://sk-superstore.vercel.app'
 ];
 // Connect DB after dotenv is initialized
 connectToDB();
@@ -49,7 +50,7 @@ server.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            callback(new Error('Not allowed by CORS:' + origin));
         }
     },
     credentials: true,

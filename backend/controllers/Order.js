@@ -1,15 +1,18 @@
 const Order = require("../models/Order");
 
-exports.create=async(req,res)=>{
+exports.create = async (req, res) => {
     try {
-        const created=new Order(req.body)
-        await created.save()
-        res.status(201).json(created)
+        const created = new Order(req.body);
+        await created.save();
+        res.status(201).json(created);
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({message:'Error creating an order, please trying again later'})
+        console.error("Order Creation Error:", error);
+        return res.status(400).json({
+            message: 'Error creating an order',
+            error: error.message 
+        });
     }
-}
+};
 
 exports.getByUserId=async(req,res)=>{
     try {

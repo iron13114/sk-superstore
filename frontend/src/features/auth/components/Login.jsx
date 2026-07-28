@@ -1,6 +1,6 @@
 import { FormHelperText, Stack, TextField, Typography, useMediaQuery, useTheme, Tabs, Tab } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from "react-hook-form"
 import { useDispatch, useSelector } from 'react-redux'
 import { LoadingButton } from '@mui/lab';
@@ -16,16 +16,18 @@ export const Login = () => {
   const loggedInUser = useSelector(selectLoggedInUser)
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
   const theme = useTheme()
   const is480 = useMediaQuery(theme.breakpoints.down(480))
   
   useEffect(() => {
     if (loggedInUser && loggedInUser?.isVerified === true) {
-      navigate("/")
+      navigate(redirect)          
     } else if (loggedInUser && loggedInUser?.isVerified === false) {
       navigate("/verify-otp")
     }
-  }, [loggedInUser, navigate])
+  }, [loggedInUser, navigate, redirect])
 
   // Handles login error toast
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { CartItem } from './CartItem'
-import { Button, Chip, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { Button, Chip, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { resetCartItemRemoveStatus, selectCartItemRemoveStatus, selectCartItems } from '../CartSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'

@@ -19,6 +19,10 @@ exports.getAll = async (req, res) => {
         let skip=0
         let limit=0
 
+        if(req.query.search){
+            filter.title={$regex:req.query.search,$options:'i'}
+        }
+
         if(req.query.brand){
             filter.brand={$in:req.query.brand}
         }

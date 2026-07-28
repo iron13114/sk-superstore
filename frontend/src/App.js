@@ -8,7 +8,7 @@ import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUse
 import { AddProductPage, AdminOrdersPage, CartPage, CheckoutPage, ForgotPasswordPage, HomePage, LoginPage, OrderSuccessPage, OtpVerificationPage, ProductDetailsPage, ProductUpdatePage, ResetPasswordPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage } from './pages';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-
+import { CircularProgress, Box } from '@mui/material'; 
 
 function App() {
 
@@ -73,7 +73,13 @@ function App() {
       </>
     )
   )
-  return isAuthChecked ? <RouterProvider router={routes}/> : "";
+    return isAuthChecked ? (
+      <RouterProvider router={routes} />
+    ) : (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
 }
 
 export default App;

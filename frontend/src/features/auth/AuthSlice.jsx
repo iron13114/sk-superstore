@@ -213,17 +213,14 @@ const authSlice=createSlice({
             .addCase(checkAuthAsync.pending,(state)=>{
                 state.status='pending'
             })
-            .addCase(checkAuthAsync.fulfilled,(state,action)=>{
-                state.status='fullfilled'
-                state.loggedInUser=action.payload
-                state.isAuthChecked=true
+            .addCase(checkAuthAsync.fulfilled, (state, action) => {
+                state.isAuthChecked = true;
+                state.loggedInUser = action.payload;
             })
-            .addCase(checkAuthAsync.rejected,(state,action)=>{
-                state.status='rejected'
-                state.errors=action.error
-                state.isAuthChecked=true
-            })
-            
+            .addCase(checkAuthAsync.rejected, (state, action) => {
+                state.isAuthChecked = true; 
+                state.loggedInUser = null;
+            });
     }
 })
 

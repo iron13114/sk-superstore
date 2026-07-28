@@ -23,7 +23,7 @@ import { motion } from 'framer-motion'
 import { ProductBanner } from './ProductBanner'
 import ClearIcon from '@mui/icons-material/Clear';
 import Lottie from 'lottie-react'
-
+import { useSearchParams } from 'react-router-dom'
 
 const sortOptions=[
     {name:"Price: low to high",sort:"price",order:"asc"},
@@ -54,7 +54,8 @@ export const ProductList = () => {
     const wishlistItems=useSelector(selectWishlistItems)
     const wishlistItemAddStatus=useSelector(selectWishlistItemAddStatus)
     const wishlistItemDeleteStatus=useSelector(selectWishlistItemDeleteStatus)
-
+    const [searchParams] = useSearchParams()
+    const searchQuery = searchParams.get('search')
     const cartItemAddStatus=useSelector(selectCartItemAddStatus)
 
     const isProductFilterOpen=useSelector(selectProductIsFilterOpen)
@@ -115,13 +116,17 @@ export const ProductList = () => {
         finalFilters['pagination']={page:page,limit:ITEMS_PER_PAGE}
         finalFilters['sort']=sort
 
+        if(searchQuery){
+            finalFilters['search']=searchQuery
+        }
+
         if(!loggedInUser?.isAdmin){
             finalFilters['user']=true
         }
 
         dispatch(fetchProductsAsync(finalFilters))
         
-    },[filters,page,sort])
+    },[filters,page,sort,searchQuery])  
 
 
     const handleAddRemoveFromWishlist=(e,productId)=>{

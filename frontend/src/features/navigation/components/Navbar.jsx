@@ -7,12 +7,15 @@ import Menu from '@mui/material/Menu';
 import Avatar from '@mui/material/Avatar';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
 import logo from "../../../assets/images/logo.jpeg";
 import { Link, useNavigate } from 'react-router-dom';
 import { Badge, Button, Chip, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUserInfo } from '../../user/UserSlice';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 import { selectCartItems } from '../../cart/CartSlice';
 import { selectLoggedInUser } from '../../auth/AuthSlice';
 import { selectWishlistItems } from '../../wishlist/WishlistSlice';
@@ -23,8 +26,10 @@ import { Box } from '@mui/material';
 
 
 export const Navbar=({isProductList=false})=> {
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchCategory, setSearchCategory] = React.useState('all');
+  
   const userInfo=useSelector(selectUserInfo)
   const cartItems=useSelector(selectCartItems)
   const loggedInUser=useSelector(selectLoggedInUser)
@@ -48,6 +53,16 @@ export const Navbar=({isProductList=false})=> {
     dispatch(toggleFilters())
   }
 
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
   const settings = [
     {name:"Home",to:"/"},
     {name:'Profile',to:loggedInUser?.isAdmin?"/admin/profile":"/profile"},
@@ -59,7 +74,7 @@ export const Navbar=({isProductList=false})=> {
     <AppBar position="sticky" sx={{backgroundColor:"white",boxShadow:"none",color:"text.primary"}}>
       <Toolbar sx={{ p: 1, height: "4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
 
-        {/* LEFT SIDE: Filter Icon (Yellow Circle area) + Logo */}
+        {/* LEFT SIDE: Filter Icon + Logo */}
         <Stack flexDirection={'row'} alignItems={'center'} columnGap={1}>
           {
             isProductList && (
@@ -82,6 +97,65 @@ export const Navbar=({isProductList=false})=> {
               }}
             />
           </Box>
+        </Stack>
+
+        {/* CENTER: Search Bar */}
+        <Stack 
+          flexDirection="row" 
+          alignItems="center" 
+          sx={{ 
+            flex: 1, 
+            maxWidth: 600, 
+            mx: { xs: 1, sm: 2, md: 4 },
+            display: { xs: 'none', sm: 'flex' } 
+          }}
+        >
+          <Select
+            value={searchCategory}
+            onChange={(e) => setSearchCategory(e.target.value)}
+            size="small"
+            sx={{
+              bgcolor: '#f3f3f3',
+              borderRadius: '4px 0 0 4px',
+              height: 40,
+              '& .MuiOutlinedInput-notchedOutline': { borderRight: 'none', borderColor: '#cdcdcd' },
+              '& .MuiSelect-select': { py: 0.5, px: 1.5, fontSize: '0.85rem' },
+            }}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="products">Products</MenuItem>
+            <MenuItem value="brands">Brands</MenuItem>
+          </Select>
+          
+          <TextField
+            size="small"
+            placeholder="Search SKSuperStore"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            sx={{
+              flex: 1,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 0,
+                bgcolor: 'white',
+                height: 40,
+                '& fieldset': { borderColor: '#cdcdcd' },
+              },
+            }}
+          />
+          
+          <IconButton
+            onClick={handleSearch}
+            sx={{
+              bgcolor: '#febd69',
+              borderRadius: '0 4px 4px 0',
+              height: 40,
+              width: 45,
+              '&:hover': { bgcolor: '#f3a847' },
+            }}
+          >
+            <SearchIcon sx={{ color: '#131921' }} />
+          </IconButton>
         </Stack>
 
         {/* RIGHT SIDE: Profile, Greetings, Cart, and Wishlist */}

@@ -12,6 +12,9 @@ export const fetchProducts=async(filters)=>{
 
     let queryString=''
 
+    if(filters.search){
+        queryString+=`search=${encodeURIComponent(filters.search)}&`
+    }
     if(filters.brand){
         filters.brand.map((brand)=>{
             queryString+=`brand=${brand}&`

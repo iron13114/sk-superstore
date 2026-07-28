@@ -11,7 +11,6 @@ import { toast } from 'react-toastify'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {motion} from 'framer-motion'
 
-
 export const UserOrders = () => {
 
     const dispatch=useDispatch()
@@ -102,7 +101,7 @@ export const UserOrders = () => {
 
                         {/* orders mapping */}
                         {
-                            orders && orders.map((order)=>(
+                            orders && [...orders].reverse().map((order) => (
                                 <Stack p={is480?0:2} component={is480?"":Paper} elevation={1} rowGap={2}>
                                     
                                     {/* upper */}

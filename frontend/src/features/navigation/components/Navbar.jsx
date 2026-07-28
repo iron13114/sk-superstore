@@ -11,7 +11,7 @@ import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import logo from "../../../assets/images/logo.jpeg";
 import { Link, useNavigate } from 'react-router-dom';
-import { Badge, Button, Chip, Stack, useMediaQuery, useTheme } from '@mui/material';
+import { Badge, Button, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUserInfo } from '../../user/UserSlice';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';

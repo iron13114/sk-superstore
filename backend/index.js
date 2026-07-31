@@ -35,7 +35,6 @@ const allowedOrigins = [
     'https://sk-superstore-g6pv1bfvh-priyanshu-prince-s-projects.vercel.app' 
 ];
 
-// CORS - ONLY ONCE
 server.use(cors({
     origin: function(origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {

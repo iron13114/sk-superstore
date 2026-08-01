@@ -20,10 +20,11 @@ import {toast} from 'react-toastify'
 import {loadingAnimation} from '../../../assets'
 import { resetCartItemAddStatus, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { motion } from 'framer-motion'
-import { ProductBanner } from './ProductBanner'
 import ClearIcon from '@mui/icons-material/Clear';
 import Lottie from 'lottie-react'
 import { useSearchParams } from 'react-router-dom'
+import { fetchAllBrandsAsync } from '../../brands/BrandSlice'
+import { fetchAllCategoriesAsync } from '../../categories/CategoriesSlice'
 
 const sortOptions=[
     {name:"Price: low to high",sort:"price",order:"asc"},
@@ -36,8 +37,6 @@ export const ProductList = () => {
     const [sort,setSort]=useState(null)
     const theme=useTheme()
 
-    const is1200=useMediaQuery(theme.breakpoints.down(1200))
-    const is800=useMediaQuery(theme.breakpoints.down(800))
     const is700=useMediaQuery(theme.breakpoints.down(700))
     const is600=useMediaQuery(theme.breakpoints.down(600))
     const is500=useMediaQuery(theme.breakpoints.down(500))
@@ -109,6 +108,10 @@ export const ProductList = () => {
         setPage(1)
     },[totalResults])
 
+    useEffect(() => {
+    dispatch(fetchAllBrandsAsync())
+    dispatch(fetchAllCategoriesAsync())
+    }, [dispatch])
 
     useEffect(()=>{
         const finalFilters={...filters}

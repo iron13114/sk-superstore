@@ -17,7 +17,7 @@ const brands = [
 
 exports.seedBrand = async () => {
   try {
-    await Brand.insertMany(brands);
+    await Brand.insertMany(brands,{ordered: false});
     console.log('Brand seeded successfully');
   } catch(error){
     console.log(error);

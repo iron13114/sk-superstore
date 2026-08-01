@@ -23,7 +23,7 @@ const reviews = [
 
 exports.seedReview = async () => {
   try {
-    await Review.insertMany(reviews);
+    await Review.insertMany(reviews,{ordered: false});
     console.log("Review seeded successfully");
   } catch (error) {
     console.log(error);

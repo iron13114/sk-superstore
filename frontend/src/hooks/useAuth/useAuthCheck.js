@@ -3,10 +3,14 @@ import { checkAuthAsync } from '../../features/auth/AuthSlice'
 import { useDispatch } from 'react-redux'
 
 export const useAuthCheck = () => {
+  const dispatch = useDispatch();
 
-    const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(checkAuthAsync());
+    
+    const timeout = setTimeout(() => {
+    }, 5000);
 
-    useEffect(()=>{
-        dispatch(checkAuthAsync())
-      },[dispatch])
-}
+    return () => clearTimeout(timeout);
+  }, [dispatch]);
+};

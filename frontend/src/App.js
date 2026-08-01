@@ -8,17 +8,24 @@ import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUse
 import { AddProductPage, AdminOrdersPage, CartPage, CheckoutPage, ForgotPasswordPage, HomePage, LoginPage, OrderSuccessPage, OtpVerificationPage, ProductDetailsPage, ProductUpdatePage, ResetPasswordPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage } from './pages';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { CircularProgress, Box } from '@mui/material'; 
-
+import { CircularProgress, Stack, Typography } from '@mui/material'; 
+import { useEffect, useState } from 'react';
 function App() {
 
   const isAuthChecked=useSelector(selectIsAuthChecked)
   const loggedInUser=useSelector(selectLoggedInUser)
 
-
   useAuthCheck();
   useFetchLoggedInUserDetails(loggedInUser);
 
+  const [authTimeout, setAuthTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAuthTimeout(true), 8000); 
+    return () => clearTimeout(timer);
+  }, []);
+  
+  const ready = isAuthChecked || authTimeout;
 
   const routes = createBrowserRouter(
     createRoutesFromElements(
@@ -73,13 +80,12 @@ function App() {
       </>
     )
   )
-    return isAuthChecked ? (
-      <RouterProvider router={routes} />
-    ) : (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <CircularProgress />
-      </Box>
-    );
+    return ready ? <RouterProvider router={routes} /> : (
+    <Stack height="100vh" justifyContent="center" alignItems="center">
+      <CircularProgress />
+      <Typography mt={2} color="text.secondary">Waking up server...</Typography>
+    </Stack>
+  );
 }
 
 export default App;

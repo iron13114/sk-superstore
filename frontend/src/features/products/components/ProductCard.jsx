@@ -1,5 +1,5 @@
 import { FormHelperText, Paper, Stack, Typography, useMediaQuery, useTheme} from '@mui/material'
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import Favorite from '@mui/icons-material/Favorite';
@@ -11,15 +11,13 @@ import { addToCartAsync,selectCartItems } from '../../cart/CartSlice';
 import {motion} from 'framer-motion'
 
 export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handleAddRemoveFromWishlist,isWishlistCard,isAdminCard}) => {
-
-
+    
     const navigate=useNavigate()
     const wishlistItems=useSelector(selectWishlistItems)
     const loggedInUser=useSelector(selectLoggedInUser)
     const cartItems=useSelector(selectCartItems)
     const dispatch=useDispatch()
     let isProductAlreadyinWishlist=-1
-
 
     const theme=useTheme()
     const is1410=useMediaQuery(theme.breakpoints.down(1410))
@@ -36,12 +34,21 @@ export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handle
     const isProductAlreadyInCart = cartItems.some(
         (item) => item.product?._id === id
     )
-    const handleAddToCart=async(e)=>{
-        e.stopPropagation()
-        const data={user:loggedInUser?._id,product:id}
-        dispatch(addToCartAsync(data))
+    const handleAddToCart = async (e) => {
+        e.stopPropagation();
+        const data = {
+            product: {
+                _id: id,
+                title,
+                price,
+                thumbnail,
+                brand: typeof brand === 'string' ? { name: brand } : brand,
+                category: { name: 'General' } 
+            },
+            quantity: 1
+        }
+        dispatch(addToCartAsync(data));
     }
-
 
   return (
     <>

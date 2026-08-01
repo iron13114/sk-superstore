@@ -71,6 +71,23 @@ const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
     console.log(`server [STARTED] ~ port ${PORT}`);
 });
+// Remove this line after seeding 
+server.get("/seed", async (req, res) => {
+    try {
+        await seedUser();
+        await seedBrand();
+        await seedCategory();
+        await seedProduct();
+        await seedAddress();
+        await seedCart();
+        await seedOrder();
+        await seedReview();
+        await seedWishlist();
+        res.json({ message: "Seeded successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 connectToDB().then(() => {
     console.log("DB connected, starting seeds...");

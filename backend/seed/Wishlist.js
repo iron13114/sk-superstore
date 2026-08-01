@@ -11,7 +11,7 @@ const wishlistItems = [
 
 exports.seedWishlist = async () => {
   try {
-    await Wishlist.insertMany(wishlistItem);
+    await Wishlist.insertMany(wishlistItem,{ordered: false});
     console.log("Wishlist seeded successfully");
   } catch (error) {
     console.log(error);

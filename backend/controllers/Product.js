@@ -32,7 +32,7 @@ exports.getAll = async (req, res) => {
         }
 
         if(req.query.user){
-            filter['isDeleted']=false
+            filter['isDeleted']={$ne:true}
         }
 
         if(req.query.sort){

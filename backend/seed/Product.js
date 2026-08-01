@@ -31,7 +31,7 @@ const products = [
 
 exports.seedProduct = async () => {
   try {
-    await Product.insertMany(products);
+    await Product.insertMany(products,{ordered: false});
     console.log("Product seeded successfully");
   } catch (error) {
     console.log(error);

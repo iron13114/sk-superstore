@@ -23,7 +23,7 @@ const users = [
 
 exports.seedUser = async () => {
   try {
-    await User.insertMany(users);
+    await User.insertMany(users,{ordered: false});
     console.log("User seeded successfully");
   } catch (error) {
     console.log(error);

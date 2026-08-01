@@ -29,7 +29,7 @@ const addresses = [
 
 exports.seedAddress = async () => {
   try {
-    await Address.insertMany(addresses);
+    await Address.insertMany(addresses,{ordered: false});
     console.log("Address seeded successfully");
   } catch (error) {
     console.log(error);

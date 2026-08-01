@@ -43,7 +43,7 @@ const orders = [
 
 exports.seedOrder = async () => {
   try {
-    await Order.insertMany(orders);
+    await Order.insertMany(orders,{ordered: false});
     console.log("Order seeded successfully");
   } catch (error) { console.log(error); }
 };

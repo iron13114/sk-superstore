@@ -11,7 +11,7 @@ const cartItems = [
 
 exports.seedCart = async () => {
   try {
-    await Cart.insertMany(cartItems);
+    await Cart.insertMany(cartItems,{ordered: false});
     console.log("Cart seeded successfully");
   } catch (error) { console.log(error); }
 };

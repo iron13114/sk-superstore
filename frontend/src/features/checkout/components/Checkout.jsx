@@ -19,11 +19,13 @@ export const Checkout = () => {
 
     const status = ''
     const addresses = useSelector(selectAddresses)
-    const [selectedAddress, setSelectedAddress] = useState(addresses[0])
+    const [selectedAddress, setSelectedAddress] = useState(null)
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
-    const { register, handleSubmit, watch, reset, formState: { errors } } = useForm()
+    const { register, handleSubmit, reset, formState: { errors } } = useForm()
     const dispatch = useDispatch()
     const loggedInUser = useSelector(selectLoggedInUser)
+    const [guestAddresses, setGuestAddresses] = useState([]);
+    const allAddresses = loggedInUser ? addresses : guestAddresses;
     const addressStatus = useSelector(selectAddressStatus)
     const navigate = useNavigate()
     const cartItems = useSelector(selectCartItems)
@@ -48,10 +50,29 @@ export const Checkout = () => {
             navigate(`/order-success/${currentOrder?._id}`)
         }
     }, [currentOrder])
-    
+    // Auto selects Address
+    useEffect(() => {
+    if (allAddresses.length > 0 && !selectedAddress) {
+        setSelectedAddress(allAddresses[0]);
+    }
+    }, [allAddresses]);
+
     const handleAddAddress = (data) => {
-        const address = { ...data, user: loggedInUser?._id }
-        dispatch(addAddressAsync(address))
+        if (!loggedInUser) {
+            const newAddress = { 
+                ...data, 
+                _id: 'guest_' + Date.now(),
+                type: data.type || 'Home'
+            };
+            setGuestAddresses(prev => [...prev, newAddress]);
+            setSelectedAddress(newAddress); // Auto-select the newly added address
+            reset();
+            toast.success("Address added for checkout");
+            return;
+        }
+        
+        const address = { ...data, user: loggedInUser._id };
+        dispatch(addAddressAsync(address));
     }
 
     const handleCreateOrder = () => {
@@ -158,15 +179,18 @@ export const Checkout = () => {
                     </Stack>
 
                     <Grid container gap={2} width={is900 ? "auto" : '50rem'} justifyContent={'flex-start'} alignContent={'flex-start'}>
-                        {addresses.map((address, index) => (
+                        {allAddresses.map((address, index) => (
                             <FormControl item key={address._id || index}>
-                                <Stack p={is480 ? 2 : 2} width={is480 ? '100%' : '20rem'} height={is480 ? 'auto' : '15rem'} rowGap={2} component={Paper} elevation={1}>
+                                <Stack p={is480 ? 2 : 2} width={is480 ? '100%' : '20rem'}>
                                     <Stack flexDirection={'row'} alignItems={'center'}>
-                                        <Radio checked={selectedAddress === address} name='addressRadioGroup' onChange={() => setSelectedAddress(addresses[index])} />
+                                        <Radio 
+                                            checked={selectedAddress?._id === address._id} 
+                                            name='addressRadioGroup' 
+                                            onChange={() => setSelectedAddress(address)}
+                                        />
                                         <Typography>{address.type}</Typography>
                                     </Stack>
-
-                                    {/* Details */}
+                                    {/* details */}
                                     <Stack>
                                         <Typography>{address.street}</Typography>
                                         <Typography>{address.state}, {address.city}, {address.country}, {address.postalCode}</Typography>

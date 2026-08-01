@@ -71,7 +71,6 @@ export const ProductDetails = () => {
         }
     }, [cartItemAddStatus])
 
-    // Dynamic Wholesale Multi-Add Action Handler
     const handleAddWholeSaleToCart = () => {
         const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);
         
@@ -79,19 +78,16 @@ export const ProductDetails = () => {
             toast.info("Please select a quantity for at least one tier option.");
             return;
         }
-
-        // Loops through and dispatches all selected variations (single, pack, carton)
         selectedTiers.forEach(([tier, qty]) => {
             const wholesaleItem = {
-                user: loggedInUser._id,
-                product: id,
+                user: loggedInUser?._id,        
+                product: product,                
                 quantity: qty,
-                packagingTier: tier // Passes the item variation grouping metadata cleanly
+                packagingTier: tier
             };
             dispatch(addToCartAsync(wholesaleItem));
         });
 
-        // Reset inputs back down to zero safely
         setQuantities({ single: 0, pack: 0, carton: 0 });
     }
 

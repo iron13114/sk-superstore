@@ -28,7 +28,7 @@ export const Wishlist = () => {
 
   const [editIndex,setEditIndex]=useState(-1)
   const [editValue,setEditValue]=useState('')
-  const {register,handleSubmit,watch,formState: { errors }} = useForm()
+  const {formState: { errors }} = useForm()
 
   const theme=useTheme()
   const is1130=useMediaQuery(theme.breakpoints.down(1130))

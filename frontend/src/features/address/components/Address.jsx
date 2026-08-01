@@ -9,9 +9,8 @@ export const Address = ({id,type,street,postalCode,country,phoneNumber,state,cit
 
     const theme=useTheme()
     const dispatch=useDispatch()
-    const {register,handleSubmit,watch,reset,formState: { errors }} = useForm()
+    const {register,handleSubmit,reset,formState: { errors }} = useForm()
     const [edit,setEdit]=useState(false)
-    const [open, setOpen] = useState(false);
     const status=useSelector(selectAddressStatus)
     const error=useSelector(selectAddressErrors)
     
@@ -113,7 +112,6 @@ export const Address = ({id,type,street,postalCode,country,phoneNumber,state,cit
                 }
             </Stack>
         </Stack>
-
     </Stack>
   )
 }

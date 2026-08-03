@@ -34,7 +34,7 @@ const sortOptions=[
 export const ProductList = () => {
     const [filters,setFilters]=useState({})
     const [page,setPage]=useState(1)
-    const [sort,setSort]=useState(null)
+    const [sort,setSort]=useState("")
     const theme=useTheme()
 
     const is700=useMediaQuery(theme.breakpoints.down(700))
@@ -297,7 +297,7 @@ export const ProductList = () => {
                             <FormControl fullWidth>
                                     <InputLabel id="sort-dropdown">Sort</InputLabel>
                                     <Select
-                                        variant='standard'
+                                        variant='standard' 
                                         labelId="sort-dropdown"
                                         label="Sort"
                                         onChange={(e)=>setSort(e.target.value)}
@@ -306,7 +306,7 @@ export const ProductList = () => {
                                         <MenuItem bgcolor='text.secondary' value={null}>Reset</MenuItem>
                                         {
                                             sortOptions.map((option)=>(
-                                                <MenuItem key={option} value={option}>{option.name}</MenuItem>
+                                                <MenuItem key={option.name} value={option.name}>{option.name}</MenuItem>
                                             ))
                                         }
                                     </Select>

@@ -19,8 +19,7 @@ export const Footer = () => {
     }
 
     return (
-        <Stack sx={{ backgroundColor: theme.palette.primary.main, paddingTop: "3rem", paddingLeft: is700 ? "1rem" : "3rem", paddingRight: is700 ? "1rem" : "3rem", paddingBottom: "1.5rem", rowGap: "5rem", color: theme.palette.primary.light, justifyContent: "space-around" }}>
-
+        <Stack sx={{ backgroundColor: '#000000', paddingTop: "3rem", paddingLeft: is700 ? "1rem" : "3rem", paddingRight: is700 ? "1rem" : "3rem", paddingBottom: "1.5rem", rowGap: "5rem", color: '#e5e7eb', justifyContent: "space-around" }}>
             {/* upper */}
             <Stack flexDirection={'row'} rowGap={'1rem'} justifyContent={is700 ? "" : 'space-around'} flexWrap={'wrap'}>
 

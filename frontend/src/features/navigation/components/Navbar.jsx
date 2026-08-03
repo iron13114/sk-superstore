@@ -1,45 +1,74 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
-import logo from "../../../assets/images/logo.jpeg";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Badge, Button, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUserInfo } from '../../user/UserSlice';
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import SearchIcon from '@mui/icons-material/Search';
 import { selectCartItems } from '../../cart/CartSlice';
 import { selectLoggedInUser } from '../../auth/AuthSlice';
 import { selectWishlistItems } from '../../wishlist/WishlistSlice';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import TuneIcon from '@mui/icons-material/Tune';
 import { selectProductIsFilterOpen, toggleFilters } from '../../products/ProductSlice';
-import { Box } from '@mui/material';
+import logo from "../../../assets/images/logo.jpeg";
 
+// Responsive hook that tracks multiple breakpoints
+const useResponsive = () => {
+  const [breakpoint, setBreakpoint] = useState(() => {
+    const width = window.innerWidth;
+    if (width < 480) return 'xs';
+    if (width < 640) return 'sm';
+    if (width < 768) return 'md';
+    if (width < 1024) return 'lg';
+    return 'xl';
+  });
 
-export const Navbar=({isProductList=false})=> {
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [searchCategory, setSearchCategory] = React.useState('all');
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 480) setBreakpoint('xs');
+      else if (width < 640) setBreakpoint('sm');
+      else if (width < 768) setBreakpoint('md');
+      else if (width < 1024) setBreakpoint('lg');
+      else setBreakpoint('xl');
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return breakpoint;
+};
+
+const useClickOutside = (ref, handler) => {
+  useEffect(() => {
+    const listener = (event) => {
+      if (!ref.current || ref.current.contains(event.target)) return;
+      handler();
+    };
+    document.addEventListener('mousedown', listener);
+    return () => document.removeEventListener('mousedown', listener);
+  }, [ref, handler]);
+};
+
+export const Navbar = ({ isProductList = false }) => {
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchCategory, setSearchCategory] = useState('all');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   
-  const userInfo=useSelector(selectUserInfo)
-  const cartItems=useSelector(selectCartItems)
-  const loggedInUser=useSelector(selectLoggedInUser)
-  const navigate=useNavigate()
-  const dispatch=useDispatch()
-  const theme=useTheme()
-  const is480=useMediaQuery(theme.breakpoints.down(480))
+  const userInfo = useSelector(selectUserInfo);
+  const cartItems = useSelector(selectCartItems);
+  const loggedInUser = useSelector(selectLoggedInUser);
+  const wishlistItems = useSelector(selectWishlistItems);
+  const isProductFilterOpen = useSelector(selectProductIsFilterOpen);
+  
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const menuRef = useRef(null);
+  const breakpoint = useResponsive();
+  
+  const isMobile = breakpoint === 'xs' || breakpoint === 'sm';
+  const isTablet = breakpoint === 'md';
+  const isDesktop = breakpoint === 'lg' || breakpoint === 'xl';
 
-  const wishlistItems=useSelector(selectWishlistItems)
-  const isProductFilterOpen=useSelector(selectProductIsFilterOpen)
+  useClickOutside(menuRef, () => setAnchorElUser(null));
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
@@ -49,183 +78,416 @@ export const Navbar=({isProductList=false})=> {
     setAnchorElUser(null);
   };
 
-  const handleToggleFilters=()=>{
-    dispatch(toggleFilters())
-  }
+  const handleToggleFilters = () => {
+    dispatch(toggleFilters());
+  };
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery)}`);
+      setMobileSearchOpen(false);
     }
-  };
+  }, [searchQuery, navigate]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSearch();
   };
 
   const settings = [
-    {name:"Home",to:"/"},
-    {name:'Profile',to:loggedInUser?.isAdmin?"/admin/profile":"/profile"},
-    {name:loggedInUser?.isAdmin?'Orders':'My orders',to:loggedInUser?.isAdmin?"/admin/orders":"/orders"},
-    {name:'Logout',to:"/logout"},
+    { name: "Home", to: "/" },
+    { name: 'Profile', to: loggedInUser?.isAdmin ? "/admin/profile" : "/profile" },
+    { name: loggedInUser?.isAdmin ? 'Orders' : 'My orders', to: loggedInUser?.isAdmin ? "/admin/orders" : "/orders" },
+    { name: 'Logout', to: "/logout" },
   ];
 
+  // Dynamic styles based on screen size
+  const getNavStyles = () => ({
+    position: 'sticky',
+    top: 0,
+    zIndex: 50,
+    backgroundColor: '#ffffff',
+    color: '#111827',
+    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    borderBottom: '1px solid #f3f4f6',
+  });
+
+  const getContainerStyles = () => ({
+    maxWidth: '1280px',
+    margin: '0 auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: isMobile ? '56px' : '64px',
+    padding: isMobile ? '0 12px' : isTablet ? '0 16px' : '0 24px',
+    gap: isMobile ? '8px' : '16px',
+  });
+
+  const getLeftSectionStyles = () => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexShrink: 0,
+  });
+
+  const getFilterBtnStyles = () => ({
+    padding: '6px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    borderRadius: '50%',
+    transition: 'background-color 0.2s',
+  });
+
+  const getLogoStyles = () => ({
+    display: 'flex',
+    alignItems: 'center',
+    textDecoration: 'none',
+    flexShrink: 0,
+  });
+
+  const getLogoImgStyles = () => ({
+    height: isMobile ? '32px' : '40px',
+    width: 'auto',
+    maxHeight: isMobile ? '32px' : '40px',
+    objectFit: 'contain',
+  });
+
+  const getSearchContainerStyles = () => ({
+    display: isMobile && !mobileSearchOpen ? 'none' : 'flex',
+    flex: 1,
+    maxWidth: isMobile ? '100%' : '600px',
+    minWidth: 0,
+    alignItems: 'center',
+    margin: isMobile ? '0' : '0 16px',
+    position: isMobile ? 'absolute' : 'relative',
+    top: isMobile ? '56px' : 'auto',
+    left: isMobile ? 0 : 'auto',
+    right: isMobile ? 0 : 'auto',
+    padding: isMobile ? '8px 12px' : '0',
+    backgroundColor: isMobile ? '#ffffff' : 'transparent',
+    borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
+    boxShadow: isMobile ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
+  });
+
+  const getSelectStyles = () => ({
+    height: '36px',
+    padding: '0 8px',
+    fontSize: '14px',
+    backgroundColor: '#f3f3f3',
+    border: '1px solid #cdcdcd',
+    borderRight: 'none',
+    borderRadius: '4px 0 0 4px',
+    cursor: 'pointer',
+    outline: 'none',
+    whiteSpace: 'nowrap',
+  });
+
+  const getInputStyles = () => ({
+    flex: 1,
+    height: '36px',
+    padding: '0 12px',
+    fontSize: '14px',
+    backgroundColor: '#ffffff',
+    border: '1px solid #cdcdcd',
+    borderLeft: 'none',
+    borderRight: 'none',
+    outline: 'none',
+    minWidth: 0,
+  });
+
+  const getSearchBtnStyles = () => ({
+    height: '36px',
+    width: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#febd69',
+    border: 'none',
+    borderRadius: '0 4px 4px 0',
+    cursor: 'pointer',
+    flexShrink: 0,
+  });
+
+  const getRightSectionStyles = () => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: isMobile ? '8px' : '12px',
+    flexShrink: 0,
+  });
+
+  const getAvatarStyles = () => ({
+    width: isMobile ? '32px' : '36px',
+    height: isMobile ? '32px' : '36px',
+    borderRadius: '50%',
+    backgroundColor: '#e5e7eb',
+    color: '#374151',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 500,
+    fontSize: '14px',
+    border: 'none',
+    cursor: 'pointer',
+  });
+
+  const getGreetingStyles = () => ({
+    fontSize: isMobile ? '12px' : '14px',
+    fontWeight: 300,
+    whiteSpace: 'nowrap',
+    maxWidth: isMobile ? '80px' : '200px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  });
+
+  const getDropdownStyles = () => ({
+    position: 'absolute',
+    right: 0,
+    top: '100%',
+    marginTop: '8px',
+    width: '192px',
+    backgroundColor: '#ffffff',
+    borderRadius: '6px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    padding: '4px 0',
+    zIndex: 50,
+    border: '1px solid #e5e7eb',
+  });
+
+  const getLinkStyles = () => ({
+    display: 'block',
+    padding: '8px 16px',
+    fontSize: '14px',
+    color: '#374151',
+    textDecoration: 'none',
+    transition: 'background-color 0.15s',
+  });
+
+  const getLoginBtnStyles = () => ({
+    padding: '6px 12px',
+    fontSize: '14px',
+    border: '1px solid #d1d5db',
+    borderRadius: '4px',
+    textDecoration: 'none',
+    color: '#111827',
+    fontWeight: 500,
+    whiteSpace: 'nowrap',
+  });
+
+  const getAdminBadgeStyles = () => ({
+    padding: '6px 12px',
+    fontSize: '14px',
+    backgroundColor: '#000000',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  });
+
+  const getIconBtnStyles = () => ({
+    position: 'relative',
+    padding: '6px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    display: 'inline-flex',
+  });
+
+  const getBadgeStyles = () => ({
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    borderRadius: '50%',
+    height: '18px',
+    width: '18px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  });
+
+  const getMobileSearchToggleStyles = () => ({
+    padding: '6px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    display: isDesktop ? 'none' : 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  });
+
   return (
-    <AppBar position="sticky" sx={{backgroundColor:"white",boxShadow:"none",color:"text.primary"}}>
-      <Toolbar sx={{ p: 1, height: "4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-
-        {/* LEFT SIDE: Filter Icon + Logo */}
-        <Stack flexDirection={'row'} alignItems={'center'} columnGap={1}>
-          {
-            isProductList && (
-              <IconButton onClick={handleToggleFilters}>
-                <TuneIcon sx={{ color: isProductFilterOpen ? "black" : "" }} />
-              </IconButton>
-            )
-          }
+    <>
+      <header style={getNavStyles()}>
+        <nav style={getContainerStyles()}>
           
-          <Box component="a" href="/" sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-            }}
-          >
-            <Box component="img" src={logo} alt="SK Superstore" sx={{
-                height: 55,
-                width: 'auto',
-                objectFit: 'contain',
-              }}
-            />
-          </Box>
-        </Stack>
-
-        {/* CENTER: Search Bar */}
-        <Stack 
-          flexDirection="row" 
-          alignItems="center" 
-          sx={{ 
-            flex: 1, 
-            maxWidth: 600, 
-            mx: { xs: 1, sm: 2, md: 4 },
-            display: { xs: 'none', sm: 'flex' } 
-          }}
-        >
-          <Select
-            value={searchCategory}
-            onChange={(e) => setSearchCategory(e.target.value)}
-            size="small"
-            sx={{
-              bgcolor: '#f3f3f3',
-              borderRadius: '4px 0 0 4px',
-              height: 40,
-              '& .MuiOutlinedInput-notchedOutline': { borderRight: 'none', borderColor: '#cdcdcd' },
-              '& .MuiSelect-select': { py: 0.5, px: 1.5, fontSize: '0.85rem' },
-            }}
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="products">Products</MenuItem>
-            <MenuItem value="brands">Brands</MenuItem>
-          </Select>
-          
-          <TextField
-            size="small"
-            placeholder="Search SKSuperStore"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            sx={{
-              flex: 1,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 0,
-                bgcolor: 'white',
-                height: 40,
-                '& fieldset': { borderColor: '#cdcdcd' },
-              },
-            }}
-          />
-          
-          <IconButton
-            onClick={handleSearch}
-            sx={{
-              bgcolor: '#febd69',
-              borderRadius: '0 4px 4px 0',
-              height: 40,
-              width: 45,
-              '&:hover': { bgcolor: '#f3a847' },
-            }}
-          >
-            <SearchIcon sx={{ color: '#131921' }} />
-          </IconButton>
-        </Stack>
-
-        {/* RIGHT SIDE: Profile, Greetings, Cart, and Wishlist */}
-                {/* RIGHT SIDE: Profile, Greetings, Cart, and Wishlist */}
-        <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'center'} columnGap={2}>
-          
-          {loggedInUser ? (
-            <>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar alt={userInfo?.name} src="null" />
-                </IconButton>
-              </Tooltip>
-              
-              <Menu
-                sx={{ mt: '45px' }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                keepMounted
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
+          {/* LEFT: Filter + Logo */}
+          <div style={getLeftSectionStyles()}>
+            {isProductList && (
+              <button 
+                onClick={handleToggleFilters}
+                style={getFilterBtnStyles()}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                {
-                  loggedInUser?.isAdmin && 
-                  <MenuItem onClick={handleCloseUserMenu}>
-                    <Typography component={Link} color={'text.primary'} sx={{ textDecoration: "none" }} to="/admin/add-product" textAlign="center">Add new Product</Typography>
-                  </MenuItem>
-                }
-                {settings.map((setting) => (
-                  <MenuItem key={setting.name} onClick={handleCloseUserMenu}>
-                    <Typography component={Link} color={'text.primary'} sx={{ textDecoration: "none" }} to={setting.to} textAlign="center">{setting.name}</Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
-              
-              <Typography variant='h6' fontWeight={300}>
-                {is480 ? `${userInfo?.name?.toString().split(" ")[0]}` : `Hey👋, ${userInfo?.name}`}
-              </Typography>
-            </>
-          ) : (
-            <Button component={Link} to="/login" variant="outlined" size="small" sx={{ textTransform: 'none' }}>
-              Login
-            </Button>
-          )}
-          
-          {loggedInUser?.isAdmin && <Button variant='contained'>Admin</Button>}
-          
-          <Stack sx={{ flexDirection: "row", columnGap: "1rem", alignItems: "center", justifyContent: "center" }}>
-            {
-              cartItems?.length > 0 && 
-              <Badge badgeContent={cartItems.length} color='error'>
-                <IconButton onClick={() => navigate("/cart")}>
-                  <ShoppingCartOutlinedIcon />
-                </IconButton>
-              </Badge>
-            }
+                <svg 
+                  style={{ 
+                    width: '20px', 
+                    height: '20px', 
+                    color: isProductFilterOpen ? '#000000' : '#4b5563' 
+                  }} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </button>
+            )}
             
-            {
-              !loggedInUser?.isAdmin &&
-              <Stack>
-                <Badge badgeContent={wishlistItems?.length} color='error'>
-                  <IconButton component={Link} to={"/wishlist"}><FavoriteBorderIcon /></IconButton>
-                </Badge>
-              </Stack>
-            }
-          </Stack>
-        </Stack>
-      </Toolbar>
-    </AppBar>
+            <Link to="/" style={getLogoStyles()}>
+              <img src={logo} alt="SK Superstore" style={getLogoImgStyles()} />
+            </Link>
+          </div>
+
+          {/* CENTER: Search Bar */}
+          <div style={getSearchContainerStyles()}>
+            <select
+              value={searchCategory}
+              onChange={(e) => setSearchCategory(e.target.value)}
+              style={getSelectStyles()}
+            >
+              <option value="all">All</option>
+              <option value="products">Products</option>
+              <option value="brands">Brands</option>
+            </select>
+            
+            <input
+              type="text"
+              placeholder="Search SKSuperStore"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              style={getInputStyles()}
+            />
+            
+            <button onClick={handleSearch} style={getSearchBtnStyles()}>
+              <svg style={{ width: '20px', height: '20px', color: '#131921' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* RIGHT: Profile, Greetings, Cart, Wishlist */}
+          <div style={getRightSectionStyles()}>
+            
+            {/* Mobile search toggle */}
+            <button 
+              style={getMobileSearchToggleStyles()}
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            >
+              <svg style={{ width: '20px', height: '20px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+
+            {loggedInUser ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ position: 'relative' }} ref={menuRef}>
+                  <button 
+                    onClick={handleOpenUserMenu} 
+                    style={getAvatarStyles()}
+                    title="Open settings"
+                  >
+                    {userInfo?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </button>
+                  
+                  {anchorElUser && (
+                    <div style={getDropdownStyles()}>
+                      {loggedInUser?.isAdmin && (
+                        <Link 
+                          to="/admin/add-product" 
+                          onClick={handleCloseUserMenu}
+                          style={getLinkStyles()}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          Add new Product
+                        </Link>
+                      )}
+                      {settings.map((setting) => (
+                        <Link
+                          key={setting.name}
+                          to={setting.to}
+                          onClick={handleCloseUserMenu}
+                          style={getLinkStyles()}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          {setting.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <span style={getGreetingStyles()}>
+                  {isMobile ? `${userInfo?.name?.toString().split(" ")[0]}` : `Hey👋, ${userInfo?.name}`}
+                </span>
+              </div>
+            ) : (
+              <Link to="/login" style={getLoginBtnStyles()}>
+                Login
+              </Link>
+            )}
+            
+            {loggedInUser?.isAdmin && (
+              <button style={getAdminBadgeStyles()}>
+                Admin
+              </button>
+            )}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {cartItems?.length > 0 && (
+                <button 
+                  onClick={() => navigate("/cart")}
+                  style={getIconBtnStyles()}
+                >
+                  <svg style={{ width: '24px', height: '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span style={getBadgeStyles()}>
+                    {cartItems.length}
+                  </span>
+                </button>
+              )}
+              
+              {!loggedInUser?.isAdmin && (
+                <Link 
+                  to="/wishlist" 
+                  style={getIconBtnStyles()}
+                >
+                  <svg style={{ width: '24px', height: '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  {wishlistItems?.length > 0 && (
+                    <span style={getBadgeStyles()}>
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </Link>
+              )}
+            </div>
+          </div>
+        </nav>
+      </header>
+      
+      {/* Mobile search spacer */}
+      {isMobile && mobileSearchOpen && <div style={{ height: '52px' }} />}
+    </>
   );
-}
+};

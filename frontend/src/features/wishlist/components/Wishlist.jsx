@@ -209,8 +209,6 @@ export const Wishlist = () => {
                             cartItems.some((cartItem)=>cartItem.product._id===item.product._id)?
                             <Button sx={{mt:4}} size='small' variant='outlined' component={Link} to={'/cart'}>Already in cart</Button>:<Button sx={{mt:4}} size='small' onClick={()=>handleAddToCart(item.product._id)} variant='outlined'>Add To Cart</Button>
                           }
-                          
-                          
                         </Stack>
                       </Stack>
                     ))

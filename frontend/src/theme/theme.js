@@ -1,20 +1,15 @@
 import { createTheme } from "@mui/material/styles";
 
-export const theme = createTheme({
+export 
+const theme = createTheme({
   palette: {
     primary: {
-      main:"#000000",
-      light:"#ffffff",
-      dark:'#DB4444',
-      customBlack:"#191919"
-    },
-    secondary:{
-      main:"#background.paper"
+      main: '#000000',
+      light: '#374151',  
+      dark: '#000000',
+      contrastText: '#ffffff',
     },
   },
-
-  
-
   breakpoints: {
     values: {
       xs: 0,

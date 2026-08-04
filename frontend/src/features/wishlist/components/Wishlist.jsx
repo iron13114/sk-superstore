@@ -1,226 +1,261 @@
-import { Box, Button, Grid, IconButton, Paper, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import {useDispatch,useSelector} from 'react-redux'
-import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistFetchStatus, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, resetWishlistItemUpdateStatus, selectWishlistFetchStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItemUpdateStatus, selectWishlistItems, updateWishlistItemByIdAsync } from '../WishlistSlice'
-import {ProductCard} from '../../products/components/ProductCard'
-import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { selectLoggedInUser } from '../../auth/AuthSlice';
-import { emptyWishlistAnimation, loadingAnimation } from '../../../assets';
-import Lottie from 'lottie-react' 
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import Lottie from 'lottie-react'
+import { toast } from 'react-toastify'
 import { useForm } from "react-hook-form"
-import {addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems} from '../../cart/CartSlice'
-import { motion } from 'framer-motion';
+import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistFetchStatus,
+    resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, resetWishlistItemUpdateStatus,
+    selectWishlistFetchStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus,
+    selectWishlistItemUpdateStatus, selectWishlistItems, updateWishlistItemByIdAsync,
+    loadGuestWishlist, addGuestItem, removeGuestItem, updateGuestItem
+} from '../WishlistSlice'
+import { ProductCard } from '../../products/components/ProductCard'
+import { selectLoggedInUser } from '../../auth/AuthSlice'
+import { emptyWishlistAnimation, loadingAnimation } from '../../../assets'
+import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
+
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        const listener = (e) => setMatches(e.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [query]);
+    return matches;
+};
 
 export const Wishlist = () => {
+    const dispatch = useDispatch()
+    const wishlistItems = useSelector(selectWishlistItems)
+    const wishlistItemAddStatus = useSelector(selectWishlistItemAddStatus)
+    const wishlistItemDeleteStatus = useSelector(selectWishlistItemDeleteStatus)
+    const wishlistItemUpdateStatus = useSelector(selectWishlistItemUpdateStatus)
+    const loggedInUser = useSelector(selectLoggedInUser)
+    const cartItems = useSelector(selectCartItems)
+    const cartItemAddStatus = useSelector(selectCartItemAddStatus)
+    const wishlistFetchStatus = useSelector(selectWishlistFetchStatus)
 
-  const dispatch=useDispatch()
-  const wishlistItems=useSelector(selectWishlistItems)
-  const wishlistItemAddStatus=useSelector(selectWishlistItemAddStatus)
-  const wishlistItemDeleteStatus=useSelector(selectWishlistItemDeleteStatus)
-  const wishlistItemUpdateStatus=useSelector(selectWishlistItemUpdateStatus)
-  const loggedInUser=useSelector(selectLoggedInUser)
-  const cartItems=useSelector(selectCartItems)
-  const cartItemAddStatus=useSelector(selectCartItemAddStatus)
-  const wishlistFetchStatus=useSelector(selectWishlistFetchStatus)
+    const [editIndex, setEditIndex] = useState(-1)
+    const [editValue, setEditValue] = useState('')
+    const { formState: { errors } } = useForm()
 
-  const [editIndex,setEditIndex]=useState(-1)
-  const [editValue,setEditValue]=useState('')
-  const {formState: { errors }} = useForm()
+    const is1130 = useMediaQuery('(max-width: 1130px)')
+    const is642 = useMediaQuery('(max-width: 642px)')
+    const is480 = useMediaQuery('(max-width: 480px)')
 
-  const theme=useTheme()
-  const is1130=useMediaQuery(theme.breakpoints.down(1130))
-  const is642=useMediaQuery(theme.breakpoints.down(642))
-  const is480=useMediaQuery(theme.breakpoints.down(480))
-  
-  const handleAddRemoveFromWishlist=(e,productId)=>{
-    if(e.target.checked){
-        const data={user:loggedInUser?._id,product:productId}
-        dispatch(createWishlistItemAsync(data))
-    }
-
-    else if(!e.target.checked){
-        const index=wishlistItems.findIndex((item)=>item.product._id===productId)
-        dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id));
-    }
-  } 
-
-  useEffect(()=>{
-    window.scrollTo({
-        top:0,
-        behavior:"instant"
-    })
-  },[])
-
-  useEffect(()=>{
-    if(wishlistItemAddStatus==='fulfilled'){
-        toast.success("Product added to wishlist")
-    }
-    else if(wishlistItemAddStatus==='rejected'){
-        toast.error("Error adding product to wishlist, please try again later")
-    }
-
-
-  },[wishlistItemAddStatus])
-
-  useEffect(()=>{
-    if(wishlistItemDeleteStatus==='fulfilled'){
-        toast.success("Product removed from wishlist")
-    }
-    else if(wishlistItemDeleteStatus==='rejected'){
-        toast.error("Error removing product from wishlist, please try again later")
-    }
-
-  },[wishlistItemDeleteStatus])
-
-
-  useEffect(()=>{
-    if(wishlistItemUpdateStatus==='fulfilled'){
-      toast.success("Wislist item updated")
-    }
-    else if(wishlistItemUpdateStatus==='rejected'){
-      toast.error("Error updating wishlist item")
-    }
-
-    setEditIndex(-1)
-    setEditValue("")
-
-  },[wishlistItemUpdateStatus])
-
-  useEffect(()=>{
-
-    if(cartItemAddStatus==='fulfilled'){
-        toast.success("Product added to cart")
-    }
-
-    else if(cartItemAddStatus==='rejected'){
-        toast.error('Error adding product to cart, please try again later')
-    }
-
-},[cartItemAddStatus])
-
-
-  useEffect(()=>{
-    if(wishlistFetchStatus==='rejected'){
-      toast.error("Error fetching wishlist, please try again later")
-    }
-  },[wishlistFetchStatus])
-
-  useEffect(()=>{
-    return ()=>{
-      dispatch(resetWishlistFetchStatus())
-      dispatch(resetCartItemAddStatus())
-      dispatch(resetWishlistItemUpdateStatus())
-      dispatch(resetWishlistItemDeleteStatus())
-      dispatch(resetWishlistItemAddStatus())
-    }
-  },[])
-
-  const handleNoteUpdate=(wishlistItemId)=>{
-    const update={_id:wishlistItemId,note:editValue}
-    dispatch(updateWishlistItemByIdAsync(update))
-  }
-
-  const handleEdit=(index)=>{
-    setEditValue(wishlistItems[index].note)
-    setEditIndex(index)
-  }
-
-  const handleAddToCart=(productId)=>{
-    const data={user:loggedInUser?._id,product:productId}
-    dispatch(addToCartAsync(data))
-  }
-
-
-  return (
-    // parent
-    <Stack justifyContent={'flex-start'} mt={is480?3:5} mb={'14rem'} alignItems={'center'}>
-        {
-          wishlistFetchStatus==='pending'?
-          <Stack width={is480?'auto':'25rem'} height={'calc(100vh - 4rem)'} justifyContent={'center'} alignItems={'center'}>
-                <Lottie animationData={loadingAnimation}/>
-          </Stack>
-          :
-
-        <Stack width={is1130?"auto":'70rem'} rowGap={is480?2:4}>
-
-            {/* heading area and back button */}
-            <Stack alignSelf={'flex-start'} flexDirection={'row'} columnGap={1} justifyContent={'center'} alignItems={'center'}>
-                <motion.div whileHover={{x:-5}}>
-                  <IconButton component={Link} to={'/'}><ArrowBackIcon fontSize={is480?'medium':'large'}/></IconButton>
-                </motion.div>
-                <Typography variant='h4' fontWeight={500}>Your wishlist</Typography>
-            </Stack>
-
-            {/* product grid */}
-            <Stack >
-
-              {
-                wishlistFetchStatus !== 'pending' && wishlistItems?.length === 0 ? (
-                  // empty wishlist animation
-                  <Stack minHeight={'60vh'} width={is642 ? 'auto' : '40rem'} justifySelf={'center'} alignSelf={'center'} justifyContent={'center'} alignItems={'center'}>
-                    <Lottie animationData={emptyWishlistAnimation} style={{ width: '250px' }} />
-                    <Typography variant='h5' fontWeight={400} mt={2}>
-                      Your wishlist is empty
-                    </Typography>
-                    <Typography variant='body1' color="text.secondary" fontWeight={300}>
-                      You haven't added any items to your wishlist yet.
-                    </Typography>
-                  </Stack>
-                ) : (
-                // wishlist grid
-                <Grid container gap={1} justifyContent={'center'} alignContent={'center'}>
-                  {
-                    wishlistItems.map((item,index)=>(
-                      <Stack component={is480?"":Paper} elevation={1} >
-
-                          <ProductCard item key={item._id} brand={item.product.brand.name} id={item.product._id} price={item.product.price} stockQuantity={item.product.stockQuantity} thumbnail={item.product.thumbnail} title={item.product.title} handleAddRemoveFromWishlist={handleAddRemoveFromWishlist} isWishlistCard={true}/>
-                        
-                        <Stack paddingLeft={2} paddingRight={2} paddingBottom={2}>
-
-                          {/* note heading and icon */}
-                          <Stack flexDirection={'row'} alignItems={'center'}>
-                            <Typography variant='h6' fontWeight={400}>Note</Typography>
-                            <IconButton onClick={()=>handleEdit(index)} ><EditOutlinedIcon/></IconButton>
-                          </Stack>
-
-                          {
-                            editIndex===index?(
-
-                              <Stack rowGap={2}>
-                                
-                                <TextField multiline rows={4} value={editValue} onChange={(e)=>setEditValue(e.target.value)}/>
-                                
-                                <Stack flexDirection={'row'} alignSelf={'flex-end'} columnGap={1}>
-                                    <Button onClick={()=>handleNoteUpdate(item._id)} size='small' variant='contained'>Update</Button>
-                                    <Button onClick={()=>setEditIndex(-1)} size='small' variant='outlined' color='error'>Cancel</Button>
-                                </Stack>
-
-                              </Stack>
-                            ):
-                            <Box>
-                              <Typography sx={{wordWrap:"break-word",color:item.note?'text.primary':'GrayText'}}>{item.note?item.note:"Add a custom note here"}</Typography>
-                            </Box>
-                          }
-
-                          {
-                            cartItems.some((cartItem)=>cartItem.product._id===item.product._id)?
-                            <Button sx={{mt:4}} size='small' variant='outlined' component={Link} to={'/cart'}>Already in cart</Button>:<Button sx={{mt:4}} size='small' onClick={()=>handleAddToCart(item.product._id)} variant='outlined'>Add To Cart</Button>
-                          }
-                        </Stack>
-                      </Stack>
-                    ))
-                  }
-                </Grid> 
-                )
-              }
-            </Stack>
-        
-        </Stack>
+    // Load guest wishlist if not logged in
+    useEffect(() => {
+        if (!loggedInUser) {
+            dispatch(loadGuestWishlist())
         }
-        
-    </Stack>
-  )
+    }, [loggedInUser, dispatch])
+
+    const handleAddRemoveFromWishlist = (e, productId) => {
+        if (loggedInUser) {
+            if (e.target.checked) {
+                const data = { user: loggedInUser._id, product: productId }
+                dispatch(createWishlistItemAsync(data))
+            } else {
+                const index = wishlistItems.findIndex((item) => item.product._id === productId)
+                if (index !== -1) dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id))
+            }
+        } else {
+            if (!e.target.checked) {
+                const index = wishlistItems.findIndex((item) => item.product._id === productId)
+                if (index !== -1) {
+                    dispatch(removeGuestItem(wishlistItems[index]._id))
+                    toast.success("Product removed from wishlist")
+                }
+            }
+        }
+    }
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "instant" })
+    }, [])
+
+    useEffect(() => {
+        if (wishlistItemAddStatus === 'fulfilled') toast.success("Product added to wishlist")
+        else if (wishlistItemAddStatus === 'rejected') toast.error("Error adding product to wishlist, please try again later")
+    }, [wishlistItemAddStatus])
+
+    useEffect(() => {
+        if (wishlistItemDeleteStatus === 'fulfilled') toast.success("Product removed from wishlist")
+        else if (wishlistItemDeleteStatus === 'rejected') toast.error("Error removing product from wishlist, please try again later")
+    }, [wishlistItemDeleteStatus])
+
+    useEffect(() => {
+        if (wishlistItemUpdateStatus === 'fulfilled') {
+            toast.success("Wishlist item updated")
+        } else if (wishlistItemUpdateStatus === 'rejected') {
+            toast.error("Error updating wishlist item")
+        }
+        setEditIndex(-1)
+        setEditValue("")
+    }, [wishlistItemUpdateStatus])
+
+    useEffect(() => {
+        if (cartItemAddStatus === 'fulfilled') toast.success("Product added to cart")
+        else if (cartItemAddStatus === 'rejected') toast.error('Error adding product to cart, please try again later')
+    }, [cartItemAddStatus])
+
+    useEffect(() => {
+        if (wishlistFetchStatus === 'rejected') toast.error("Error fetching wishlist, please try again later")
+    }, [wishlistFetchStatus])
+
+    useEffect(() => {
+        return () => {
+            dispatch(resetWishlistFetchStatus())
+            dispatch(resetCartItemAddStatus())
+            dispatch(resetWishlistItemUpdateStatus())
+            dispatch(resetWishlistItemDeleteStatus())
+            dispatch(resetWishlistItemAddStatus())
+        }
+    }, [])
+
+    const handleNoteUpdate = (wishlistItemId) => {
+        if (loggedInUser) {
+            const update = { _id: wishlistItemId, note: editValue }
+            dispatch(updateWishlistItemByIdAsync(update))
+        } else {
+            dispatch(updateGuestItem({ _id: wishlistItemId, note: editValue }))
+            toast.success("Note updated")
+            setEditIndex(-1)
+            setEditValue("")
+        }
+    }
+
+    const handleEdit = (index) => {
+        setEditValue(wishlistItems[index].note || '')
+        setEditIndex(index)
+    }
+
+    const handleAddToCart = (productId) => {
+        if (loggedInUser) {
+            const data = { user: loggedInUser._id, product: productId }
+            dispatch(addToCartAsync(data))
+        } else {
+            // Assumes your CartSlice already handles guest/localStorage cart
+            dispatch(addToCartAsync({ product: productId }))
+        }
+    }
+
+    return (
+        <div className={`flex flex-col items-center ${is480 ? 'mt-3' : 'mt-5'} mb-56`}>
+            {wishlistFetchStatus === 'pending' ? (
+                <div className={`flex justify-center items-center h-[calc(100vh-4rem)] ${is480 ? 'w-auto' : 'w-96'}`}>
+                    <Lottie animationData={loadingAnimation} />
+                </div>
+            ) : (
+                <div className={`flex flex-col ${is1130 ? 'w-auto' : 'w-[70rem]'} ${is480 ? 'gap-2' : 'gap-4'}`}>
+                    
+                    {/* Header */}
+                    <div className="flex items-center gap-1 self-start">
+                        <motion.div whileHover={{ x: -5 }}>
+                            <Link to="/" className="p-2 hover:bg-gray-100 rounded-full inline-flex transition-colors">
+                                <svg className={`${is480 ? 'w-6 h-6' : 'w-8 h-8'} text-gray-700`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                            </Link>
+                        </motion.div>
+                        <h4 className={`font-medium text-gray-900 ${is480 ? 'text-xl' : 'text-3xl'}`}>Your wishlist</h4>
+                    </div>
+
+                    {/* Content */}
+                    <div>
+                        {wishlistItems?.length === 0 ? (
+                            <div className={`flex flex-col justify-center items-center min-h-[60vh] ${is642 ? 'w-auto' : 'w-[40rem]'} self-center`}>
+                                <Lottie animationData={emptyWishlistAnimation} style={{ width: '250px' }} />
+                                <p className={`font-normal text-gray-900 mt-2 ${is480 ? 'text-lg' : 'text-2xl'}`}>Your wishlist is empty</p>
+                                <p className="font-light text-gray-500">You haven't added any items to your wishlist yet.</p>
+                            </div>
+                        ) : (
+                            <div className={`flex flex-wrap justify-center content-center ${is480 ? 'gap-2' : 'gap-4'}`}>
+                                {wishlistItems.map((item, index) => (
+                                    <div key={item._id} className={`bg-white ${is480 ? '' : 'shadow-md rounded-lg border border-gray-100'}`}>
+                                        <ProductCard
+                                            item
+                                            key={item._id}
+                                            brand={item.product.brand.name}
+                                            id={item.product._id}
+                                            price={item.product.price}
+                                            stockQuantity={item.product.stockQuantity}
+                                            thumbnail={item.product.thumbnail}
+                                            title={item.product.title}
+                                            handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}
+                                            isWishlistCard={true}
+                                        />
+
+                                        <div className="px-4 pb-4">
+                                            <div className="flex items-center gap-1">
+                                                <h6 className="text-lg font-normal text-gray-900">Note</h6>
+                                                <button
+                                                    onClick={() => handleEdit(index)}
+                                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                                >
+                                                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {editIndex === index ? (
+                                                <div className="flex flex-col gap-2 mt-2">
+                                                    <textarea
+                                                        rows={4}
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black resize-none"
+                                                    />
+                                                    <div className="flex gap-2 self-end">
+                                                        <button
+                                                            onClick={() => handleNoteUpdate(item._id)}
+                                                            className="px-4 py-1.5 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
+                                                        >
+                                                            Update
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditIndex(-1)}
+                                                            className="px-4 py-1.5 border border-red-500 text-red-500 text-sm font-medium rounded hover:bg-red-50 transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="mt-1">
+                                                    <p className={`text-sm break-words ${item.note ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                        {item.note || "Add a custom note here"}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {cartItems.some((cartItem) => cartItem.product._id === item.product._id) ? (
+                                                <Link
+                                                    to="/cart"
+                                                    className="mt-4 block w-full text-center px-4 py-2 border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50 transition-colors"
+                                                >
+                                                    Already in cart
+                                                </Link>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleAddToCart(item.product._id)}
+                                                    className="mt-4 w-full px-4 py-2 border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50 transition-colors"
+                                                >
+                                                    Add To Cart
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
 }

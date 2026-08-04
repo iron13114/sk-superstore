@@ -1,5 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 import { createWishlistItem, deleteWishlistItemById, fetchWishlistByUserId, updateWishlistItemById } from './WishlistApi'
+import { getGuestWishlist, saveGuestWishlist, clearGuestWishlist } from './guestWishlist'
 
 const initialState={
     wishlistItemUpdateStatus:"idle",
@@ -45,7 +46,38 @@ const wishlistSlice=createSlice({
         resetWishlistFetchStatus:(state)=>{
             state.wishlistFetchStatus='idle'
         },
-
+        // Guest reducers
+        loadGuestWishlist: (state) => {
+            const items = getGuestWishlist();
+            state.items = items;
+            state.totalResults = items.length;
+            state.wishlistFetchStatus = 'fulfilled';
+        },
+        addGuestItem: (state, action) => {
+            const exists = state.items.find(item => item.product._id === action.payload.product._id);
+            if (!exists) {
+                state.items.push(action.payload);
+                state.totalResults = state.items.length;
+                saveGuestWishlist(state.items);
+            }
+        },
+        removeGuestItem: (state, action) => {
+            state.items = state.items.filter(item => item._id !== action.payload);
+            state.totalResults = state.items.length;
+            saveGuestWishlist(state.items);
+        },
+        updateGuestItem: (state, action) => {
+            const index = state.items.findIndex(item => item._id === action.payload._id);
+            if (index !== -1) {
+                state.items[index] = { ...state.items[index], ...action.payload };
+                saveGuestWishlist(state.items);
+            }
+        },
+        clearGuestWishlistState: (state) => {
+            state.items = [];
+            state.totalResults = 0;
+            clearGuestWishlist();
+        }
     },
     extraReducers:(builder)=>{
         builder
@@ -101,8 +133,6 @@ const wishlistSlice=createSlice({
     }
 })
 
-
-// exporting selectors
 export const selectWishlistItems=(state)=>state.WishlistSlice.items
 export const selectWishlistFetchStatus=(state)=>state.WishlistSlice.wishlistFetchStatus
 export const selectWishlistItemUpdateStatus=(state)=>state.WishlistSlice.wishlistItemUpdateStatus
@@ -112,7 +142,16 @@ export const selectWishlistErrors=(state)=>state.WishlistSlice.errors
 export const selectWishlistSuccessMessage=(state)=>state.WishlistSlice.successMessage
 export const selectWishlistTotalResults=(state)=>state.WishlistSlice.totalResults
 
-// exporting actions
-export const {resetWishlistFetchStatus,resetWishlistItemAddStatus,resetWishlistItemDeleteStatus,resetWishlistItemUpdateStatus}=wishlistSlice.actions
+export const {
+    resetWishlistFetchStatus,
+    resetWishlistItemAddStatus,
+    resetWishlistItemDeleteStatus,
+    resetWishlistItemUpdateStatus,
+    loadGuestWishlist,
+    addGuestItem,
+    removeGuestItem,
+    updateGuestItem,
+    clearGuestWishlistState
+}=wishlistSlice.actions
 
 export default wishlistSlice.reducer

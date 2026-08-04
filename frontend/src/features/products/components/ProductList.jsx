@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Lottie from 'lottie-react'
 import { toast } from 'react-toastify'
-
 import {
     fetchProductsAsync, resetProductFetchStatus, selectProductFetchStatus,
     selectProductIsFilterOpen, selectProductTotalResults, selectProducts, toggleFilters
@@ -16,7 +15,7 @@ import { ITEMS_PER_PAGE } from '../../../constants'
 import {
     createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus,
     resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus,
-    selectWishlistItems
+    selectWishlistItems, loadGuestWishlist, addGuestItem, removeGuestItem
 } from '../../wishlist/WishlistSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { loadingAnimation } from '../../../assets'
@@ -138,6 +137,12 @@ export const ProductList = () => {
     }, [dispatch])
 
     useEffect(() => {
+    if (!loggedInUser) {
+        dispatch(loadGuestWishlist())
+    }
+    }, [loggedInUser, dispatch])
+
+    useEffect(() => {
         if (isProductFilterOpen) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -157,12 +162,31 @@ export const ProductList = () => {
     }, [filters, page, sort, searchQuery])
 
     const handleAddRemoveFromWishlist = (e, productId) => {
-        if (e.target.checked) {
-            const data = { user: loggedInUser?._id, product: productId }
-            dispatch(createWishlistItemAsync(data))
-        } else if (!e.target.checked) {
-            const index = wishlistItems.findIndex((item) => item.product._id === productId)
-            dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id));
+        if (loggedInUser) {
+            if (e.target.checked) {
+                dispatch(createWishlistItemAsync({ user: loggedInUser._id, product: productId }))
+            } else {
+                const index = wishlistItems.findIndex((item) => item.product._id === productId)
+                if (index !== -1) dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id))
+            }
+        } else {
+            if (e.target.checked) {
+                const product = products.find(p => p._id === productId)
+                if (product) {
+                    dispatch(addGuestItem({
+                        _id: 'guest_' + Date.now(),
+                        product,
+                        note: ''
+                    }))
+                    toast.success("Product added to wishlist")
+                }
+            } else {
+                const index = wishlistItems.findIndex((item) => item.product._id === productId)
+                if (index !== -1) {
+                    dispatch(removeGuestItem(wishlistItems[index]._id))
+                    toast.success("Product removed from wishlist")
+                }
+            }
         }
     }
 

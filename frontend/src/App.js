@@ -57,6 +57,7 @@ function App() {
             <Route path='/product-details/:id' element={<ProductDetailsPage />} />
             <Route path='/cart' element={<CartPage />} />
             <Route path='/checkout' element={<CheckoutPage />} />
+            <Route path='/wishlist' element={<WishlistPage/>} />
 
             {/* Auth pages */}
             <Route path='/signup' element={<SignupPage />} />
@@ -67,7 +68,6 @@ function App() {
             <Route exact path='/logout' element={<Protected><Logout /></Protected>} />
 
             {/* User account routes (strictly protected) */}
-            <Route path='/wishlist' element={<Protected><WishlistPage /></Protected>} />
             <Route path='/profile' element={<Protected><UserProfilePage /></Protected>} />
             <Route path='/order-success/:id' element={<Protected><OrderSuccessPage /></Protected>} />
             <Route path='/orders' element={<Protected><UserOrdersPage /></Protected>} />

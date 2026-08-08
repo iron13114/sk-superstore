@@ -78,12 +78,21 @@ export const ProductDetails = () => {
             toast.info("Please select a quantity for at least one tier option.");
             return;
         }
+        
+        const tierLabels = {
+            single: 'Single Unit',
+            pack: 'Pack (10 Units)',
+            carton: 'Carton (50 Units)'
+        };
+        
         selectedTiers.forEach(([tier, qty]) => {
             const wholesaleItem = {
                 user: loggedInUser?._id,        
                 product: product,                
                 quantity: qty,
-                packagingTier: tier
+                packagingTier: tier,
+                variantLabel: tierLabels[tier],
+                variantPrice: parseFloat(getTierPrice(product?.price || 0, tier))
             };
             dispatch(addToCartAsync(wholesaleItem));
         });

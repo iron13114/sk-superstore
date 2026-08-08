@@ -17,19 +17,21 @@ export const addToCartAsync = createAsyncThunk('cart/addToCartAsync', async(item
     
     if (!loggedInUser) {
         const guestCart = getGuestCart();
-        // Try to find existing item by product ID
         const existingIndex = guestCart.findIndex(c => 
-            (c.product?._id || c.product) === (item.product?._id || item.product)
+            (c.product?._id || c.product) === (item.product?._id || item.product) &&
+            (c.packagingTier || 'single') === (item.packagingTier || 'single')
         );
         
         if (existingIndex >= 0) {
             guestCart[existingIndex].quantity += (item.quantity || 1);
         } else {
-            // For product details page, item.product might be full object or just ID
             guestCart.push({
                 _id: 'guest_' + Date.now(),
                 product: typeof item.product === 'object' ? item.product : { _id: item.product },
-                quantity: item.quantity || 1
+                quantity: item.quantity || 1,
+                packagingTier: item.packagingTier || 'single',
+                variantLabel: item.variantLabel || 'Single Unit',
+                variantPrice: item.variantPrice || item.product?.price || 0
             });
         }
         localStorage.setItem('guestCart', JSON.stringify(guestCart));
@@ -40,7 +42,6 @@ export const addToCartAsync = createAsyncThunk('cart/addToCartAsync', async(item
     return res;
 });
 
-// Replace fetchCartItemsAsync (or add if it doesn't exist)
 export const fetchCartByUserIdAsync = createAsyncThunk('cart/fetchCartItemsAsync', async(_, { getState }) => {
     const loggedInUser = getState().AuthSlice.loggedInUser;
     

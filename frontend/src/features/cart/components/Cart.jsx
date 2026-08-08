@@ -1,137 +1,146 @@
 import React, { useEffect } from 'react'
 import { CartItem } from './CartItem'
-import { Button, Chip, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
-import { resetCartItemRemoveStatus, selectCartItemRemoveStatus, selectCartItems } from '../CartSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { SHIPPING, TAXES } from '../../../constants'
+import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
-import {motion} from 'framer-motion'
+import { 
+    resetCartItemRemoveStatus, 
+    selectCartItemRemoveStatus, 
+    selectCartItems 
+} from '../CartSlice'
+import { SHIPPING, TAXES } from '../../../constants'
 
-export const Cart = ({checkout}) => {
-    const items=useSelector(selectCartItems)
-    const subtotal = items.reduce((acc, item) => ((item.product?.price || 0) * (item.quantity || 0)) + acc, 0)
-    const totalItems=items.reduce((acc,item)=>acc+item.quantity,0)
-    const navigate=useNavigate()
-    const theme=useTheme()
-    const is900=useMediaQuery(theme.breakpoints.down(900))
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        const listener = (e) => setMatches(e.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [query]);
+    return matches;
+};
 
-    const cartItemRemoveStatus=useSelector(selectCartItemRemoveStatus)
-    const dispatch=useDispatch()
+export const Cart = ({ checkout }) => {
+    const items = useSelector(selectCartItems)
+    const subtotal = items.reduce((acc, item) => {
+        const price = item.variantPrice || item.product?.price || 0;
+        return acc + (price * (item.quantity || 0));
+    }, 0)
+    const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
+    const navigate = useNavigate()
+    const is900 = useMediaQuery('(max-width: 900px)')
 
-    useEffect(()=>{
-        window.scrollTo({
-            top:0,
-            behavior:"instant"
-        })
-    },[])
+    const cartItemRemoveStatus = useSelector(selectCartItemRemoveStatus)
+    const dispatch = useDispatch()
 
-    useEffect(()=>{
-        if(items.length===0){
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "instant" })
+    }, [])
+
+    useEffect(() => {
+        if (items.length === 0) {
             navigate("/")
         }
-    },[items])
+    }, [items, navigate])
 
-    useEffect(()=>{
-        if(cartItemRemoveStatus==='fulfilled'){
+    useEffect(() => {
+        if (cartItemRemoveStatus === 'fulfilled') {
             toast.success("Product removed from cart")
-        }
-        else if(cartItemRemoveStatus==='rejected'){
+        } else if (cartItemRemoveStatus === 'rejected') {
             toast.error("Error removing product from cart, please try again later")
         }
-    },[cartItemRemoveStatus])
+    }, [cartItemRemoveStatus])
 
-    useEffect(()=>{
-        return ()=>{
+    useEffect(() => {
+        return () => {
             dispatch(resetCartItemRemoveStatus())
         }
-    },[])
+    }, [dispatch])
 
-  return (
-    <Stack justifyContent={'flex-start'} alignItems={'center'} mb={'5rem'} >
-
-        <Stack width={is900?'auto':'50rem'} mt={'3rem'} paddingLeft={checkout?0:2} paddingRight={checkout?0:2} rowGap={4} >
-
-            {/* cart items */}
-            <Stack rowGap={2}>
-            {
-                items && items.map((item)=>(
-                    <CartItem 
-                        key={item._id} 
-                        id={item._id} 
-                        title={item.product?.title} 
-                        brand={item.product?.brand?.name} 
-                        category={item.product?.category?.name} 
-                        price={item.product?.price} 
-                        quantity={item.quantity} 
-                        thumbnail={item.product?.thumbnail} 
-                        stockQuantity={item.product?.stockQuantity} 
-                        productId={item.product?._id}
-                    />
-                ))
-            }
-            </Stack>
-            
-            {/* subtotal */}
-            <Stack flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'}>
-
-                {
-                    checkout?(
-                        <Stack rowGap={2} width={'100%'}>
-
-                            <Stack flexDirection={'row'} justifyContent={'space-between'}>
-                                <Typography>Subtotal</Typography>
-                                <Typography>₹{subtotal}</Typography>
-                            </Stack>
-
-                            <Stack flexDirection={'row'} justifyContent={'space-between'}>
-                                <Typography>Shipping</Typography>
-                                <Typography>₹{SHIPPING}</Typography>
-                            </Stack>
-
-                            <Stack flexDirection={'row'} justifyContent={'space-between'}>
-                                <Typography>Taxes</Typography>
-                                <Typography>₹{TAXES}</Typography> 
-                            </Stack>
-
-                            <hr/>
-
-                            <Stack flexDirection={'row'} justifyContent={'space-between'}>
-                                <Typography>Total</Typography>
-                                <Typography>₹{subtotal+SHIPPING+TAXES}</Typography>
-                            </Stack>
-                            
-
-                        </Stack>
-                    ):(
+    return (
+        <div className="flex flex-col items-center mb-20">
+            <div className={`flex flex-col mt-12 gap-8 ${is900 ? 'w-full' : 'w-[50rem]'} ${checkout ? 'px-0' : 'px-4'}`}>
+                
+                {/* cart items */}
+                <div className="flex flex-col gap-4">
+                    {items && items.map((item) => (
+                        <CartItem 
+                            key={item._id} 
+                            id={item._id} 
+                            title={item.product?.title} 
+                            brand={item.product?.brand?.name} 
+                            price={item.variantPrice || item.product?.price} 
+                            quantity={item.quantity} 
+                            thumbnail={item.product?.thumbnail} 
+                            stockQuantity={item.product?.stockQuantity} 
+                            productId={item.product?._id}
+                            packagingTier={item.packagingTier}
+                            variantLabel={item.variantLabel}
+                        />
+                    ))}
+                </div>
+                
+                {/* subtotal */}
+                <div className="flex flex-row justify-between items-center">
+                    {checkout ? (
+                        <div className="flex flex-col gap-4 w-full">
+                            <div className="flex flex-row justify-between">
+                                <p className="text-base text-gray-900">Subtotal</p>
+                                <p className="text-base text-gray-900">₹{subtotal}</p>
+                            </div>
+                            <div className="flex flex-row justify-between">
+                                <p className="text-base text-gray-900">Shipping</p>
+                                <p className="text-base text-gray-900">₹{SHIPPING}</p>
+                            </div>
+                            <div className="flex flex-row justify-between">
+                                <p className="text-base text-gray-900">Taxes</p>
+                                <p className="text-base text-gray-900">₹{TAXES}</p> 
+                            </div>
+                            <hr className="border-gray-200" />
+                            <div className="flex flex-row justify-between">
+                                <p className="text-base font-semibold text-gray-900">Total</p>
+                                <p className="text-base font-semibold text-gray-900">₹{subtotal + SHIPPING + TAXES}</p>
+                            </div>
+                        </div>
+                    ) : (
                         <>
-                            <Stack>
-                                <Typography variant='h6' fontWeight={500}>Subtotal</Typography>
-                                <Typography>Total items in cart {totalItems}</Typography>
-                                <Typography variant='body1' color={'text.secondary'}>Shipping and taxes will be calculated at checkout.</Typography>
-                            </Stack>
-
-                            <Stack>
-                                <Typography variant='h6' fontWeight={500}>₹{subtotal}</Typography>
-                            </Stack>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-xl font-medium text-gray-900">Subtotal</p>
+                                <p className="text-base text-gray-900">Total items in cart {totalItems}</p>
+                                <p className="text-base text-gray-500">Shipping and taxes will be calculated at checkout.</p>
+                            </div>
+                            <div>
+                                <p className="text-xl font-medium text-gray-900">₹{subtotal}</p>
+                            </div>
                         </>
-                    )
-                }
-
-            </Stack>
-            
-            {/* checkout or continue shopping */}
-            {
-            !checkout && 
-            <Stack rowGap={'1rem'}>
-                <Button variant='contained' component={Link} to='/checkout'>Checkout</Button>
-                <motion.div style={{alignSelf:'center'}} whileHover={{y:2}}><Chip sx={{cursor:"pointer",borderRadius:"8px"}} component={Link} to={'/'} label="or continue shopping" variant='outlined'/></motion.div>
-            </Stack>
-            }
-    
-        </Stack>
-
-
-    </Stack>
-  )
+                    )}
+                </div>
+                
+                {/* checkout or continue shopping */}
+                {!checkout && (
+                    <div className="flex flex-col gap-4">
+                        <Link 
+                            to="/checkout"
+                            className="w-full bg-black text-white text-center py-3 rounded font-medium hover:bg-gray-800 transition-colors"
+                        >
+                            Checkout
+                        </Link>
+                        <motion.div 
+                            className="self-center" 
+                            whileHover={{ y: 2 }}
+                        >
+                            <Link 
+                                to="/"
+                                className="inline-block px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors cursor-pointer"
+                            >
+                                or continue shopping
+                            </Link>
+                        </motion.div>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
 }

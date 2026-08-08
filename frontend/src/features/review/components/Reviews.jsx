@@ -1,180 +1,239 @@
-import { Button, IconButton, LinearProgress, Pagination, Rating, Stack, TextField, Typography, useMediaQuery } from '@mui/material'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { createReviewAsync, resetReviewAddStatus, resetReviewDeleteStatus, resetReviewUpdateStatus, selectReviewAddStatus, selectReviewDeleteStatus, selectReviewStatus, selectReviewUpdateStatus, selectReviews } from '../ReviewSlice'
-import { ReviewItem } from './ReviewItem'
-import { LoadingButton } from '@mui/lab'
 import { useForm } from 'react-hook-form'
+import { motion, MotionConfig } from 'framer-motion'
+import { toast } from 'react-toastify'
+import {
+    createReviewAsync, resetReviewAddStatus, resetReviewDeleteStatus,
+    resetReviewUpdateStatus, selectReviewAddStatus, selectReviewDeleteStatus,
+    selectReviewStatus, selectReviewUpdateStatus, selectReviews
+} from '../ReviewSlice'
+import { ReviewItem } from './ReviewItem'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import {toast} from 'react-toastify'
-import CreateIcon from '@mui/icons-material/Create';
-import {MotionConfig, motion} from 'framer-motion'
-import { useTheme } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close';
 
-export const Reviews = ({productId,averageRating}) => {
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        const listener = (e) => setMatches(e.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [query]);
+    return matches;
+};
 
-    const dispatch=useDispatch()
-    const reviews=useSelector(selectReviews)
-    const [value,setValue]=useState(1)
-    const {register,handleSubmit,reset,formState: { errors }} = useForm()
-    const loggedInUser=useSelector(selectLoggedInUser)
-    const reviewStatus=useSelector(selectReviewStatus)
-    const ref=useRef(null)
-    
+const StarRating = ({ value, onChange, size = 'md', readOnly = false }) => {
+    const stars = [1, 2, 3, 4, 5];
+    const sizeClass = size === 'large' ? 'w-8 h-8' : size === 'md' ? 'w-6 h-6' : 'w-4 h-4';
+    return (
+        <div className="flex gap-1">
+            {stars.map((star) => (
+                <button
+                    key={star}
+                    type="button"
+                    disabled={readOnly}
+                    onClick={() => onChange && onChange(star)}
+                    className={`${readOnly ? 'cursor-default' : 'cursor-pointer hover:scale-110'} transition-transform`}
+                >
+                    <svg
+                        className={`${sizeClass} ${star <= value ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 fill-gray-300'}`}
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                </button>
+            ))}
+        </div>
+    );
+};
 
+export const Reviews = ({ productId, averageRating }) => {
+    const dispatch = useDispatch()
+    const reviews = useSelector(selectReviews)
+    const [value, setValue] = useState(1)
+    const { register, handleSubmit, reset } = useForm()
+    const loggedInUser = useSelector(selectLoggedInUser)
+    const reviewStatus = useSelector(selectReviewStatus)
 
-    const reviewAddStatus=useSelector(selectReviewAddStatus)
-    const reviewDeleteStatus=useSelector(selectReviewDeleteStatus)
-    const reviewUpdateStatus=useSelector(selectReviewUpdateStatus)
+    const reviewAddStatus = useSelector(selectReviewAddStatus)
+    const reviewDeleteStatus = useSelector(selectReviewDeleteStatus)
+    const reviewUpdateStatus = useSelector(selectReviewUpdateStatus)
 
-    const [writeReview,setWriteReview]=useState(false)
-    const theme=useTheme()
+    const [writeReview, setWriteReview] = useState(false)
 
-    const is840=useMediaQuery(theme.breakpoints.down(840))
-    const is480=useMediaQuery(theme.breakpoints.down(480))
+    const is840 = useMediaQuery('(max-width: 840px)')
+    const is480 = useMediaQuery('(max-width: 480px)')
 
-    useEffect(()=>{
-
-        if(reviewAddStatus==='fulfilled'){
+    useEffect(() => {
+        if (reviewAddStatus === 'fulfilled') {
             toast.success("Review added")
-        }
-        else if(reviewAddStatus==='rejected'){
+        } else if (reviewAddStatus === 'rejected') {
             toast.error("Error posting review, please try again later")
         }
-
         reset()
         setValue(1)
-        
-    },[reviewAddStatus])
+    }, [reviewAddStatus, reset])
 
-    useEffect(()=>{
+    useEffect(() => {
+        if (reviewDeleteStatus === 'fulfilled') toast.success("Review deleted")
+        else if (reviewDeleteStatus === 'rejected') toast.error("Error deleting review, please try again later")
+    }, [reviewDeleteStatus])
 
-        if(reviewDeleteStatus==='fulfilled'){
-            toast.success("Review deleted")
-        }
-        else if(reviewDeleteStatus==='rejected'){
-            toast.error("Error deleting review, please try again later")
-        }
-    },[reviewDeleteStatus])
+    useEffect(() => {
+        if (reviewUpdateStatus === 'fulfilled') toast.success("Review updated")
+        else if (reviewUpdateStatus === 'rejected') toast.error("Error updating review, please try again later")
+    }, [reviewUpdateStatus])
 
-    useEffect(()=>{
-
-        if(reviewUpdateStatus==='fulfilled'){
-            toast.success("Review updated")
-        }
-        else if(reviewUpdateStatus==='rejected'){
-            toast.error("Error updating review, please try again later")
-        }
-    },[reviewUpdateStatus])
-
-    useEffect(()=>{
-        return ()=>{
+    useEffect(() => {
+        return () => {
             dispatch(resetReviewAddStatus())
             dispatch(resetReviewDeleteStatus())
             dispatch(resetReviewUpdateStatus())
         }
-    },[])
+    }, [dispatch])
 
-    const ratingCounts={
-        5:0,
-        4:0,
-        3:0,
-        2:0,
-        1:0
-    }
-
-    reviews.map((review)=>{
-        ratingCounts[review.rating]=ratingCounts[review.rating]+1
+    const ratingCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    reviews.forEach((review) => {
+        ratingCounts[review.rating] = ratingCounts[review.rating] + 1
     })
 
-
-    const handleAddReview=(data)=>{
-        const review={...data,rating:value,user:loggedInUser._id,product:productId}
+    // LOGIN GUARD - prevents crash and shows toast
+    const handleAddReview = (data) => {
+        if (!loggedInUser) {
+            toast.error("Please login in order to write review")
+            setWriteReview(false)
+            return
+        }
+        const review = { ...data, rating: value, user: loggedInUser._id, product: productId }
         dispatch(createReviewAsync(review))
         setWriteReview(false)
     }
 
-    
+    const handleWriteReviewClick = () => {
+        if (!loggedInUser) {
+            toast.error("Please login in order to write review")
+            return
+        }
+        setWriteReview(true)
+    }
 
-  return (
-        <Stack rowGap={5} alignSelf={"flex-start"}  width={is480?"90vw":is840?"25rem":'40rem'}>
-
-
-            <Stack>
-                <Typography gutterBottom variant='h4' fontWeight={400}>Reviews</Typography>
-                {
-                    reviews?.length?(
-                        <Stack rowGap={3}>
-
-                            <Stack rowGap={1} >
-                                <Typography variant='h2' fontWeight={800}>{averageRating}.0</Typography>
-                                <Rating readOnly value={averageRating}/>
-                                <Typography variant='h6' color={'text.secondary'} >Based on {reviews.length} {reviews.length===1?"Review":"Reviews"}</Typography>
-                            </Stack>
-
-                            <Stack rowGap={2}>
-                                {
-                                    [5,4,3,2,1].map((number)=>(
-                                        <Stack flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'} columnGap={1}>
-                                            <Typography sx={{whiteSpace:"nowrap"}}>{number} star</Typography>
-                                            <LinearProgress sx={{width:"100%",height:"1rem",borderRadius:"4px"}} variant='determinate' value={(ratingCounts[number]/reviews?.length)*100}/>   
-                                            <Typography>{parseInt(ratingCounts[number]/reviews?.length*100)}%</Typography>
-                                        </Stack>
-                                    ))
-                                }
-                            </Stack>
-                        </Stack>
-
-                    ):(
-                        <Typography variant='h6' color={'text.secondary'} fontWeight={400}>{loggedInUser?.isAdmin?"There are no reviews currently":"Be the one to post review first"}</Typography>
-                    )
-
-                }
-
-
-            </Stack>
-
-            {/* reviews mapping */}
-            <Stack rowGap={2} >
-                {reviews?.map((review)=>(<ReviewItem key={review._id} id={review._id} userid={review.user._id} comment={review.comment} createdAt={review.createdAt} rating={review.rating} username={review.user.name} />))}
-            </Stack>
-
+    return (
+        <div className={`flex flex-col gap-10 self-start ${is480 ? 'w-[90vw]' : is840 ? 'w-[25rem]' : 'w-[40rem]'}`}>
             
-            {   
-                // add review form
-                writeReview?
-                (
-                <Stack rowGap={3} position={'relative'} component={'form'} noValidate onSubmit={handleSubmit(handleAddReview)}>
+            {/* Header + Rating Summary */}
+            <div className="flex flex-col gap-4">
+                <h4 className="text-3xl font-normal text-gray-900 mb-2">Reviews</h4>
+                
+                {reviews?.length > 0 ? (
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-2">
+                            <p className="text-5xl font-extrabold text-gray-900">{averageRating}.0</p>
+                            <StarRating value={averageRating} readOnly />
+                            <p className="text-xl text-gray-500">Based on {reviews.length} {reviews.length === 1 ? "Review" : "Reviews"}</p>
+                        </div>
 
-                    <TextField id='reviewTextFeild' {...register("comment",{required:true})} sx={{mt:4,width:is840?"100%":"40rem"}}  multiline rows={6} fullWidth placeholder='Write a review...'/>
-                    
-                    <Stack>
-                        <Typography gutterBottom variant='body2'>How much did you like the product?</Typography>
-                        <motion.div style={{width:"fit-content"}} whileHover={{scale:1.050,x:2}} whileTap={{scale:1}}>
-                            <Rating  size='large' value={value} onChange={(e) => setValue(e.target.value)}/>
+                        <div className="flex flex-col gap-3">
+                            {[5, 4, 3, 2, 1].map((number) => (
+                                <div key={number} className="flex flex-row justify-between items-center gap-3">
+                                    <span className="text-sm text-gray-700 whitespace-nowrap">{number} star</span>
+                                    <div className="w-full h-4 bg-gray-200 rounded overflow-hidden">
+                                        <div
+                                            className="h-full bg-black rounded transition-all duration-300"
+                                            style={{ width: `${(ratingCounts[number] / reviews.length) * 100}%` }}
+                                        />
+                                    </div>
+                                    <span className="text-sm text-gray-700 w-10 text-right">
+                                        {parseInt((ratingCounts[number] / reviews.length) * 100)}%
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <p className="text-xl text-gray-500 font-normal">
+                        {loggedInUser?.isAdmin ? "There are no reviews currently" : "Be the one to post review first"}
+                    </p>
+                )}
+            </div>
+
+            {/* Reviews List */}
+            <div className="flex flex-col gap-4">
+                {reviews?.map((review) => (
+                    <ReviewItem
+                        key={review._id}
+                        id={review._id}
+                        userid={review.user._id}
+                        comment={review.comment}
+                        createdAt={review.createdAt}
+                        rating={review.rating}
+                        username={review.user.name}
+                    />
+                ))}
+            </div>
+
+            {/* Add Review Form */}
+            {writeReview ? (
+                <form
+                    noValidate
+                    onSubmit={handleSubmit(handleAddReview)}
+                    className="flex flex-col gap-6 relative"
+                >
+                    <textarea
+                        {...register("comment", { required: false })}
+                        rows={6}
+                        placeholder="Write a review..."
+                        className={`w-full mt-4 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-sm ${is840 ? 'w-full' : 'w-[40rem]'}`}
+                    />
+
+                    <div>
+                        <p className="text-sm text-gray-700 mb-2">How much did you like the product?</p>
+                        <motion.div className="w-fit" whileHover={{ scale: 1.05, x: 2 }} whileTap={{ scale: 1 }}>
+                            <StarRating size="large" value={value} onChange={(val) => setValue(val)} />
                         </motion.div>
-                    </Stack>
-                    
-                    <Stack flexDirection={'row'} alignSelf={'flex-end'} alignItems={'center'} columnGap={'.2rem'}>
-                        <MotionConfig whileTap={{scale:1}} whileHover={{scale:1.050}}>
+                    </div>
+
+                    <div className="flex flex-row self-end items-center gap-2">
+                        <MotionConfig whileTap={{ scale: 1 }} whileHover={{ scale: 1.05 }}>
                             <motion.div>
-                                <LoadingButton sx={{textTransform:"none",fontSize:is480?"":"1rem"}} size={is480?"small":""} loading={reviewStatus==='pending'} type='submit' variant='contained'>Add review</LoadingButton>
+                                <button
+                                    type="submit"
+                                    disabled={reviewStatus === 'pending'}
+                                    className={`bg-black text-white rounded px-4 py-2 font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 ${is480 ? 'text-sm' : 'text-base'}`}
+                                >
+                                    {reviewStatus === 'pending' ? 'Adding...' : 'Add review'}
+                                </button>
                             </motion.div>
                             <motion.div>
-                                <Button onClick={()=>setWriteReview(false)} color='error' size={is480?"small":""} variant='outlined' sx={{textTransform:"none",fontSize:is480?"":"1rem"}}>Cancel</Button>
+                                <button
+                                    type="button"
+                                    onClick={() => setWriteReview(false)}
+                                    className={`border border-red-500 text-red-500 rounded px-4 py-2 font-medium hover:bg-red-50 transition-colors ${is480 ? 'text-sm' : 'text-base'}`}
+                                >
+                                    Cancel
+                                </button>
                             </motion.div>
                         </MotionConfig>
-                    </Stack>
-
-                </Stack>
+                    </div>
+                </form>
+            ) : (
+                !loggedInUser?.isAdmin && (
+                    <motion.div
+                        onClick={handleWriteReviewClick}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 1 }}
+                        className="w-fit cursor-pointer"
+                    >
+                        <button className={`flex items-center gap-2 bg-black text-white rounded-md font-normal hover:bg-gray-800 transition-colors ${is480 ? 'px-4 py-2 text-base' : 'px-6 py-3 text-lg'}`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            Write a review
+                        </button>
+                    </motion.div>
                 )
-                :
-                !loggedInUser?.isAdmin?
-                <motion.div onClick={()=>setWriteReview(!writeReview)} whileHover={{scale:1.050}} whileTap={{scale:1}} style={{width:"fit-content"}}>
-                        <Button  disableElevation size={is480?"medium":'large'} variant='contained' sx={{color:theme.palette.primary.light,textTransform:"none",fontSize:"1rem",borderRadius:'6px'}}  startIcon={<CreateIcon/>}>Write a review</Button>
-                </motion.div>:""
-            }
-        </Stack>
-  )
+            )}
+        </div>
+    )
 }

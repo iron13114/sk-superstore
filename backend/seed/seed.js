@@ -18,7 +18,6 @@ const seedData = async () => {
     await connectToDB();
     console.log('Database connected. Seed [started] please wait..');
     
-    // Run sequentially — no race conditions
     await seedUser();
     await seedBrand();
     await seedCategory();

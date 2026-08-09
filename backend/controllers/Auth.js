@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
     try {
         const existingUser = await User.findOne({ email: req.body.email })
 
-        if (!existingUser || !existingUser.password) {
+        if (!existingUser) {
             return res.status(404).json({ message: "Invalid Credentials" })
         }
 
@@ -87,6 +87,7 @@ exports.login = async (req, res) => {
         if (!isMatch) {
             return res.status(404).json({ message: "Invalid Credentials" })
         }
+
         if (existingUser.isVerified === false) {
             return res.status(403).json({ message: "Please verify your email before logging in" })
         }

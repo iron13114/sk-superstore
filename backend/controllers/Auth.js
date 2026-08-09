@@ -82,16 +82,16 @@ exports.login = async (req, res) => {
         if (existingUser && (await bcrypt.compare(req.body.password, existingUser.password))) {
 
             // BLOCK UNVERIFIED USERS
-            if (!existingUser.isVerified) {
-                return res.status(403).json({ message: "Please verify your email before logging in" })
-            }
+        if (existingUser.isVerified === false) {
+            return res.status(403).json({ message: "Please verify your email before logging in" })
+        }
 
             const secureInfo = sanitizeUser(existingUser)
             const token = generateToken(secureInfo)
 
             res.cookie('token', token, {
                 sameSite: process.env.PRODUCTION === 'true' ? "None" : 'Lax',
-                maxAge: new Date(Date.now() + (parseInt(process.env.COOKIE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000))),
+                maxAge: parseInt(process.env.COOKIE_EXPIRATION_DAYS) * 24 * 60 * 60 * 1000,
                 httpOnly: true,
                 secure: process.env.PRODUCTION === 'true' ? true : false
             })

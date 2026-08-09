@@ -79,27 +79,31 @@ exports.login = async (req, res) => {
     try {
         const existingUser = await User.findOne({ email: req.body.email })
 
-        if (existingUser && (await bcrypt.compare(req.body.password, existingUser.password))) {
+        if (!existingUser || !existingUser.password) {
+            return res.status(404).json({ message: "Invalid Credentials" })
+        }
 
-            // BLOCK UNVERIFIED USERS
+        const isMatch = await bcrypt.compare(req.body.password, existingUser.password)
+        if (!isMatch) {
+            return res.status(404).json({ message: "Invalid Credentials" })
+        }
         if (existingUser.isVerified === false) {
             return res.status(403).json({ message: "Please verify your email before logging in" })
         }
 
-            const secureInfo = sanitizeUser(existingUser)
-            const token = generateToken(secureInfo)
+        const secureInfo = sanitizeUser(existingUser)
+        const token = generateToken(secureInfo)
+        const maxAgeMs = parseInt(process.env.COOKIE_EXPIRATION_DAYS || 7) * 24 * 60 * 60 * 1000
 
-            res.cookie('token', token, {
-                sameSite: process.env.PRODUCTION === 'true' ? "None" : 'Lax',
-                maxAge: parseInt(process.env.COOKIE_EXPIRATION_DAYS) * 24 * 60 * 60 * 1000,
-                httpOnly: true,
-                secure: process.env.PRODUCTION === 'true' ? true : false
-            })
-            return res.status(200).json(sanitizeUser(existingUser))
-        }
+        res.cookie('token', token, {
+            sameSite: process.env.PRODUCTION === 'true' ? "None" : 'Lax',
+            maxAge: maxAgeMs,
+            httpOnly: true,
+            secure: process.env.PRODUCTION === 'true' ? true : false
+        })
 
-        res.clearCookie('token');
-        return res.status(404).json({ message: "Invalid Credentails" })
+        return res.status(200).json(sanitizeUser(existingUser))
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'Some error occured while logging in, please try again later' })

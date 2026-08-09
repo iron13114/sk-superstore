@@ -1,25 +1,23 @@
 const Brand = require("../models/Brand");
 
 const brands = [
-  { 
-    _id: "65b8e564ea5ce114184ccb01", 
-    name: "HUL" 
-  },
-  { _id: "65b8e564ea5ce114184ccb02", name: "ITC" },
-  { _id: "65b8e564ea5ce114184ccb03", name: "Nestle" },
-  { _id: "65b8e564ea5ce114184ccb04", name: "Britannia" },
-  { _id: "65b8e564ea5ce114184ccb05", name: "Parle" },
-  { _id: "65b8e564ea5ce114184ccb06", name: "PepsiCo" },
-  { _id: "65b8e564ea5ce114184ccb07", name: "Coca-Cola" },
-  { _id: "65b8e564ea5ce114184ccb08", name: "Dabur" },
-  { _id: "65b8e564ea5ce114184ccb09", name: "Colgate" }
+  { name: "HUL" },
+  { name: "ITC" },
+  { name: "Nestle" },
+  { name: "Britannia" },
+  { name: "Parle" },
+  { name: "PepsiCo" },
+  { name: "Coca-Cola" },
+  { name: "Dabur" },
+  { name: "Colgate" }
 ];
 
 exports.seedBrand = async () => {
   try {
-    await Brand.insertMany(brands,{ordered: false});
+    await Brand.deleteMany({});
+    await Brand.insertMany(brands, { ordered: false });
     console.log('Brand seeded successfully');
-  } catch(error){
+  } catch(error) {
     console.log(error);
   }
 };

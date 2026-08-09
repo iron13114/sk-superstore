@@ -1,31 +1,36 @@
 const User = require("../models/User");
-
-const users = [
-  {
-    _id: "65b8e564ea5ce114184ccb96",
-    name: "demo user",
-    email: "demo@gmail.com",
-    password:'$2b$10$ikIg31koICfCcjRPCLauA.Y.7.9eO3V2vDr2XP4iFNbIJ/XvPmMJi',
-    isVerified: true,
-    isAdmin: false,
-    __v: 0,
-  },
-  {
-    _id: "65c2526fdcd9253acfbaa731",
-    name: "Priyanshu",
-    email: "priyanshuprince2007@gmail.com",
-    password: '$2b$10$ikIg31koICfCcjRPCLauA.Y.7.9eO3V2vDr2XP4iFNbIJ/XvPmMJi',
-    isVerified: true,
-    isAdmin: true,
-    __v: 0,
-  },
-];
+const bcrypt = require('bcryptjs');
 
 exports.seedUser = async () => {
-  try {
-    await User.insertMany(users,{ordered: false});
-    console.log("User seeded successfully");
-  } catch (error) {
-    console.log(error);
-  }
+    // FORCE DELETE before insert
+    await User.deleteMany({});
+    
+    const hashedPassword = await bcrypt.hash('password123', 10);
+
+    const users = [
+        {
+            name: 'Admin',
+            email: 'admin@sksuperstore.com',
+            password: hashedPassword,
+            isAdmin: true,
+            isVerified: true
+        },
+        {
+            name: 'Priyanshu',
+            email: 'priyanshuprince2007@gmail.com',
+            password: hashedPassword,
+            isAdmin: false,
+            isVerified: true
+        },
+        {
+            name: 'Test User',
+            email: 'test@gmail.com',
+            password: hashedPassword,
+            isAdmin: false,
+            isVerified: true
+        }
+    ];
+
+    await User.insertMany(users, { ordered: false });
+    console.log('Users seeded successfully');
 };

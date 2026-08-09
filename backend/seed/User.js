@@ -13,7 +13,7 @@ const users = [
   {
     _id: "65c2526fdcd9253acfbaa731",
     name: "Priyanshu",
-    email: "priyanshu@gmail.com",
+    email: "priyanshuprince2007@gmail.com",
     password: '$2b$10$ikIg31koICfCcjRPCLauA.Y.7.9eO3V2vDr2XP4iFNbIJ/XvPmMJi',
     isVerified: true,
     isAdmin: true,

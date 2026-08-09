@@ -7,6 +7,7 @@ import { useAuthCheck } from "./hooks/useAuth/useAuthCheck";
 import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUserDetails";
 import { AddProductPage, AdminOrdersPage, CartPage, CheckoutPage, ForgotPasswordPage, HomePage, LoginPage, OrderSuccessPage, OtpVerificationPage, ProductDetailsPage, ProductUpdatePage, ResetPasswordPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage } from './pages';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { VerifyEmail } from './features/auth/components/VerifyEmail';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { CircularProgress, Stack, Typography } from '@mui/material'; 
 import { useEffect, useState } from 'react';
@@ -66,7 +67,8 @@ function App() {
             <Route path='/forgot-password' element={<ForgotPasswordPage />} />
             <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage />} />
             <Route exact path='/logout' element={<Protected><Logout /></Protected>} />
-
+            <Route path="/verify-email/:token" element={<VerifyEmail />} />
+            
             {/* User account routes (strictly protected) */}
             <Route path='/profile' element={<Protected><UserProfilePage /></Protected>} />
             <Route path='/order-success/:id' element={<Protected><OrderSuccessPage /></Protected>} />

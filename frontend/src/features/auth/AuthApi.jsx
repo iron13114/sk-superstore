@@ -12,6 +12,11 @@ export const signup=async(cred)=>{
     }
 }
 
+export const verifyEmail = async (token) => {
+    const res = await axiosi.get(`/auth/verify-email/${token}`);
+    return res.data;
+};
+
 export const login=async(cred)=>{
     try {
         const res=await axiosi.post("auth/login",cred)

@@ -2,6 +2,12 @@ const mongoose=require("mongoose")
 const {Schema}=mongoose
 
 const userSchema=new Schema({
+    verificationToken: { 
+        type: String 
+    },
+    verificationTokenExpires: { 
+        type: Date 
+    },
     name:{
         type:String,
         required:true

@@ -97,7 +97,6 @@ export const Checkout = () => {
         // 4. CHECK AUTHENTICATION: Redirect to login if user is not authenticated
         if (!loggedInUser || !loggedInUser?._id) {
             toast.info("Please log in to place your order");
-            // Redirect to login and append checkout redirect query parameter
             navigate('/login?redirect=/checkout');
             return;
         }
@@ -107,7 +106,7 @@ export const Checkout = () => {
             user: loggedInUser._id,
             item: cartItems,
             address: selectedAddress,
-            paymentMode: selectedPaymentMethod === 'COD' ? 'COD' : 'CARD',
+            paymentMode: selectedPaymentMethod === 'COD',
             status: "Pending",
             total: Number(orderTotal) + Number(SHIPPING) + Number(TAXES)
         };
@@ -215,15 +214,7 @@ export const Checkout = () => {
                                 checked={selectedPaymentMethod === 'COD'} 
                                 onChange={() => setSelectedPaymentMethod('COD')}
                             />
-                            <Typography>Cash</Typography>
-                        </Stack>
-
-                        <Stack flexDirection={'row'} justifyContent={'flex-start'} alignItems={'center'}>
-                            <Radio 
-                                checked={selectedPaymentMethod === 'CARD'} 
-                                onChange={() => setSelectedPaymentMethod('CARD')}
-                            />
-                            <Typography>Card</Typography>
+                            <Typography>COD(cash on delivery)</Typography>
                         </Stack>
                     </Stack>
                 </Stack>
@@ -234,7 +225,7 @@ export const Checkout = () => {
                 <Typography variant='h4'>Order summary</Typography>
                 <Cart checkout={true} />
                 <LoadingButton fullWidth loading={orderStatus === 'pending'} variant='contained' onClick={handleCreateOrder} size='large'>
-                    Pay and order
+                    Place Order
                 </LoadingButton>
             </Stack>
 

@@ -6,8 +6,6 @@ import { selectCartItems } from '../../cart/CartSlice';
 import { selectLoggedInUser } from '../../auth/AuthSlice';
 import { selectWishlistItems } from '../../wishlist/WishlistSlice';
 import { selectProductIsFilterOpen, toggleFilters } from '../../products/ProductSlice';
-import logo from "../../../assets/images/logo.jpeg";
-
 // Responsive hook that tracks multiple breakpoints
 const useResponsive = () => {
   const [breakpoint, setBreakpoint] = useState(() => {
@@ -143,13 +141,6 @@ export const Navbar = ({ isProductList = false }) => {
     alignItems: 'center',
     textDecoration: 'none',
     flexShrink: 0,
-  });
-
-  const getLogoImgStyles = () => ({
-    height: isMobile ? '32px' : '40px',
-    width: 'auto',
-    maxHeight: isMobile ? '32px' : '40px',
-    objectFit: 'contain',
   });
 
   const getSearchContainerStyles = () => ({
@@ -350,8 +341,7 @@ export const Navbar = ({ isProductList = false }) => {
             )}
             
             <Link to="/" style={getLogoStyles()}>
-              <img src={logo} alt="SK Superstore" style={getLogoImgStyles()} />
-            </Link>
+            <img src="/logo.jpeg" alt="SK Superstore" style={{ height: '40px', width: 'auto', maxHeight: '40px', objectFit: 'contain' }} />            </Link>
           </div>
 
           {/* CENTER: Search Bar */}

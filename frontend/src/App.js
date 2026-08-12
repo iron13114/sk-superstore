@@ -10,7 +10,9 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { VerifyEmail } from './features/auth/components/VerifyEmail';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { CircularProgress, Stack, Typography } from '@mui/material'; 
+import { TrackOrder } from './features/order/components/TrackOrder'; 
 import { useEffect, useState } from 'react';
+
 function App() {
 
   const isAuthChecked=useSelector(selectIsAuthChecked)
@@ -58,6 +60,10 @@ function App() {
             <Route path='/product-details/:id' element={<ProductDetailsPage />} />
             <Route path='/cart' element={<CartPage />} />
             <Route path='/checkout' element={<CheckoutPage />} />
+            <Route path='/wishlist' element={<WishlistPage/>} />
+            <Route path='/cart' element={<CartPage />} />
+            <Route path='/checkout' element={<CheckoutPage />} />
+            <Route path='/track-order/:id?' element={<TrackOrder />} />
             <Route path='/wishlist' element={<WishlistPage/>} />
 
             {/* Auth pages */}

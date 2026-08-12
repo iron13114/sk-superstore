@@ -1,38 +1,43 @@
-const mongoose=require("mongoose")
-const {Schema}=mongoose
-
-const orderSchema=new Schema({
-    user:{
-        type:Schema.Types.ObjectId,
-        ref:"User",
-        required:true
+const orderSchema = new Schema({
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: false,
+        default: null,
+        sparse: true
     },
-    item:{
-        type:[Schema.Types.Mixed],
-        required:true
+    guestEmail: {           
+        type: String,
+        required: function() { return !this.user; } 
     },
-    address:{
-        type:[Schema.Types.Mixed],
-        required:true
+    guestPhone: {       
+        type: String,
+        required: function() { return !this.user; }
     },
-    status:{
-        type:String,
-        enum:['Pending','Dispatched','Out for delivery','Cancelled'],
-        default:'Pending'
+    item: {
+        type: [Schema.Types.Mixed],
+        required: true
     },
-    paymentMode:{
-        type:String,
-        enum:['COD','UPI','CARD'],
-        required:true
+    address: {
+        type: [Schema.Types.Mixed],
+        required: true
     },
-    total:{
-        type:Number,
-        required:true
+    status: {
+        type: String,
+        enum: ['Pending', 'Dispatched', 'Out for delivery', 'Cancelled'],
+        default: 'Pending'
     },
-    createdAt:{
-        type:Date,
-        default:Date.now
+    paymentMode: {
+        type: String,
+        enum: ['COD'],
+        required: true
     },
-},{versionKey:false})
-
-module.exports=mongoose.model("Order",orderSchema)
+    total: {
+        type: Number,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+}, { versionKey: false });

@@ -1,9 +1,29 @@
 const Order = require("../models/Order");
+const { sendOrderConfirmationEmail } = require('../utils/Emails');
 
 exports.create = async (req, res) => {
     try {
-        const created = new Order(req.body);
+        const orderData = { ...req.body };
+        
+        if (!orderData.user || orderData.user === 'null' || orderData.user === '') {
+            delete orderData.user;
+        }
+        
+        if (orderData.address && !Array.isArray(orderData.address)) {
+            orderData.address = [orderData.address];
+        }
+        if (orderData.item && !Array.isArray(orderData.item)) {
+            orderData.item = [orderData.item];
+        }
+
+        const created = new Order(orderData);
         await created.save();
+
+        const recipientEmail = orderData.guestEmail || req.body.userEmail; // or lookup user email
+        if (recipientEmail) {
+            await sendOrderConfirmationEmail(recipientEmail, created);
+        }
+
         res.status(201).json(created);
     } catch (error) {
         console.error("Order Creation Error:", error);
@@ -11,6 +31,20 @@ exports.create = async (req, res) => {
             message: 'Error creating an order',
             error: error.message 
         });
+    }
+};
+
+exports.getById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const order = await Order.findById(id);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        res.status(200).json(order);
+    } catch (error) {
+        console.error("Get Order Error:", error);
+        return res.status(500).json({ message: 'Error fetching order' });
     }
 };
 

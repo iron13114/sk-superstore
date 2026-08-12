@@ -1,202 +1,198 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllOrdersAsync, resetOrderUpdateStatus, selectOrderUpdateStatus, selectOrders, updateOrderByIdAsync } from '../../order/OrderSlice'
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { Avatar, Button, Chip, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useForm } from "react-hook-form"
 import { toast } from 'react-toastify';
-import {noOrdersAnimation} from '../../../assets/index'
+import { noOrdersAnimation } from '../../../assets/index'
 import Lottie from 'lottie-react'
 
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        const listener = (e) => setMatches(e.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [query]);
+    return matches;
+};
 
 export const AdminOrders = () => {
 
-  const dispatch=useDispatch()
-  const orders=useSelector(selectOrders)
-  const [editIndex,setEditIndex]=useState(-1)
-  const orderUpdateStatus=useSelector(selectOrderUpdateStatus)
-  const theme=useTheme()
-  const is1620=useMediaQuery(theme.breakpoints.down(1620))
-  const is480=useMediaQuery(theme.breakpoints.down(480))
+    const dispatch = useDispatch()
+    const orders = useSelector(selectOrders)
+    const [editIndex, setEditIndex] = useState(-1)
+    const orderUpdateStatus = useSelector(selectOrderUpdateStatus)
+    const is1620 = useMediaQuery('(max-width: 1620px)')
+    const is480 = useMediaQuery('(max-width: 480px)')
 
-  const {register,handleSubmit} = useForm()
+    const { register, handleSubmit } = useForm()
 
-  useEffect(()=>{
-    dispatch(getAllOrdersAsync())
-  },[dispatch])
+    useEffect(() => {
+        dispatch(getAllOrdersAsync())
+    }, [dispatch])
 
-
-  useEffect(()=>{
-    if(orderUpdateStatus==='fulfilled'){
-      toast.success("Status udpated")
-    }
-    else if(orderUpdateStatus==='rejected'){
-      toast.error("Error updating order status")
-    }
-  },[orderUpdateStatus])
-
-  useEffect(()=>{
-    return ()=>{
-      dispatch(resetOrderUpdateStatus())
-    }
-  })
-
-
-  const handleUpdateOrder=(data)=>{
-    const update={...data,_id:orders[editIndex]._id}
-    setEditIndex(-1)
-    dispatch(updateOrderByIdAsync(update))
-  }
-
-
-  const editOptions=['Pending','Dispatched','Out for delivery','Delivered','Cancelled']
-
-  const getStatusColor=(status)=>{
-    if(status==='Pending'){
-      return {bgcolor:'#dfc9f7',color:'#7c59a4'}
-    }
-    else if(status==='Dispatched'){
-      return {bgcolor:'#feed80',color:'#927b1e'}
-    }
-    else if(status==='Out for delivery'){
-      return {bgcolor:'#AACCFF',color:'#4793AA'}
-    }
-    else if(status==='Delivered'){
-      return {bgcolor:"#b3f5ca",color:"#548c6a"}
-    }
-    else if(status==='Cancelled'){
-      return {bgcolor:"#fac0c0",color:'#cc6d72'}
-    }
-  }
-
-
-  return (
-
-    <Stack justifyContent={'center'} alignItems={'center'}>
-
-      <Stack mt={5} mb={3} component={'form'} noValidate onSubmit={handleSubmit(handleUpdateOrder)}>
-
-        {
-          orders.length?
-          <TableContainer sx={{width:is1620?"95vw":"auto",overflowX:'auto'}} component={Paper} elevation={2}>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Order</TableCell>
-                  <TableCell align="left">Id</TableCell>
-                  <TableCell align="left">Item</TableCell>
-                  <TableCell align="right">Total Amount</TableCell>
-                  <TableCell align="right">Shipping Address</TableCell>
-                  <TableCell align="right">Payment Method</TableCell>
-                  <TableCell align="right">Order Date</TableCell>
-                  <TableCell align="right">Status</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-
-                {
-                orders.length && orders.map((order,index) => (
-
-                  <TableRow key={order._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-
-                    <TableCell component="th" scope="row">{index}</TableCell>
-                    <TableCell align="right">{order._id}</TableCell>
-                    <TableCell align="right">
-                      {
-                        order.item.map((product)=>(
-                          <Stack mt={2} flexDirection={'row'} alignItems={'center'} columnGap={2}>
-                            <Avatar src={product.product.thumbnail}></Avatar>
-                            <Typography>{product.product.title}</Typography>
-                          </Stack>
-                        ))
-                      }
-                    </TableCell>
-                    <TableCell align="right">{order.total}</TableCell>
-                    <TableCell align="right">
-                      <Stack>
-                        <Typography>{order.address[0].street}</Typography>
-                        <Typography>{order.address[0].city}</Typography>
-                        <Typography>{order.address[0].state}</Typography>
-                        <Typography>{order.address[0].postalCode}</Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="right">{order.paymentMode}</TableCell>
-                    <TableCell align="right">{new Date(order.createdAt).toDateString()}</TableCell>
-
-                    {/* order status */}
-                    <TableCell align="right">
-
-                        {
-                          editIndex===index?(
-
-                        <FormControl fullWidth>
-                          <InputLabel id="demo-simple-select-label">Update status</InputLabel>
-                          <Select
-                            defaultValue={order.status}
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            label="Update status"
-                            {...register('status',{required:'Status is required'})}
-                            >
-                            
-                            {
-                              editOptions.map((option)=>(
-                                <MenuItem value={option}>{option}</MenuItem>
-                              ))
-                            }
-                          </Select>
-                        </FormControl>
-                        ):<Chip label={order.status} sx={getStatusColor(order.status)}/>
-                        }
-                      
-                    </TableCell>
-
-                    {/* actions */}
-                    <TableCell align="right">
-
-                      {
-                        editIndex===index?(
-                          <Button>
-
-                            <IconButton type='submit'><CheckCircleOutlinedIcon/></IconButton>
-                          </Button>
-                        )
-                        :
-                        <IconButton onClick={()=>setEditIndex(index)}><EditOutlinedIcon/></IconButton>
-                      }
-
-                    </TableCell>
-
-                  </TableRow>
-                ))}
-
-              </TableBody>
-            </Table>
-          </TableContainer>
-          :
-          <Stack width={is480?"auto":'30rem'} justifyContent={'center'}>
-
-            <Stack rowGap={'1rem'}>
-                <Lottie animationData={noOrdersAnimation}/>
-                <Typography textAlign={'center'} alignSelf={'center'} variant='h6' fontWeight={400}>There are no orders currently</Typography>
-            </Stack>
-              
-
-          </Stack>  
+    useEffect(() => {
+        if (orderUpdateStatus === 'fulfilled') {
+            toast.success("Status updated")
         }
-    
-    </Stack>
-    
-    </Stack>
-  )
+        else if (orderUpdateStatus === 'rejected') {
+            toast.error("Error updating order status")
+        }
+    }, [orderUpdateStatus])
+
+    useEffect(() => {
+        return () => {
+            dispatch(resetOrderUpdateStatus())
+        }
+    })
+
+    const handleUpdateOrder = (data) => {
+        const update = { ...data, _id: orders[editIndex]._id }
+        setEditIndex(-1)
+        dispatch(updateOrderByIdAsync(update))
+    }
+
+    const editOptions = ['Pending', 'Dispatched', 'Out for delivery', 'Delivered', 'Cancelled']
+
+    const getStatusColor = (status) => {
+        if (status === 'Pending') {
+            return 'bg-[#dfc9f7] text-[#7c59a4]'
+        }
+        else if (status === 'Dispatched') {
+            return 'bg-[#feed80] text-[#927b1e]'
+        }
+        else if (status === 'Out for delivery') {
+            return 'bg-[#AACCFF] text-[#4793AA]'
+        }
+        else if (status === 'Delivered') {
+            return 'bg-[#b3f5ca] text-[#548c6a]'
+        }
+        else if (status === 'Cancelled') {
+            return 'bg-[#fac0c0] text-[#cc6d72]'
+        }
+        return 'bg-gray-200 text-gray-700'
+    }
+
+    return (
+        <div className="flex justify-center items-center">
+            <div className={`mt-12 mb-8 ${is1620 ? 'w-[95vw]' : 'w-auto'}`}>
+
+                {orders.length ? (
+                    <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+                        <form onSubmit={handleSubmit(handleUpdateOrder)}>
+                            <table className="min-w-full text-sm text-left">
+                                <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
+                                    <tr className="border-b">
+                                        <th className="px-6 py-3">Order</th>
+                                        <th className="px-6 py-3">Id</th>
+                                        <th className="px-6 py-3">Item</th>
+                                        <th className="px-6 py-3 text-right">Total Amount</th>
+                                        <th className="px-6 py-3 text-right">Shipping Address</th>
+                                        <th className="px-6 py-3 text-right">Payment Method</th>
+                                        <th className="px-6 py-3 text-right">Order Date</th>
+                                        <th className="px-6 py-3 text-left">Customer</th>
+                                        <th className="px-6 py-3 text-right">Status</th>
+                                        <th className="px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {orders.length && orders.map((order, index) => (
+                                        <tr key={order._id} className="border-b hover:bg-gray-50">
+                                            <td className="px-6 py-4">{index}</td>
+                                            <td className="px-6 py-4">{order._id}</td>
+                                            <td className="px-6 py-4">
+                                                {order.item.map((product, idx) => (
+                                                    <div key={idx} className="mt-2 flex flex-row items-center gap-2">
+                                                        <img
+                                                            src={product.product.thumbnail}
+                                                            alt=""
+                                                            className="w-10 h-10 rounded-full object-cover"
+                                                        />
+                                                        <p>{product.product.title}</p>
+                                                    </div>
+                                                ))}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">₹{order.total}</td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex flex-col">
+                                                    <p>{order.address[0]?.street}</p>
+                                                    <p>{order.address[0]?.city}</p>
+                                                    <p>{order.address[0]?.state}</p>
+                                                    <p>{order.address[0]?.postalCode}</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">{order.paymentMode}</td>
+                                            <td className="px-6 py-4 text-right">{new Date(order.createdAt).toDateString()}</td>
+
+                                            {/* Customer column - Guest or Registered */}
+                                            <td className="px-6 py-4">
+                                                {order.user ? (
+                                                    <span className="text-sm text-gray-700">Registered User</span>
+                                                ) : (
+                                                    <span className="text-sm text-orange-600">
+                                                        <span className="font-medium">Guest</span><br />
+                                                        <span className="text-xs">📧 {order.guestEmail || 'N/A'}</span><br />
+                                                        <span className="text-xs">📞 {order.guestPhone || 'N/A'}</span>
+                                                    </span>
+                                                )}
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="px-6 py-4 text-right">
+                                                {editIndex === index ? (
+                                                    <select
+                                                        defaultValue={order.status}
+                                                        {...register('status', { required: 'Status is required' })}
+                                                        className="w-32 border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                        {editOptions.map((option) => (
+                                                            <option key={option} value={option}>{option}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                                                        {order.status}
+                                                    </span>
+                                                )}
+                                            </td>
+
+                                            {/* Actions */}
+                                            <td className="px-6 py-4 text-right">
+                                                {editIndex === index ? (
+                                                    <button type="submit" className="p-1 hover:bg-gray-200 rounded transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setEditIndex(index)}
+                                                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                ) : (
+                    <div className={`${is480 ? 'w-auto' : 'w-[30rem]'} flex justify-center`}>
+                        <div className="flex flex-col gap-4">
+                            <Lottie animationData={noOrdersAnimation} />
+                            <p className="text-center text-lg font-normal text-gray-700">There are no orders currently</p>
+                        </div>
+                    </div>
+                )}
+
+            </div>
+        </div>
+    )
 }

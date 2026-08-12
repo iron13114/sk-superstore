@@ -178,6 +178,7 @@ export const UserOrders = () => {
                                     </Stack>
                                         
                                 </Stack>
+                                
                             ))
 
                         }
@@ -195,13 +196,9 @@ export const UserOrders = () => {
 
                             </Stack>
                         }
-
                 </Stack>
-            
             </Stack>
-        
         }
-
     </Stack>
   )
 }

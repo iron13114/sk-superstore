@@ -1,3 +1,6 @@
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+
 const orderSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -6,13 +9,13 @@ const orderSchema = new Schema({
         default: null,
         sparse: true
     },
-    guestEmail: {           
+    guestEmail: {
         type: String,
-        required: function() { return !this.user; } 
+        required: false
     },
-    guestPhone: {       
+    guestPhone: {
         type: String,
-        required: function() { return !this.user; }
+        required: false
     },
     item: {
         type: [Schema.Types.Mixed],
@@ -29,7 +32,7 @@ const orderSchema = new Schema({
     },
     paymentMode: {
         type: String,
-        enum: ['COD'],
+        enum: ['COD', 'UPI', 'CARD'],
         required: true
     },
     total: {
@@ -41,3 +44,5 @@ const orderSchema = new Schema({
         default: Date.now
     },
 }, { versionKey: false });
+
+module.exports = mongoose.model("Order", orderSchema);

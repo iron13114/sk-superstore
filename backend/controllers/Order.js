@@ -18,12 +18,6 @@ exports.create = async (req, res) => {
 
         const created = new Order(orderData);
         await created.save();
-
-        const recipientEmail = orderData.guestEmail || req.body.userEmail; // or lookup user email
-        if (recipientEmail) {
-            await sendOrderConfirmationEmail(recipientEmail, created);
-        }
-
         res.status(201).json(created);
     } catch (error) {
         console.error("Order Creation Error:", error);
@@ -48,48 +42,48 @@ exports.getById = async (req, res) => {
     }
 };
 
-exports.getByUserId=async(req,res)=>{
+exports.getByUserId = async (req, res) => {
     try {
-        const {id}=req.params
-        const results=await Order.find({user:id})
-        res.status(200).json(results)
+        const { id } = req.params;
+        const results = await Order.find({ user: id });
+        res.status(200).json(results);
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:'Error fetching orders, please trying again later'})
-    }
-}
-
-exports.getAll = async (req, res) => {
-    try {
-        let skip=0
-        let limit=0
-
-        if(req.query.page && req.query.limit){
-            const pageSize=req.query.limit
-            const page=req.query.page
-            skip=pageSize*(page-1)
-            limit=pageSize
-        }
-
-        const totalDocs=await Order.find({}).countDocuments().exec()
-        const results=await Order.find({}).skip(skip).limit(limit).exec()
-
-        res.header("X-Total-Count",totalDocs)
-        res.status(200).json(results)
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({message:'Error fetching orders, please try again later'})
+        return res.status(500).json({ message: 'Error fetching orders, please trying again later' });
     }
 };
 
-exports.updateById=async(req,res)=>{
+exports.getAll = async (req, res) => {
     try {
-        const {id}=req.params
-        const updated=await Order.findByIdAndUpdate(id,req.body,{new:true})
-        res.status(200).json(updated)
+        let skip = 0;
+        let limit = 0;
+
+        if (req.query.page && req.query.limit) {
+            const pageSize = req.query.limit;
+            const page = req.query.page;
+            skip = pageSize * (page - 1);
+            limit = pageSize;
+        }
+
+        const totalDocs = await Order.find({}).countDocuments().exec();
+        const results = await Order.find({}).skip(skip).limit(limit).exec();
+
+        res.header("X-Total-Count", totalDocs);
+        res.status(200).json(results);
+
     } catch (error) {
         console.log(error);
-        res.status(500).json({message:'Error updating order, please try again later'})
+        res.status(500).json({ message: 'Error fetching orders, please try again later' });
     }
-}
+};
+
+exports.updateById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updated = await Order.findByIdAndUpdate(id, req.body, { new: true });
+        res.status(200).json(updated);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Error updating order, please try again later' });
+    }
+};

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { motion, MotionConfig } from 'framer-motion'
 import { toast } from 'react-toastify'
+import { useTranslation } from 'react-i18next';
 import {
     createReviewAsync, resetReviewAddStatus, resetReviewDeleteStatus,
     resetReviewUpdateStatus, selectReviewAddStatus, selectReviewDeleteStatus,
@@ -56,6 +57,7 @@ export const Reviews = ({ productId, averageRating }) => {
     const { register, handleSubmit, reset } = useForm()
     const loggedInUser = useSelector(selectLoggedInUser)
     const reviewStatus = useSelector(selectReviewStatus)
+    const { t } = useTranslation();
 
     const reviewAddStatus = useSelector(selectReviewAddStatus)
     const reviewDeleteStatus = useSelector(selectReviewDeleteStatus)
@@ -68,23 +70,23 @@ export const Reviews = ({ productId, averageRating }) => {
 
     useEffect(() => {
         if (reviewAddStatus === 'fulfilled') {
-            toast.success("Review added")
+            toast.success(t('reviews.reviewAdded'))
         } else if (reviewAddStatus === 'rejected') {
-            toast.error("Error posting review, please try again later")
+            toast.error(t('reviews.errorPostingReview'))
         }
         reset()
         setValue(1)
-    }, [reviewAddStatus, reset])
+    }, [reviewAddStatus, reset, t])
 
     useEffect(() => {
-        if (reviewDeleteStatus === 'fulfilled') toast.success("Review deleted")
-        else if (reviewDeleteStatus === 'rejected') toast.error("Error deleting review, please try again later")
-    }, [reviewDeleteStatus])
+        if (reviewDeleteStatus === 'fulfilled') toast.success(t('reviews.reviewDeleted'))
+        else if (reviewDeleteStatus === 'rejected') toast.error(t('reviews.errorDeletingReview'))
+    }, [reviewDeleteStatus, t])
 
     useEffect(() => {
-        if (reviewUpdateStatus === 'fulfilled') toast.success("Review updated")
-        else if (reviewUpdateStatus === 'rejected') toast.error("Error updating review, please try again later")
-    }, [reviewUpdateStatus])
+        if (reviewUpdateStatus === 'fulfilled') toast.success(t('reviews.reviewUpdated'))
+        else if (reviewUpdateStatus === 'rejected') toast.error(t('reviews.errorUpdatingReview'))
+    }, [reviewUpdateStatus, t])
 
     useEffect(() => {
         return () => {
@@ -99,10 +101,9 @@ export const Reviews = ({ productId, averageRating }) => {
         ratingCounts[review.rating] = ratingCounts[review.rating] + 1
     })
 
-    // LOGIN GUARD - prevents crash and shows toast
     const handleAddReview = (data) => {
         if (!loggedInUser) {
-            toast.error("Please login in order to write review")
+            toast.error(t('reviews.loginToWriteReview'))
             setWriteReview(false)
             return
         }
@@ -113,7 +114,7 @@ export const Reviews = ({ productId, averageRating }) => {
 
     const handleWriteReviewClick = () => {
         if (!loggedInUser) {
-            toast.error("Please login in order to write review")
+            toast.error(t('reviews.loginToWriteReview'))
             return
         }
         setWriteReview(true)
@@ -124,20 +125,27 @@ export const Reviews = ({ productId, averageRating }) => {
             
             {/* Header + Rating Summary */}
             <div className="flex flex-col gap-4">
-                <h4 className="text-3xl font-normal text-gray-900 mb-2">Reviews</h4>
+                <h4 className="text-3xl font-normal text-gray-900 mb-2">{t('reviews.title')}</h4>
                 
                 {reviews?.length > 0 ? (
                     <div className="flex flex-col gap-6">
                         <div className="flex flex-col gap-2">
                             <p className="text-5xl font-extrabold text-gray-900">{averageRating}.0</p>
                             <StarRating value={averageRating} readOnly />
-                            <p className="text-xl text-gray-500">Based on {reviews.length} {reviews.length === 1 ? "Review" : "Reviews"}</p>
+                            <p className="text-xl text-gray-500">
+                                {reviews.length === 1 
+                                    ? t('reviews.basedOnOne', { count: reviews.length }) 
+                                    : t('reviews.basedOnMany', { count: reviews.length })
+                                }
+                            </p>
                         </div>
 
                         <div className="flex flex-col gap-3">
                             {[5, 4, 3, 2, 1].map((number) => (
                                 <div key={number} className="flex flex-row justify-between items-center gap-3">
-                                    <span className="text-sm text-gray-700 whitespace-nowrap">{number} star</span>
+                                    <span className="text-sm text-gray-700 whitespace-nowrap">
+                                        {t('reviews.starLabel', { number })}
+                                    </span>
                                     <div className="w-full h-4 bg-gray-200 rounded overflow-hidden">
                                         <div
                                             className="h-full bg-black rounded transition-all duration-300"
@@ -153,7 +161,7 @@ export const Reviews = ({ productId, averageRating }) => {
                     </div>
                 ) : (
                     <p className="text-xl text-gray-500 font-normal">
-                        {loggedInUser?.isAdmin ? "There are no reviews currently" : "Be the one to post review first"}
+                        {loggedInUser?.isAdmin ? t('reviews.noReviewsAdmin') : t('reviews.beFirstToReview')}
                     </p>
                 )}
             </div>
@@ -183,12 +191,12 @@ export const Reviews = ({ productId, averageRating }) => {
                     <textarea
                         {...register("comment", { required: false })}
                         rows={6}
-                        placeholder="Write a review..."
+                        placeholder={t('reviews.placeholder')}
                         className={`w-full mt-4 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-sm ${is840 ? 'w-full' : 'w-[40rem]'}`}
                     />
 
                     <div>
-                        <p className="text-sm text-gray-700 mb-2">How much did you like the product?</p>
+                        <p className="text-sm text-gray-700 mb-2">{t('reviews.howMuchLike')}</p>
                         <motion.div className="w-fit" whileHover={{ scale: 1.05, x: 2 }} whileTap={{ scale: 1 }}>
                             <StarRating size="large" value={value} onChange={(val) => setValue(val)} />
                         </motion.div>
@@ -202,7 +210,7 @@ export const Reviews = ({ productId, averageRating }) => {
                                     disabled={reviewStatus === 'pending'}
                                     className={`bg-black text-white rounded px-4 py-2 font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 ${is480 ? 'text-sm' : 'text-base'}`}
                                 >
-                                    {reviewStatus === 'pending' ? 'Adding...' : 'Add review'}
+                                    {reviewStatus === 'pending' ? t('reviews.adding') : t('reviews.addReview')}
                                 </button>
                             </motion.div>
                             <motion.div>
@@ -211,7 +219,7 @@ export const Reviews = ({ productId, averageRating }) => {
                                     onClick={() => setWriteReview(false)}
                                     className={`border border-red-500 text-red-500 rounded px-4 py-2 font-medium hover:bg-red-50 transition-colors ${is480 ? 'text-sm' : 'text-base'}`}
                                 >
-                                    Cancel
+                                    {t('reviews.cancel')}
                                 </button>
                             </motion.div>
                         </MotionConfig>
@@ -229,7 +237,7 @@ export const Reviews = ({ productId, averageRating }) => {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
-                            Write a review
+                            {t('reviews.writeReview')}
                         </button>
                     </motion.div>
                 )

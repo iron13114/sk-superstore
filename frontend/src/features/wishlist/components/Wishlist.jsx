@@ -5,12 +5,8 @@ import { motion } from 'framer-motion'
 import Lottie from 'lottie-react'
 import { toast } from 'react-toastify'
 import { useForm } from "react-hook-form"
-import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistFetchStatus,
-    resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, resetWishlistItemUpdateStatus,
-    selectWishlistFetchStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus,
-    selectWishlistItemUpdateStatus, selectWishlistItems, updateWishlistItemByIdAsync,
-    loadGuestWishlist, addGuestItem, removeGuestItem, updateGuestItem
-} from '../WishlistSlice'
+import { useTranslation } from 'react-i18next';
+import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistFetchStatus, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, resetWishlistItemUpdateStatus, selectWishlistFetchStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItemUpdateStatus, selectWishlistItems, updateWishlistItemByIdAsync, loadGuestWishlist, removeGuestItem, updateGuestItem } from '../WishlistSlice'
 import { ProductCard } from '../../products/components/ProductCard'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { emptyWishlistAnimation, loadingAnimation } from '../../../assets'
@@ -37,6 +33,7 @@ export const Wishlist = () => {
     const cartItems = useSelector(selectCartItems)
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
     const wishlistFetchStatus = useSelector(selectWishlistFetchStatus)
+    const { t } = useTranslation();
 
     const [editIndex, setEditIndex] = useState(-1)
     const [editValue, setEditValue] = useState('')
@@ -46,7 +43,6 @@ export const Wishlist = () => {
     const is642 = useMediaQuery('(max-width: 642px)')
     const is480 = useMediaQuery('(max-width: 480px)')
 
-    // Load guest wishlist if not logged in
     useEffect(() => {
         if (!loggedInUser) {
             dispatch(loadGuestWishlist())
@@ -67,7 +63,7 @@ export const Wishlist = () => {
                 const index = wishlistItems.findIndex((item) => item.product._id === productId)
                 if (index !== -1) {
                     dispatch(removeGuestItem(wishlistItems[index]._id))
-                    toast.success("Product removed from wishlist")
+                    toast.success(t('wishlist.removedFromWishlist'))
                 }
             }
         }
@@ -78,33 +74,33 @@ export const Wishlist = () => {
     }, [])
 
     useEffect(() => {
-        if (wishlistItemAddStatus === 'fulfilled') toast.success("Product added to wishlist")
-        else if (wishlistItemAddStatus === 'rejected') toast.error("Error adding product to wishlist, please try again later")
-    }, [wishlistItemAddStatus])
+        if (wishlistItemAddStatus === 'fulfilled') toast.success(t('wishlist.addedToWishlist'))
+        else if (wishlistItemAddStatus === 'rejected') toast.error(t('wishlist.errorAddingWishlist'))
+    }, [wishlistItemAddStatus, t])
 
     useEffect(() => {
-        if (wishlistItemDeleteStatus === 'fulfilled') toast.success("Product removed from wishlist")
-        else if (wishlistItemDeleteStatus === 'rejected') toast.error("Error removing product from wishlist, please try again later")
-    }, [wishlistItemDeleteStatus])
+        if (wishlistItemDeleteStatus === 'fulfilled') toast.success(t('wishlist.removedFromWishlist'))
+        else if (wishlistItemDeleteStatus === 'rejected') toast.error(t('wishlist.errorRemovingWishlist'))
+    }, [wishlistItemDeleteStatus, t])
 
     useEffect(() => {
         if (wishlistItemUpdateStatus === 'fulfilled') {
-            toast.success("Wishlist item updated")
+            toast.success(t('wishlist.wishlistItemUpdated'))
         } else if (wishlistItemUpdateStatus === 'rejected') {
-            toast.error("Error updating wishlist item")
+            toast.error(t('wishlist.errorUpdatingWishlist'))
         }
         setEditIndex(-1)
         setEditValue("")
-    }, [wishlistItemUpdateStatus])
+    }, [wishlistItemUpdateStatus, t])
 
     useEffect(() => {
-        if (cartItemAddStatus === 'fulfilled') toast.success("Product added to cart")
-        else if (cartItemAddStatus === 'rejected') toast.error('Error adding product to cart, please try again later')
-    }, [cartItemAddStatus])
+        if (cartItemAddStatus === 'fulfilled') toast.success(t('wishlist.addedToCart'))
+        else if (cartItemAddStatus === 'rejected') toast.error(t('wishlist.errorAddingCart'))
+    }, [cartItemAddStatus, t])
 
     useEffect(() => {
-        if (wishlistFetchStatus === 'rejected') toast.error("Error fetching wishlist, please try again later")
-    }, [wishlistFetchStatus])
+        if (wishlistFetchStatus === 'rejected') toast.error(t('wishlist.errorFetchingWishlist'))
+    }, [wishlistFetchStatus, t])
 
     useEffect(() => {
         return () => {
@@ -114,7 +110,7 @@ export const Wishlist = () => {
             dispatch(resetWishlistItemDeleteStatus())
             dispatch(resetWishlistItemAddStatus())
         }
-    }, [])
+    }, [dispatch])
 
     const handleNoteUpdate = (wishlistItemId) => {
         if (loggedInUser) {
@@ -122,7 +118,7 @@ export const Wishlist = () => {
             dispatch(updateWishlistItemByIdAsync(update))
         } else {
             dispatch(updateGuestItem({ _id: wishlistItemId, note: editValue }))
-            toast.success("Note updated")
+            toast.success(t('wishlist.noteUpdated'))
             setEditIndex(-1)
             setEditValue("")
         }
@@ -138,7 +134,6 @@ export const Wishlist = () => {
             const data = { user: loggedInUser._id, product: productId }
             dispatch(addToCartAsync(data))
         } else {
-            // Assumes your CartSlice already handles guest/localStorage cart
             dispatch(addToCartAsync({ product: productId }))
         }
     }
@@ -161,16 +156,16 @@ export const Wishlist = () => {
                                 </svg>
                             </Link>
                         </motion.div>
-                        <h4 className={`font-medium text-gray-900 ${is480 ? 'text-xl' : 'text-3xl'}`}>Your wishlist</h4>
+                        <h4 className={`font-medium text-gray-900 ${is480 ? 'text-xl' : 'text-3xl'}`}>{t('wishlist.title')}</h4>
                     </div>
 
                     {/* Content */}
                     <div>
                         {wishlistItems?.length === 0 ? (
                             <div className={`flex flex-col justify-center items-center min-h-[60vh] ${is642 ? 'w-auto' : 'w-[40rem]'} self-center`}>
-                                <Lottie animationData={emptyWishlistAnimation} style={{ width: '250px' }} />
-                                <p className={`font-normal text-gray-900 mt-2 ${is480 ? 'text-lg' : 'text-2xl'}`}>Your wishlist is empty</p>
-                                <p className="font-light text-gray-500">You haven't added any items to your wishlist yet.</p>
+                                <Lottie animationData={emptyWishlistAnimation} className="w-[250px]" />
+                                <p className={`font-normal text-gray-900 mt-2 ${is480 ? 'text-lg' : 'text-2xl'}`}>{t('wishlist.emptyTitle')}</p>
+                                <p className="font-light text-gray-500">{t('wishlist.emptySubtitle')}</p>
                             </div>
                         ) : (
                             <div className={`flex flex-wrap justify-center content-center ${is480 ? 'gap-2' : 'gap-4'}`}>
@@ -191,7 +186,7 @@ export const Wishlist = () => {
 
                                         <div className="px-4 pb-4">
                                             <div className="flex items-center gap-1">
-                                                <h6 className="text-lg font-normal text-gray-900">Note</h6>
+                                                <h6 className="text-lg font-normal text-gray-900">{t('wishlist.note')}</h6>
                                                 <button
                                                     onClick={() => handleEdit(index)}
                                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -215,20 +210,20 @@ export const Wishlist = () => {
                                                             onClick={() => handleNoteUpdate(item._id)}
                                                             className="px-4 py-1.5 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
                                                         >
-                                                            Update
+                                                            {t('wishlist.update')}
                                                         </button>
                                                         <button
                                                             onClick={() => setEditIndex(-1)}
                                                             className="px-4 py-1.5 border border-red-500 text-red-500 text-sm font-medium rounded hover:bg-red-50 transition-colors"
                                                         >
-                                                            Cancel
+                                                            {t('wishlist.cancel')}
                                                         </button>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="mt-1">
                                                     <p className={`text-sm break-words ${item.note ? 'text-gray-900' : 'text-gray-400'}`}>
-                                                        {item.note || "Add a custom note here"}
+                                                        {item.note || t('wishlist.addNotePlaceholder')}
                                                     </p>
                                                 </div>
                                             )}
@@ -238,14 +233,14 @@ export const Wishlist = () => {
                                                     to="/cart"
                                                     className="mt-4 block w-full text-center px-4 py-2 border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50 transition-colors"
                                                 >
-                                                    Already in cart
+                                                    {t('wishlist.alreadyInCart')}
                                                 </Link>
                                             ) : (
                                                 <button
                                                     onClick={() => handleAddToCart(item.product._id)}
                                                     className="mt-4 w-full px-4 py-2 border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50 transition-colors"
                                                 >
-                                                    Add To Cart
+                                                    {t('wishlist.addToCart')}
                                                 </button>
                                             )}
                                         </div>

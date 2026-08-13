@@ -1,21 +1,17 @@
 import React, { useState, useRef } from 'react';
-import MobileStepper from '@mui/material/MobileStepper';
-import { Box } from '@mui/material';
-
-// Swiper imports
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
-
-// Swiper styles
 import 'swiper/css';
+import { useTranslation } from 'react-i18next';
 
 export const ProductBanner = ({ images = [] }) => {
   const [activeStep, setActiveStep] = useState(0);
   const swiperRef = useRef(null);
   const maxSteps = images.length;
+  const { t } = useTranslation();
 
   return (
-    <>
+    <div className="w-full h-full flex flex-col">
       <Swiper
         modules={[Autoplay]}
         autoplay={{
@@ -26,27 +22,35 @@ export const ProductBanner = ({ images = [] }) => {
         onSlideChange={(swiper) => setActiveStep(swiper.activeIndex)}
         slidesPerView={1}
         loop={maxSteps > 1}
-        style={{ width: '100%', height: '100%', overflow: 'hidden' }}
+        className="w-full h-full overflow-hidden"
       >
         {images.map((image, index) => (
-          <SwiperSlide key={index} style={{ width: '100%', height: '100%' }}>
-            <Box
-              component="img"
-              sx={{ width: '100%', objectFit: 'contain' }}
+          <SwiperSlide key={index} className="w-full h-full">
+            <img
+              className="w-full h-full object-contain"
               src={image}
-              alt={`Banner Image ${index + 1}`}
+              alt={t('productBanner.imageAlt', { number: index + 1 })}
             />
           </SwiperSlide>
         ))}
       </Swiper>
 
-      <div style={{ alignSelf: 'center' }}>
-        <MobileStepper
-          steps={maxSteps}
-          position="static"
-          activeStep={activeStep}
-        />
-      </div>
-    </>
+      {maxSteps > 1 && (
+        <div className="self-center flex items-center gap-2 py-3">
+          {Array.from({ length: maxSteps }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => swiperRef.current?.slideTo(i)}
+              className={`rounded-full transition-all duration-300 ${
+                i === activeStep
+                  ? 'w-6 h-2 bg-black'
+                  : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+              }`}
+              aria-label={t('productBanner.goToSlide', { number: i + 1 })}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

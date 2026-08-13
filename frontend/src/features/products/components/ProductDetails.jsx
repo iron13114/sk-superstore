@@ -1,24 +1,61 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
-import {fetchProductByIdAsync,selectProductFetchStatus, selectSelectedProduct } from '../ProductSlice'
-import { Box, Checkbox, Rating, Stack, Typography, useMediaQuery, Button, Paper, Divider } from '@mui/material'
-import { addToCartAsync,selectCartItemAddStatus} from '../../cart/CartSlice'
+import { fetchProductByIdAsync, selectProductFetchStatus, selectSelectedProduct } from '../ProductSlice'
+import { addToCartAsync, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import { fetchReviewsByProductIdAsync,selectReviewFetchStatus, selectReviews, } from '../../review/ReviewSlice'
+import { fetchReviewsByProductIdAsync, selectReviewFetchStatus, selectReviews } from '../../review/ReviewSlice'
 import { Reviews } from '../../review/components/Reviews'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
-import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
-import Favorite from '@mui/icons-material/Favorite'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems } from '../../wishlist/WishlistSlice'
-import { useTheme } from '@mui/material'
-import MobileStepper from '@mui/material/MobileStepper';
 import Lottie from 'lottie-react'
 import { loadingAnimation } from '../../../assets'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay } from 'swiper/modules'
 import 'swiper/css'
+import { useTranslation } from 'react-i18next';
+
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        const listener = (e) => setMatches(e.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [query]);
+    return matches;
+};
+
+const HeartCheckbox = ({ checked, onChange }) => (
+    <label className="cursor-pointer relative inline-flex">
+        <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+        <svg 
+            className={`w-6 h-6 transition-all duration-200 ${checked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            fill={checked ? "currentColor" : "none"}
+        >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+    </label>
+);
+
+const ReadOnlyRating = ({ value }) => (
+    <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+            <svg
+                key={star}
+                className={`w-5 h-5 ${star <= value ? 'text-yellow-400' : 'text-gray-300'}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+            >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+        ))}
+    </div>
+);
 
 export const ProductDetails = () => {
     const { id } = useParams()
@@ -26,8 +63,8 @@ export const ProductDetails = () => {
     const loggedInUser = useSelector(selectLoggedInUser)
     const dispatch = useDispatch()
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
+    const { t } = useTranslation();
     
-    // Wholesale packaging tier state tracking
     const [quantities, setQuantities] = useState({
         single: 0,
         pack: 0,
@@ -35,14 +72,14 @@ export const ProductDetails = () => {
     })
 
     const reviews = useSelector(selectReviews)
-    const [setSelectedImageIndex] = useState(0)
-    const theme = useTheme()
-    const is1420 = useMediaQuery(theme.breakpoints.down(1420))
-    const is990 = useMediaQuery(theme.breakpoints.down(990))
-    const is840 = useMediaQuery(theme.breakpoints.down(840))
-    const is500 = useMediaQuery(theme.breakpoints.down(500))
-    const is480 = useMediaQuery(theme.breakpoints.down(480))
-    const is340 = useMediaQuery(theme.breakpoints.down(340))
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+    
+    const is1420 = useMediaQuery('(max-width: 1420px)')
+    const is990 = useMediaQuery('(max-width: 990px)')
+    const is840 = useMediaQuery('(max-width: 840px)')
+    const is500 = useMediaQuery('(max-width: 500px)')
+    const is480 = useMediaQuery('(max-width: 480px)')
+    const is340 = useMediaQuery('(max-width: 340px)')
 
     const wishlistItems = useSelector(selectWishlistItems)
     const isProductAlreadyinWishlist = wishlistItems.some((item) => item.product._id === id)
@@ -52,6 +89,7 @@ export const ProductDetails = () => {
     const totalReviewRating = reviews.reduce((acc, review) => acc + review.rating, 0)
     const totalReviews = reviews.length
     const averageRating = totalReviews > 0 ? Math.ceil(totalReviewRating / totalReviews) : 0;
+
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" })
     }, [])
@@ -65,24 +103,24 @@ export const ProductDetails = () => {
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') {
-            toast.success("Items added to cart successfully")
+            toast.success(t('productDetails.itemsAddedToCart'))
         } else if (cartItemAddStatus === 'rejected') {
-            toast.error('Error adding wholesale items to cart')
+            toast.error(t('productDetails.errorAddingToCart'))
         }
-    }, [cartItemAddStatus])
+    }, [cartItemAddStatus, t])
 
     const handleAddWholeSaleToCart = () => {
         const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);
         
         if (selectedTiers.length === 0) {
-            toast.info("Please select a quantity for at least one tier option.");
+            toast.info(t('productDetails.selectAtLeastOneTier'));
             return;
         }
         
         const tierLabels = {
-            single: 'Single Unit',
-            pack: 'Pack (10 Units)',
-            carton: 'Carton (50 Units)'
+            single: t('productDetails.singleUnit'),
+            pack: t('productDetails.packOf10'),
+            carton: t('productDetails.cartonOf50')
         };
         
         selectedTiers.forEach(([tier, qty]) => {
@@ -123,7 +161,6 @@ export const ProductDetails = () => {
         }
     }
 
-    // Swiper instance ref & Active Step state
     const [activeStep, setActiveStep] = useState(0);
     const swiperRef = useRef(null);
     const maxSteps = product?.images ? product.images.length : 0;
@@ -136,37 +173,56 @@ export const ProductDetails = () => {
         if (swiperRef.current) swiperRef.current.slidePrev();
     };
 
-    // Wholesale Price Multipliers
     const getTierPrice = (basePrice, tier) => {
-        if (tier === 'pack') return (basePrice * 10 * 0.95).toFixed(2); // 5% discount for a pack of 10
-        if (tier === 'carton') return (basePrice * 50 * 0.90).toFixed(2); // 10% discount for a bulk carton of 50
+        if (tier === 'pack') return (basePrice * 10 * 0.95).toFixed(2);
+        if (tier === 'carton') return (basePrice * 50 * 0.90).toFixed(2);
         return basePrice;
     }
 
+    const tierLabels = {
+        single: t('productDetails.singleUnit'),
+        pack: t('productDetails.packOf10'),
+        carton: t('productDetails.cartonOf50')
+    };
+
     return (
         <>
-        {!(productFetchStatus === 'rejected' && reviewFetchStatus === 'rejected') && <Stack sx={{ justifyContent: 'center', alignItems: 'center', mb: '2rem', rowGap: "2rem" }}>
+        {!(productFetchStatus === 'rejected' && reviewFetchStatus === 'rejected') && (
+            <div className="flex flex-col justify-center items-center mb-8 gap-8">
             {
                 (productFetchStatus || reviewFetchStatus) === 'pending' ?
-                <Stack width={is500 ? "35vh" : '25rem'} height={'calc(100vh - 4rem)'} justifyContent={'center'} alignItems={'center'}>
+                <div className={`flex justify-center items-center ${is500 ? "w-[35vh]" : 'w-96'} h-[calc(100vh-4rem)]`}>
                     <Lottie animationData={loadingAnimation} />
-                </Stack>
+                </div>
                 :
-                <Stack>
-                    <Stack width={is480 ? "auto" : is1420 ? "auto" : '88rem'} p={is480 ? 2 : 0} height={is840 ? "auto" : "50rem"} rowGap={5} mt={is840 ? 0 : 5} justifyContent={'center'} mb={5} flexDirection={is840 ? "column" : "row"} columnGap={is990 ? "2rem" : "5rem"}>
-
+                <div className="flex flex-col">
+                    <div className={`flex ${is840 ? "flex-col h-auto" : "flex-row h-[50rem]"} ${is480 ? "p-2" : "p-0"} ${is840 ? "mt-0" : "mt-20"} justify-center mb-20 gap-y-20 ${is990 ? "gap-x-8" : "gap-x-20"} ${is1420 || is480 ? "w-auto" : 'w-[88rem]'}`}>
+                        
                         {/* Left Side: Images */}
-                        <Stack sx={{ flexDirection: "row", columnGap: "2.5rem", alignSelf: "flex-start", height: "100%" }}>
-                            {!is1420 && <Stack sx={{ display: "flex", rowGap: '1.5rem', height: "100%", overflowY: "scroll" }}>
-                                {product && product.images.map((image, index) => (
-                                    <motion.div key={index} whileHover={{ scale: 1.1 }} whileTap={{ scale: 1 }} style={{ width: "200px", cursor: "pointer" }} onClick={() => setSelectedImageIndex(index)}>
-                                    </motion.div>
-                                ))}
-                            </Stack>}
+                        <div className="flex flex-row gap-x-10 self-start h-full">
+                            {!is1420 && (
+                                <div className="flex flex-col gap-y-6 h-full overflow-y-auto">
+                                    {product && product.images.map((image, index) => (
+                                        <motion.div 
+                                            key={index} 
+                                            whileHover={{ scale: 1.1 }} 
+                                            whileTap={{ scale: 1 }} 
+                                            className="w-[200px] cursor-pointer"
+                                            onClick={() => setSelectedImageIndex(index)}
+                                        >
+                                            <img 
+                                                src={image} 
+                                                alt={t('productDetails.thumbnailAlt', { number: index + 1 })}
+                                                className="w-full aspect-square object-contain"
+                                            />
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            )}
                             
-                            <Stack mt={is480 ? "0rem" : '5rem'}>
-                                {is1420 ?
-                                    <Stack width={is480 ? "100%" : is990 ? '400px' : "500px"}>
+                            <div className={is480 ? "mt-0" : "mt-20"}>
+                                {is1420 ? (
+                                    <div className={`${is480 ? "w-full" : is990 ? 'w-[400px]' : "w-[500px]"}`}>
                                         <Swiper
                                             modules={[Autoplay]}
                                             autoplay={{
@@ -180,106 +236,143 @@ export const ProductDetails = () => {
                                         >
                                             {product?.images.map((image, index) => (
                                                 <SwiperSlide key={index}>
-                                                    <Box component="img" sx={{ width: '100%', objectFit: "contain", overflow: "hidden", aspectRatio: 1 / 1 }} src={image} alt={product?.title} />
+                                                    <img 
+                                                        className="w-full object-contain overflow-hidden aspect-square" 
+                                                        src={image} 
+                                                        alt={product?.title} 
+                                                    />
                                                 </SwiperSlide>
                                             ))}
                                         </Swiper>
-                                        <MobileStepper steps={maxSteps} position="static" activeStep={activeStep} nextButton={<Button size="small" onClick={handleNext} disabled={activeStep === maxSteps - 1} >Next</Button>} backButton={<Button size="small" onClick={handleBack} disabled={activeStep === 0}>Back</Button>} />
-                                    </Stack>
-                                    :
-                                    <div style={{ width: "100%" }}>
+                                        
+                                        {/* Custom Stepper replacing MUI MobileStepper */}
+                                        <div className="flex items-center justify-between py-2 px-1">
+                                            <button 
+                                                onClick={handleBack} 
+                                                disabled={activeStep === 0}
+                                                className="text-sm text-gray-700 hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                {t('productDetails.back')}
+                                            </button>
+                                            <div className="flex items-center gap-1.5">
+                                                {Array.from({ length: maxSteps }, (_, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`rounded-full transition-all duration-300 ${
+                                                            i === activeStep ? 'w-5 h-2 bg-black' : 'w-2 h-2 bg-gray-300'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <button 
+                                                onClick={handleNext} 
+                                                disabled={activeStep === maxSteps - 1}
+                                                className="text-sm text-gray-700 hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                {t('productDetails.next')}
+                                            </button>
+                                        </div>
                                     </div>
-                                }
-                            </Stack>
-                        </Stack>
+                                ) : (
+                                    <div className="w-full">
+                                        {product?.images && (
+                                            <img 
+                                                src={product.images[selectedImageIndex]} 
+                                                alt={product?.title}
+                                                className="w-full object-contain aspect-square"
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Right Side: Product Details & Wholesale Purchase Card */}
-                        <Stack rowGap={"1.5rem"} width={is480 ? "100%" : '30rem'}>
-                            <Stack rowGap={".5rem"}>
-                                <Typography variant='h4' fontWeight={600}>{product?.title}</Typography>
-                                <Stack sx={{ flexDirection: "row", columnGap: is340 ? ".5rem" : "1rem", alignItems: "center", flexWrap: 'wrap', rowGap: '1rem' }}>
-                                    <Rating value={averageRating} readOnly />
-                                    <Typography>( {totalReviews === 0 ? "No reviews" : totalReviews === 1 ? `${totalReviews} Review` : `${totalReviews} Reviews`} )</Typography>
-                                    <Typography color={product?.stockQuantity <= 10 ? "error" : "green"}>{product?.stockQuantity <= 10 ? `Only ${product?.stockQuantity} left` : "In Bulk Stock"}</Typography>
-                                </Stack>
-                            </Stack>
+                        <div className={`flex flex-col gap-y-6 ${is480 ? "w-full" : "w-[30rem]"}`}>
+                            <div className="flex flex-col gap-2">
+                                <h1 className="text-3xl font-semibold">{product?.title}</h1>
+                                <div className={`flex items-center flex-wrap gap-y-4 ${is340 ? "gap-x-2" : "gap-x-4"}`}>
+                                    <ReadOnlyRating value={averageRating} />
+                                    <span className="text-gray-600 text-sm">
+                                        ( {totalReviews === 0 ? t('productDetails.noReviews') : totalReviews === 1 ? t('productDetails.oneReview', {count: totalReviews}) : t('productDetails.manyReviews', {count: totalReviews})} )
+                                    </span>
+                                    <span className={`text-sm font-medium ${product?.stockQuantity <= 10 ? 'text-red-600' : 'text-green-600'}`}>
+                                        {product?.stockQuantity <= 10 ? t('productDetails.onlyXLeft', {count: product?.stockQuantity}) : t('productDetails.inBulkStock')}
+                                    </span>
+                                </div>
+                            </div>
 
-                            <Stack rowGap={".8rem"}>
-                                <Typography variant="body1" color="text.secondary">{product?.description}</Typography>
-                                <Divider />
-                            </Stack>
+                            <div className="flex flex-col gap-3">
+                                <p className="text-gray-600 text-base">{product?.description}</p>
+                                <hr className="border-gray-200" />
+                            </div>
 
                             {!loggedInUser?.isAdmin && (
-                                <Paper variant="outlined" sx={{ p: 3, borderRadius: '8px', bgcolor: '#f9f9f9' }}>
-                                    <Typography variant="h6" fontWeight={600} mb={2}>Select Wholesale Supply Options:</Typography>
+                                <div className="p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
+                                    <h2 className="text-lg font-semibold mb-4">{t('productDetails.selectWholesaleOptions')}</h2>
 
-                                    {/* Wholesale Options Tiers Grid */}
-                                    <Stack spacing={2.5}>
+                                    <div className="flex flex-col gap-5">
                                         {['single', 'pack', 'carton'].map((tier) => (
-                                            <Stack key={tier} flexDirection="row" justifyContent="space-between" alignItems="center">
-                                                <Box>
-                                                    <Typography variant="subtitle1" fontWeight={500} sx={{ textTransform: 'capitalize' }}>
-                                                        {tier === 'single' ? 'Single Unit' : tier === 'pack' ? 'Pack (10 Units)' : 'Carton (50 Units)'}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="primary.main" fontWeight={600}>
+                                            <div key={tier} className="flex flex-row justify-between items-center">
+                                                <div>
+                                                    <p className="text-base font-medium capitalize">
+                                                        {tierLabels[tier]}
+                                                    </p>
+                                                    <p className="text-sm font-semibold text-blue-600">
                                                         ₹{getTierPrice(product?.price || 0, tier)}
-                                                    </Typography>
-                                                </Box>
+                                                    </p>
+                                                </div>
 
-                                                {/* Tier Quantity Counter Controls */}
-                                                <Stack flexDirection="row" alignItems="center">
-                                                    <Button 
-                                                        variant="outlined" 
-                                                        size="small"
+                                                <div className="flex flex-row items-center">
+                                                    <button 
                                                         onClick={() => handleUpdateTierQty(tier, 'dec')}
-                                                        sx={{ minWidth: '35px', p: 0.5, fontWeight: 'bold' }}
+                                                        className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
                                                     >
                                                         -
-                                                    </Button>
-                                                    <Typography sx={{ mx: 2, minWidth: '20px', textAlign: 'center', fontWeight: 500 }}>
+                                                    </button>
+                                                    <span className="mx-3 min-w-[20px] text-center font-medium text-sm">
                                                         {quantities[tier]}
-                                                    </Typography>
-                                                    <Button 
-                                                        variant="outlined" 
-                                                        size="small"
+                                                    </span>
+                                                    <button 
                                                         onClick={() => handleUpdateTierQty(tier, 'inc')}
-                                                        sx={{ minWidth: '35px', p: 0.5, fontWeight: 'bold' }}
+                                                        className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
                                                     >
                                                         +
-                                                    </Button>
-                                                </Stack>
-                                            </Stack>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </Stack>
+                                    </div>
 
-                                    <Divider sx={{ my: 3 }} />
+                                    <hr className="my-6 border-gray-200" />
 
-                                    {/* Add to Cart Actions Footer Block */}
-                                    <Stack flexDirection="row" columnGap={2} alignItems="center">
-                                        <Button 
-                                            fullWidth
-                                            variant="contained" 
+                                    <div className="flex flex-row gap-4 items-center">
+                                        <button 
                                             onClick={handleAddWholeSaleToCart}
-                                            sx={{ backgroundColor: "black", color: "white", py: 1.5, borderRadius: '8px', '&:hover': { backgroundColor: '#222' } }}
+                                            className="flex-1 bg-black text-white py-3 rounded-lg hover:bg-[#222] transition-colors text-sm font-medium"
                                         >
-                                            Add Wholesale Selection To Cart
-                                        </Button>
+                                            {t('productDetails.addWholesaleToCart')}
+                                        </button>
                                         
-                                        <Box sx={{ border: "1px solid #ccc", borderRadius: "8px", p: 0.5, display: "flex" }}>
-                                            <Checkbox checked={isProductAlreadyinWishlist} onChange={handleAddRemoveFromWishlist} icon={<FavoriteBorder />} checkedIcon={<Favorite sx={{ color: 'red' }} />} />
-                                        </Box>
-                                    </Stack>
-                                </Paper>
+                                        <div className="border border-gray-300 rounded-lg p-1 flex items-center justify-center">
+                                            <HeartCheckbox 
+                                                checked={isProductAlreadyinWishlist} 
+                                                onChange={handleAddRemoveFromWishlist} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             )}
-                        </Stack>
-                    </Stack>
+                        </div>
+                    </div>
 
-                    <Stack width={is1420 ? "auto" : '88rem'} p={is480 ? 2 : 0}>
+                    <div className={`${is1420 ? "w-auto" : 'w-[88rem]'} ${is480 ? "p-2" : "p-0"}`}>
                         <Reviews productId={id} averageRating={averageRating} />
-                    </Stack>
-                </Stack>
+                    </div>
+                </div>
             }
-        </Stack>}
+            </div>
+        )}
         </>
     )
 }

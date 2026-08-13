@@ -1,39 +1,65 @@
-import { FormHelperText, Paper, Stack, Typography, useMediaQuery, useTheme} from '@mui/material'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
-import Favorite from '@mui/icons-material/Favorite';
-import Checkbox from '@mui/material/Checkbox';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectWishlistItems } from '../../wishlist/WishlistSlice';
-import { selectLoggedInUser } from '../../auth/AuthSlice';
-import { addToCartAsync,selectCartItems } from '../../cart/CartSlice';
-import {motion} from 'framer-motion'
+import { addToCartAsync, selectCartItems } from '../../cart/CartSlice';
+import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next';
 
-export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handleAddRemoveFromWishlist,isWishlistCard,isAdminCard}) => {
-    
-    const navigate=useNavigate()
-    const wishlistItems=useSelector(selectWishlistItems)
-    const loggedInUser=useSelector(selectLoggedInUser)
-    const cartItems=useSelector(selectCartItems)
-    const dispatch=useDispatch()
-    let isProductAlreadyinWishlist=-1
+const useMediaQuery = (query) => {
+    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
+    React.useEffect(() => {
+        const media = window.matchMedia(query);
+        const listener = (e) => setMatches(e.matches);
+        media.addEventListener('change', listener);
+        return () => media.removeEventListener('change', listener);
+    }, [query]);
+    return matches;
+};
 
-    const theme=useTheme()
-    const is1410=useMediaQuery(theme.breakpoints.down(1410))
-    const is932=useMediaQuery(theme.breakpoints.down(932))
-    const is752=useMediaQuery(theme.breakpoints.down(752))
-    const is500=useMediaQuery(theme.breakpoints.down(500))
-    const is608=useMediaQuery(theme.breakpoints.down(608))
-    const is488=useMediaQuery(theme.breakpoints.down(488))
-    const is408=useMediaQuery(theme.breakpoints.down(408))
+const HeartCheckbox = ({ checked, onChange }) => (
+    <label className="cursor-pointer relative inline-flex">
+        <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+        <svg 
+            className={`w-6 h-6 transition-all duration-200 ${checked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            fill={checked ? "currentColor" : "none"}
+        >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+    </label>
+);
 
-        isProductAlreadyinWishlist = wishlistItems.some(
-            (item) => item.product?._id === id
-        )
-    const isProductAlreadyInCart = cartItems.some(
-        (item) => item.product?._id === id
-    )
+export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, handleAddRemoveFromWishlist, isWishlistCard, isAdminCard}) => {
+    const navigate = useNavigate()
+    const wishlistItems = useSelector(selectWishlistItems)
+    const cartItems = useSelector(selectCartItems)
+    const dispatch = useDispatch()
+    const { t } = useTranslation();
+
+    const is1410 = useMediaQuery('(max-width: 1410px)')
+    const is932 = useMediaQuery('(max-width: 932px)')
+    const is752 = useMediaQuery('(max-width: 752px)')
+    const is608 = useMediaQuery('(max-width: 608px)')
+    const is500 = useMediaQuery('(max-width: 500px)')
+    const is488 = useMediaQuery('(max-width: 488px)')
+    const is408 = useMediaQuery('(max-width: 408px)')
+
+    const isInWishlist = wishlistItems.some((item) => item.product?._id === id)
+    const isProductAlreadyInCart = cartItems.some((item) => item.product?._id === id)
+
+    const getWidth = () => {
+        if (is408) return 'auto';
+        if (is488) return '200px';
+        if (is608) return '240px';
+        if (is752) return '300px';
+        if (is932) return '240px';
+        if (is1410) return '300px';
+        return '340px';
+    };
+
     const handleAddToCart = async (e) => {
         e.stopPropagation();
         const data = {
@@ -50,63 +76,86 @@ export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handle
         dispatch(addToCartAsync(data));
     }
 
-  return (
-    <>
+    const cardWidth = getWidth();
+    const btnFontSize = is408 ? '.9rem' : is488 ? '.7rem' : is500 ? '.8rem' : '.9rem';
+    const brandName = typeof brand === 'string' ? brand : brand?.name || '';
 
-    {
+    return (
+        <div 
+            className={`flex flex-col cursor-pointer ${isAdminCard || isWishlistCard || is408 ? '' : 'bg-white shadow-md rounded-lg'} p-4 ${is408 ? 'mt-2' : 'mt-0'}`}
+            style={{ width: cardWidth }}
+            onClick={() => navigate(`/product-details/${id}`)}
+        >
+            {/* image display */}
+            <div className="w-full">
+                <img 
+                    className="w-full aspect-square object-contain" 
+                    src={thumbnail} 
+                    alt={t('productCard.altText', { title })} 
+                />
+            </div>
 
-    isProductAlreadyinWishlist!==-1 ?
-    <Stack component={isAdminCard?"":isWishlistCard?"":is408?'':Paper} mt={is408?2:0} elevation={1} p={2} width={is408?'auto':is488?"200px":is608?"240px":is752?"300px":is932?'240px':is1410?'300px':'340px'} sx={{cursor:"pointer"}} onClick={()=>navigate(`/product-details/${id}`)}>
-
-        {/* image display */}
-        <Stack>
-            <img width={'100%'} style={{aspectRatio:1/1,objectFit:"contain"}} height={'100%'}  src={thumbnail} alt={`${title} photo unavailable`} />
-        </Stack>
-
-        {/* lower section */}
-        <Stack flex={2} justifyContent={'flex-end'} spacing={1} rowGap={2}>
-
-            <Stack>
-                <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                    <Typography variant='h6' fontWeight={400}>{title}</Typography>
-                    {
-                    !isAdminCard && 
-                    <motion.div whileHover={{scale:1.3,y:-10,zIndex:100}} whileTap={{scale:1}} transition={{duration:.4,type:"spring"}}>
-                        <Checkbox onClick={(e)=>e.stopPropagation()} checked={isProductAlreadyinWishlist} onChange={(e)=>handleAddRemoveFromWishlist(e,id)} icon={<FavoriteBorder />} checkedIcon={<Favorite sx={{color:'red'}} />} />
-                    </motion.div>
-                    }
-                </Stack>
-                <Typography color={"text.secondary"}>{brand}</Typography>
-            </Stack>
-
-            <Stack sx={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-                <Typography>₹{price}</Typography>
-                {
-                    !isWishlistCard? isProductAlreadyInCart?
-                    'Added to cart'
-                    :
-                    !isAdminCard &&
-                    <motion.button  whileHover={{scale:1.030}} whileTap={{scale:1}} onClick={(e)=>handleAddToCart(e)} style={{padding:"10px 15px",borderRadius:"3px",outline:"none",border:"none",cursor:"pointer",backgroundColor:"black",color:"white",fontSize:is408?'.9rem':is488?'.7rem':is500?'.8rem':'.9rem'}}>
-                        <div style={{display:"flex",alignItems:"center",columnGap:".5rem"}}>
-                            <p>Add To Cart</p>
-                        </div>
-                    </motion.button>
-                    :''
-                }
+            {/* lower section */}
+            <div className="flex-1 flex flex-col justify-end gap-3 mt-2">
                 
-            </Stack>
-            {
-                stockQuantity<=20 && (
-                    <FormHelperText sx={{fontSize:".9rem"}} error>{stockQuantity===1?"Only 1 stock is left":"Only few are left"}</FormHelperText>
-                )
-            }
-        </Stack>
-    </Stack> 
-    :''
-    
-    
-    }
-    
-    </>
-  )
+                {/* title + wishlist */}
+                <div>
+                    <div className="flex items-center justify-between gap-2">
+                        <h6 className="text-base font-normal leading-tight">{title}</h6>
+                        {!isAdminCard && (
+                            <motion.div 
+                                whileHover={{ scale: 1.3, y: -10, zIndex: 100 }} 
+                                whileTap={{ scale: 1 }} 
+                                transition={{ duration: .4, type: "spring" }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <HeartCheckbox 
+                                    checked={isInWishlist} 
+                                    onChange={(e) => handleAddRemoveFromWishlist(e, id)} 
+                                />
+                            </motion.div>
+                        )}
+                    </div>
+                    <p className="text-gray-500 text-sm mt-1">
+                        {t(`brands.${brandName}`, brandName)}
+                    </p>
+                </div>
+
+                {/* price + cart */}
+                <div className="flex flex-row justify-between items-center gap-2">
+                    <p className="font-medium text-base">₹{price}</p>
+                    
+                    {!isWishlistCard && (
+                        isProductAlreadyInCart ? (
+                            <span className="text-sm text-green-600 font-medium whitespace-nowrap">
+                                {t('productCard.addedToCart')}
+                            </span>
+                        ) : (
+                            !isAdminCard && (
+                                <motion.button
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 1 }}
+                                    onClick={(e) => handleAddToCart(e)}
+                                    className="px-3 py-2 rounded bg-black text-white text-sm font-medium whitespace-nowrap"
+                                    style={{ fontSize: btnFontSize }}
+                                >
+                                    {t('productCard.addToCart')}
+                                </motion.button>
+                            )
+                        )
+                    )}
+                </div>
+
+                {/* stock warning */}
+                {stockQuantity <= 20 && (
+                    <p className="text-sm text-red-600 font-medium">
+                        {stockQuantity === 1 
+                            ? t('productCard.onlyOneLeft') 
+                            : t('productCard.onlyFewLeft')
+                        }
+                    </p>
+                )}
+            </div>
+        </div>
+    )
 }

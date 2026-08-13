@@ -4,24 +4,18 @@ import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Lottie from 'lottie-react'
 import { toast } from 'react-toastify'
-import {
-    fetchProductsAsync, resetProductFetchStatus, selectProductFetchStatus,
-    selectProductIsFilterOpen, selectProductTotalResults, selectProducts, toggleFilters
-} from '../ProductSlice'
+import { fetchProductsAsync, resetProductFetchStatus, selectProductFetchStatus, selectProductIsFilterOpen, selectProductTotalResults, selectProducts, toggleFilters } from '../ProductSlice'
 import { ProductCard } from './ProductCard'
 import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
 import { ITEMS_PER_PAGE } from '../../../constants'
-import {
-    createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus,
-    resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus,
-    selectWishlistItems, loadGuestWishlist, addGuestItem, removeGuestItem
-} from '../../wishlist/WishlistSlice'
+import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItems, loadGuestWishlist, addGuestItem, removeGuestItem } from '../../wishlist/WishlistSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { loadingAnimation } from '../../../assets'
 import { resetCartItemAddStatus, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { fetchAllBrandsAsync } from '../../brands/BrandSlice'
 import { fetchAllCategoriesAsync } from '../../categories/CategoriesSlice'
+import { useTranslation } from 'react-i18next';
 
 const sortOptions = [
     { name: "Price: low to high", sort: "price", order: "asc" },
@@ -98,6 +92,7 @@ export const ProductList = () => {
     const searchQuery = searchParams.get('search')
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
     const isProductFilterOpen = useSelector(selectProductIsFilterOpen)
+    const { t } = useTranslation();
 
     const dispatch = useDispatch()
 

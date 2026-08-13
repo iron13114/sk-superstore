@@ -56,12 +56,10 @@ export const TrackOrder = () => {
         }
     };
 
-    // Auto-fetch if ID is in URL
     React.useEffect(() => {
         if (urlId) {
             fetchOrder();
         }
-        // eslint-disable-next-line
     }, [urlId]);
 
     return (
@@ -164,7 +162,6 @@ export const TrackOrder = () => {
                                     <p>{order.address[0]?.street}</p>
                                     <p>{order.address[0]?.city}, {order.address[0]?.state}</p>
                                     <p>{order.address[0]?.country} - {order.address[0]?.postalCode}</p>
-                                    <p className="text-gray-900 mt-2">📞 {order.address[0]?.phoneNumber}</p>
                                 </div>
                             </div>
 

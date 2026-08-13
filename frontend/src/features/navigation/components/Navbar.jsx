@@ -6,7 +6,9 @@ import { selectCartItems } from '../../cart/CartSlice';
 import { selectLoggedInUser } from '../../auth/AuthSlice';
 import { selectWishlistItems } from '../../wishlist/WishlistSlice';
 import { selectProductIsFilterOpen, toggleFilters } from '../../products/ProductSlice';
-// Responsive hook that tracks multiple breakpoints
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '../../../components/LanguageSwitcher';
+
 const useResponsive = () => {
   const [breakpoint, setBreakpoint] = useState(() => {
     const width = window.innerWidth;
@@ -61,7 +63,8 @@ export const Navbar = ({ isProductList = false }) => {
   const dispatch = useDispatch();
   const menuRef = useRef(null);
   const breakpoint = useResponsive();
-  
+  const { t } = useTranslation();
+
   const isMobile = breakpoint === 'xs' || breakpoint === 'sm';
   const isTablet = breakpoint === 'md';
   const isDesktop = breakpoint === 'lg' || breakpoint === 'xl';
@@ -92,13 +95,12 @@ export const Navbar = ({ isProductList = false }) => {
   };
 
   const settings = [
-    { name: "Home", to: "/" },
-    { name: 'Profile', to: loggedInUser?.isAdmin ? "/admin/profile" : "/profile" },
-    { name: loggedInUser?.isAdmin ? 'Orders' : 'My orders', to: loggedInUser?.isAdmin ? "/admin/orders" : "/orders" },
-    { name: 'Logout', to: "/logout" },
+    { name: t('navbar.home'), to: "/" },
+    { name: t('navbar.profile'), to: loggedInUser?.isAdmin ? "/admin/profile" : "/profile" },
+    { name: loggedInUser?.isAdmin ? t('navbar.orders') : t('navbar.myOrders'), to: loggedInUser?.isAdmin ? "/admin/orders" : "/orders" },
+    { name: t('navbar.logout'), to: "/logout" },
   ];
 
-  // Dynamic styles based on screen size
   const getNavStyles = () => ({
     position: 'sticky',
     top: 0,
@@ -341,7 +343,8 @@ export const Navbar = ({ isProductList = false }) => {
             )}
             
             <Link to="/" style={getLogoStyles()}>
-            <img src="/logo.jpeg" alt="SK Superstore" style={{ height: '40px', width: 'auto', maxHeight: '40px', objectFit: 'contain' }} />            </Link>
+              <img src="/logo.jpeg" alt="SK Superstore" style={{ height: '40px', width: 'auto', maxHeight: '40px', objectFit: 'contain' }} />
+            </Link>
           </div>
 
           {/* CENTER: Search Bar */}
@@ -351,14 +354,14 @@ export const Navbar = ({ isProductList = false }) => {
               onChange={(e) => setSearchCategory(e.target.value)}
               style={getSelectStyles()}
             >
-              <option value="all">All</option>
-              <option value="products">Products</option>
-              <option value="brands">Brands</option>
+              <option value="all">{t('navbar.all')}</option>
+              <option value="products">{t('navbar.products')}</option>
+              <option value="brands">{t('navbar.brands')}</option>
             </select>
             
             <input
               type="text"
-              placeholder="Search SKSuperStore"
+              placeholder={t('navbar.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -372,8 +375,11 @@ export const Navbar = ({ isProductList = false }) => {
             </button>
           </div>
 
-          {/* RIGHT: Profile, Greetings, Cart, Wishlist */}
+          {/* RIGHT: Language Switcher, Profile, Greetings, Cart, Wishlist */}
           <div style={getRightSectionStyles()}>
+            
+            {/* Language Switcher */}
+            <LanguageSwitcher />
             
             {/* Mobile search toggle */}
             <button 
@@ -406,7 +412,7 @@ export const Navbar = ({ isProductList = false }) => {
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          Add new Product
+                          {t('navbar.addNewProduct')}
                         </Link>
                       )}
                       {settings.map((setting) => (
@@ -426,18 +432,18 @@ export const Navbar = ({ isProductList = false }) => {
                 </div>
                 
                 <span style={getGreetingStyles()}>
-                  {isMobile ? `${userInfo?.name?.toString().split(" ")[0]}` : `Hey👋, ${userInfo?.name}`}
+                  {isMobile ? `${userInfo?.name?.toString().split(" ")[0]}` : t('navbar.greeting', { name: userInfo?.name })}
                 </span>
               </div>
             ) : (
               <Link to="/login" style={getLoginBtnStyles()}>
-                Login
+                {t('navbar.login')}
               </Link>
             )}
             
             {loggedInUser?.isAdmin && (
               <button style={getAdminBadgeStyles()}>
-                Admin
+                {t('navbar.admin')}
               </button>
             )}
             

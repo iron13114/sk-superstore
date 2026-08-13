@@ -4,12 +4,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
-import { 
-    resetCartItemRemoveStatus, 
-    selectCartItemRemoveStatus, 
-    selectCartItems 
-} from '../CartSlice'
+import { resetCartItemRemoveStatus, selectCartItemRemoveStatus, selectCartItems } from '../CartSlice'
 import { SHIPPING, TAXES } from '../../../constants'
+import { useTranslation } from 'react-i18next';
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
@@ -31,6 +28,7 @@ export const Cart = ({ checkout }) => {
     const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
     const navigate = useNavigate()
     const is900 = useMediaQuery('(max-width: 900px)')
+    const { t } = useTranslation();
 
     const cartItemRemoveStatus = useSelector(selectCartItemRemoveStatus)
     const dispatch = useDispatch()
@@ -47,11 +45,11 @@ export const Cart = ({ checkout }) => {
 
     useEffect(() => {
         if (cartItemRemoveStatus === 'fulfilled') {
-            toast.success("Product removed from cart")
+            toast.success(t('cart.productRemoved'))
         } else if (cartItemRemoveStatus === 'rejected') {
-            toast.error("Error removing product from cart, please try again later")
+            toast.error(t('cart.removeError'))
         }
-    }, [cartItemRemoveStatus])
+    }, [cartItemRemoveStatus, t])
 
     useEffect(() => {
         return () => {
@@ -87,29 +85,29 @@ export const Cart = ({ checkout }) => {
                     {checkout ? (
                         <div className="flex flex-col gap-4 w-full">
                             <div className="flex flex-row justify-between">
-                                <p className="text-base text-gray-900">Subtotal</p>
+                                <p className="text-base text-gray-900">{t('cart.subtotal')}</p>
                                 <p className="text-base text-gray-900">₹{subtotal}</p>
                             </div>
                             <div className="flex flex-row justify-between">
-                                <p className="text-base text-gray-900">Shipping</p>
+                                <p className="text-base text-gray-900">{t('cart.shipping')}</p>
                                 <p className="text-base text-gray-900">₹{SHIPPING}</p>
                             </div>
                             <div className="flex flex-row justify-between">
-                                <p className="text-base text-gray-900">Taxes</p>
+                                <p className="text-base text-gray-900">{t('cart.taxes')}</p>
                                 <p className="text-base text-gray-900">₹{TAXES}</p> 
                             </div>
                             <hr className="border-gray-200" />
                             <div className="flex flex-row justify-between">
-                                <p className="text-base font-semibold text-gray-900">Total</p>
+                                <p className="text-base font-semibold text-gray-900">{t('cart.total')}</p>
                                 <p className="text-base font-semibold text-gray-900">₹{subtotal + SHIPPING + TAXES}</p>
                             </div>
                         </div>
                     ) : (
                         <>
                             <div className="flex flex-col gap-1">
-                                <p className="text-xl font-medium text-gray-900">Subtotal</p>
-                                <p className="text-base text-gray-900">Total items in cart {totalItems}</p>
-                                <p className="text-base text-gray-500">Shipping and taxes will be calculated at checkout.</p>
+                                <p className="text-xl font-medium text-gray-900">{t('cart.subtotal')}</p>
+                                <p className="text-base text-gray-900">{t('cart.totalItems', { count: totalItems })}</p>
+                                <p className="text-base text-gray-500">{t('cart.shippingNote')}</p>
                             </div>
                             <div>
                                 <p className="text-xl font-medium text-gray-900">₹{subtotal}</p>
@@ -125,7 +123,7 @@ export const Cart = ({ checkout }) => {
                             to="/checkout"
                             className="w-full bg-black text-white text-center py-3 rounded font-medium hover:bg-gray-800 transition-colors"
                         >
-                            Checkout
+                            {t('cart.checkout')}
                         </Link>
                         <motion.div 
                             className="self-center" 
@@ -135,7 +133,7 @@ export const Cart = ({ checkout }) => {
                                 to="/"
                                 className="inline-block px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-900 hover:text-gray-900 transition-colors cursor-pointer"
                             >
-                                or continue shopping
+                                {t('cart.continueShopping')}
                             </Link>
                         </motion.div>
                     </div>

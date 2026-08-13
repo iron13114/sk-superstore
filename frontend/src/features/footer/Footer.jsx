@@ -1,58 +1,62 @@
-import { Typography, useMediaQuery, useTheme } from '@mui/material'
-import { Stack } from '@mui/material'
 import React from 'react'
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export const Footer = () => {
+    const { t } = useTranslation();
 
-    const theme = useTheme()
-    const is700 = useMediaQuery(theme.breakpoints.down(700))
-
-    const labelStyles = {
-        fontWeight: 300,
-        cursor: 'pointer',
-        textDecoration: 'none',
-        color: 'inherit',
-        '&:hover': {
-            textDecoration: 'underline'
-        }
-    }
+    const linkClass = "font-light cursor-pointer no-underline text-inherit hover:underline block";
 
     return (
-        <Stack sx={{ backgroundColor: '#000000', paddingTop: "3rem", paddingLeft: is700 ? "1rem" : "3rem", paddingRight: is700 ? "1rem" : "3rem", paddingBottom: "1.5rem", rowGap: "5rem", color: '#e5e7eb', justifyContent: "space-around" }}>
+        <div className="bg-black pt-12 pb-6 px-4 md:px-12 text-gray-200 flex flex-col justify-around gap-20">
             {/* upper */}
-            <Stack flexDirection={'row'} rowGap={'1rem'} justifyContent={is700 ? "" : 'space-around'} flexWrap={'wrap'}>
+            <div className="flex flex-row flex-wrap gap-y-4 justify-start md:justify-around">
+                
+                {/* Contact */}
+                <div className="flex flex-col gap-y-4 p-4">
+                    <h6 className="text-xl font-medium">{t('footer.contact')}</h6>
+                    <a 
+                        href="https://www.google.com/maps/place/SK+General+Stores+Station+Road+Sakri/@26.2097846,86.079415,17z/data=!4m6!3m5!1s0x39edcf8ac7311eb7:0x6a769e37c40868b1!8m2!3d26.2096491!4d86.0784015!16s%2Fg%2F11h04fglsj?entry=ttu&g_ep=EgoyMDI2MDcxNS4wIKXMDSoASAFQAw%3D%3D" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className={linkClass}
+                    >
+                        {t('footer.address')}
+                    </a>
+                    <a href="mailto:skgeneralstores2016@gmail.com" className={linkClass}>
+                        skgeneralstores2016@gmail.com
+                    </a>
+                    <a href="tel:9386042504" className={linkClass}>
+                        +91 9386042504
+                    </a>
+                </div>
 
-                <Stack rowGap={'1rem'} padding={'1rem'}>
-                    <Typography variant='h6'>Contact</Typography>
-                    <Typography component="a" href="https://www.google.com/maps/place/SK+General+Stores+Station+Road+Sakri/@26.2097846,86.079415,17z/data=!4m6!3m5!1s0x39edcf8ac7311eb7:0x6a769e37c40868b1!8m2!3d26.2096491!4d86.0784015!16s%2Fg%2F11h04fglsj?entry=ttu&g_ep=EgoyMDI2MDcxNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" sx={labelStyles}>Sakri Station Rd, Bramhpur, Bihar.</Typography>
-                    <Typography component="a" href="mailto:skgeneralstores2016@gmail.com" sx={labelStyles}>skgeneralstores2016@gmail.com</Typography>
-                    <Typography component="a" href="tel:9386042504" sx={labelStyles}>+91 9386042504</Typography>
-                </Stack>
+                {/* Account */}
+                <div className="flex flex-col gap-y-4 p-4">
+                    <h6 className="text-xl font-medium">{t('footer.account')}</h6>
+                    <Link to="/profile" className={linkClass}>{t('footer.myAccount')}</Link>
+                    <Link to="/login" className={linkClass}>{t('footer.loginRegister')}</Link>
+                    <Link to="/cart" className={linkClass}>{t('footer.cart')}</Link>
+                    <Link to="/wishlist" className={linkClass}>{t('footer.wishlist')}</Link>
+                    <Link to="/" className={linkClass}>{t('footer.shop')}</Link>
+                </div> 
 
-                <Stack rowGap={'1rem'} padding={'1rem'}>
-                    <Typography variant='h6'>Account</Typography>
-                    <Typography component={Link } to="/profile" sx={labelStyles}>My Account</Typography>
-                    <Typography component={Link} to="/login" sx={labelStyles}>Login / Register</Typography>
-                    <Typography component={Link} to="/cart" sx={labelStyles}>Cart</Typography>
-                    <Typography component={Link} to="/wishlist" sx={labelStyles}>Wishlist</Typography>
-                    <Typography component={Link} to="/" sx={labelStyles}>Shop</Typography>
-                </Stack> 
+                {/* Quick Links */}
+                <div className="flex flex-col gap-y-4 p-4">
+                    <h6 className="text-xl font-medium">{t('footer.quickLinks')}</h6>
+                    <Link to="/privacy-policy" className={linkClass}>{t('footer.privacyPolicy')}</Link>
+                    <Link to="/terms-of-use" className={linkClass}>{t('footer.termsOfUse')}</Link>
+                    <Link to="/faq" className={linkClass}>{t('footer.faq')}</Link>
+                </div>
 
-                <Stack rowGap={'1rem'} padding={'1rem'}>
-                    <Typography variant='h6'>Quick Links</Typography>
-                    <Typography component={Link} to="/privacy-policy" sx={labelStyles}>Privacy Policy</Typography>
-                    <Typography component={Link} to="/terms-of-use" sx={labelStyles}>Terms Of Use</Typography>
-                    <Typography component={Link} to="/faq" sx={labelStyles}>FAQ</Typography>
-                </Stack>
-
-            </Stack>
+            </div>
 
             {/* lower */}
-            <Stack alignSelf={"center"}>
-                <Typography color={'GrayText'}>&copy; SKSuperStore {new Date().getFullYear()}. All rights reserved</Typography>
-            </Stack>
-
-        </Stack>
+            <div className="self-center">
+                <p className="text-gray-500 text-sm">
+                    &copy; SKSuperStore {new Date().getFullYear()}. {t('footer.allRightsReserved')}
+                </p>
+            </div>
+        </div>
     )
 }

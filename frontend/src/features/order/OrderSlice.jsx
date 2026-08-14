@@ -1,7 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 import { createOrder, getAllOrders, getOrderByUserId, updateOrderById } from './OrderApi'
 
-
 const initialState={
     status:"idle",
     orderUpdateStatus:"idle",
@@ -101,7 +100,7 @@ const orderSlice=createSlice({
 })
 
 // exporting reducers
-export const {resetCurrentOrder,resetOrderUpdateStatus,resetOrderFetchStatus}=orderSlice.actions
+export const { resetCurrentOrder, resetOrderUpdateStatus, resetOrderFetchStatus, loadGuestOrders }=orderSlice.actions
 
 // exporting selectors
 export const selectOrderStatus=(state)=>state.OrderSlice.status

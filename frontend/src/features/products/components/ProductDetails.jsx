@@ -107,7 +107,7 @@ export const ProductDetails = () => {
         } else if (cartItemAddStatus === 'rejected') {
             toast.error(t('productDetails.errorAddingToCart'))
         }
-    }, [cartItemAddStatus, t])
+    }, [cartItemAddStatus, dispatch, t])
 
     const handleAddWholeSaleToCart = () => {
         const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);

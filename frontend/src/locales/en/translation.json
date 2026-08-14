@@ -100,7 +100,8 @@
       "errorRemovingWishlist": "Error removing product from wishlist, please try again later",
       "addedToCart": "Product added to cart",
       "errorAddingCart": "Error adding product to cart, please try again later",
-      "errorFetchingProducts": "Error fetching products, please try again later"
+      "errorFetchingProducts": "Error fetching products, please try again later",
+      "myOrders": "My Orders"
     },
     "categories": {
       "Snacks": "Snacks",
@@ -190,6 +191,44 @@
     "errorDeletingReview": "Error deleting review, please try again later",
     "reviewUpdated": "Review updated",
     "errorUpdatingReview": "Error updating review, please try again later",
-    "loginToWriteReview": "Please login in order to write review"
+    "loginToWriteReview": "Please login in order to write review",
+    "edit": "Edit",
+    "delete": "Delete",
+    "update": "Update",
+    "updating": "Updating...",
+    "moreOptions": "More options"
+  },
+  "trackOrder": {
+    "title": "Track Your Order",
+    "subtitle": "Enter your Order ID to check the status",
+    "placeholder": "Enter Order ID (e.g. 64f8a2b3...)",
+    "trackOrder": "Track Order",
+    "searching": "Searching...",
+    "enterOrderId": "Please enter an Order ID",
+    "orderNotFoundToast": "Order not found. Please check the Order ID.",
+    "errorFetchingToast": "Error fetching order. Please try again.",
+    "orderNotFound": "Order Not Found",
+    "orderNotFoundDesc": "We couldn't find an order with that ID. Please double-check and try again.",
+    "orderId": "Order ID",
+    "items": "Items",
+    "qty": "Qty",
+    "shippingAddress": "Shipping Address",
+    "home": "Home",
+    "orderInfo": "Order Info",
+    "paymentMethod": "Payment Method",
+    "orderDate": "Order Date",
+    "orderTime": "Order Time",
+    "guestEmail": "Guest Email",
+    "guestPhone": "Guest Phone",
+    "totalAmount": "Total Amount",
+    "back": "Back",
+    "goHome": "Go Home",
+    "status": {
+      "Pending": "Pending",
+      "Dispatched": "Dispatched",
+      "Out for delivery": "Out for delivery",
+      "Delivered": "Delivered",
+      "Cancelled": "Cancelled"
+    }
   }
 }

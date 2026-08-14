@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { axiosi } from '../../../config/axios'
 import { toast } from 'react-toastify'
+import { useTranslation } from 'react-i18next';
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
@@ -24,7 +25,8 @@ const statusColors = {
 
 export const TrackOrder = () => {
     const { id: urlId } = useParams();
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
+    const { t, i18n } = useTranslation();
     const [orderId, setOrderId] = useState(urlId || '');
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -33,10 +35,12 @@ export const TrackOrder = () => {
     const is480 = useMediaQuery('(max-width: 480px)');
     const is900 = useMediaQuery('(max-width: 900px)');
 
+    const locale = i18n.language === 'hi' ? 'hi-IN' : 'en-IN';
+
     const fetchOrder = async (e) => {
         e?.preventDefault();
         if (!orderId.trim()) {
-            toast.error("Please enter an Order ID");
+            toast.error(t('trackOrder.enterOrderId'));
             return;
         }
         setLoading(true);
@@ -47,9 +51,9 @@ export const TrackOrder = () => {
             setOrder(res.data);
         } catch (err) {
             if (err.response?.status === 404) {
-                toast.error("Order not found. Please check the Order ID.");
+                toast.error(t('trackOrder.orderNotFoundToast'));
             } else {
-                toast.error("Error fetching order. Please try again.");
+                toast.error(t('trackOrder.errorFetchingToast'));
             }
         } finally {
             setLoading(false);
@@ -60,16 +64,36 @@ export const TrackOrder = () => {
         if (urlId) {
             fetchOrder();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [urlId]);
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
             <div className={`mx-auto ${is900 ? 'w-full' : 'w-[50rem]'}`}>
 
+                {/* Navigation escape hatch — prevents users from getting trapped */}
+                <div className="flex items-center justify-between mb-6">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        {t('trackOrder.back')}
+                    </button>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="text-sm text-gray-600 hover:text-black transition-colors underline"
+                    >
+                        {t('trackOrder.goHome')}
+                    </button>
+                </div>
+
                 {/* Header */}
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Track Your Order</h1>
-                    <p className="text-gray-500">Enter your Order ID to check the status</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('trackOrder.title')}</h1>
+                    <p className="text-gray-500">{t('trackOrder.subtitle')}</p>
                 </div>
 
                 {/* Search Box */}
@@ -78,7 +102,7 @@ export const TrackOrder = () => {
                         type="text"
                         value={orderId}
                         onChange={(e) => setOrderId(e.target.value)}
-                        placeholder="Enter Order ID (e.g. 64f8a2b3...)"
+                        placeholder={t('trackOrder.placeholder')}
                         className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
                     />
                     <button
@@ -86,7 +110,7 @@ export const TrackOrder = () => {
                         disabled={loading}
                         className="px-8 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
-                        {loading ? 'Searching...' : 'Track Order'}
+                        {loading ? t('trackOrder.searching') : t('trackOrder.trackOrder')}
                     </button>
                 </form>
 
@@ -101,8 +125,8 @@ export const TrackOrder = () => {
                 {!loading && searched && !order && (
                     <div className="text-center py-12 bg-white rounded-lg shadow-sm">
                         <div className="text-5xl mb-4">📦</div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">Order Not Found</h3>
-                        <p className="text-gray-500 text-sm">We couldn't find an order with that ID. Please double-check and try again.</p>
+                        <h3 className="text-lg font-medium text-gray-900 mb-1">{t('trackOrder.orderNotFound')}</h3>
+                        <p className="text-gray-500 text-sm">{t('trackOrder.orderNotFoundDesc')}</p>
                     </div>
                 )}
 
@@ -113,19 +137,19 @@ export const TrackOrder = () => {
                         {/* Order Header */}
                         <div className={`flex ${is480 ? 'flex-col gap-3' : 'flex-row justify-between items-center'} p-6 border-b border-gray-100`}>
                             <div>
-                                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Order ID</p>
+                                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('trackOrder.orderId')}</p>
                                 <p className="text-sm font-mono text-gray-900 break-all">{order._id}</p>
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${statusColors[order.status] || 'bg-gray-200 text-gray-700'}`}>
-                                    {order.status}
+                                    {t(`trackOrder.status.${order.status}`, order.status)}
                                 </span>
                             </div>
                         </div>
 
                         {/* Items */}
                         <div className="p-6 border-b border-gray-100">
-                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Items</h3>
+                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">{t('trackOrder.items')}</h3>
                             <div className="flex flex-col gap-4">
                                 {order.item.map((product, idx) => (
                                     <div key={idx} className="flex items-center gap-4">
@@ -139,7 +163,7 @@ export const TrackOrder = () => {
                                                 {product.product?.title || product.title}
                                             </p>
                                             <p className="text-xs text-gray-500 mt-0.5">
-                                                Qty: {product.quantity}
+                                                {t('trackOrder.qty')}: {product.quantity}
                                                 {product.variantLabel && ` · ${product.variantLabel}`}
                                             </p>
                                             <p className="text-sm font-medium text-gray-900 mt-1">
@@ -156,9 +180,11 @@ export const TrackOrder = () => {
 
                             {/* Shipping Address */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Shipping Address</h3>
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">{t('trackOrder.shippingAddress')}</h3>
                                 <div className="text-sm text-gray-600 space-y-1">
-                                    <p className="font-medium text-gray-900">{order.address[0]?.type || 'Home'}</p>
+                                    <p className="font-medium text-gray-900">
+                                        {t(`address.type.${order.address[0]?.type}`, order.address[0]?.type || t('trackOrder.home'))}
+                                    </p>
                                     <p>{order.address[0]?.street}</p>
                                     <p>{order.address[0]?.city}, {order.address[0]?.state}</p>
                                     <p>{order.address[0]?.country} - {order.address[0]?.postalCode}</p>
@@ -167,29 +193,29 @@ export const TrackOrder = () => {
 
                             {/* Order Info */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Order Info</h3>
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">{t('trackOrder.orderInfo')}</h3>
                                 <div className="text-sm space-y-2">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Payment Method</span>
+                                        <span className="text-gray-500">{t('trackOrder.paymentMethod')}</span>
                                         <span className="font-medium text-gray-900">{order.paymentMode}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Order Date</span>
-                                        <span className="font-medium text-gray-900">{new Date(order.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-gray-500">{t('trackOrder.orderDate')}</span>
+                                        <span className="font-medium text-gray-900">{new Date(order.createdAt).toLocaleDateString(locale)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Order Time</span>
-                                        <span className="font-medium text-gray-900">{new Date(order.createdAt).toLocaleTimeString()}</span>
+                                        <span className="text-gray-500">{t('trackOrder.orderTime')}</span>
+                                        <span className="font-medium text-gray-900">{new Date(order.createdAt).toLocaleTimeString(locale)}</span>
                                     </div>
                                     {order.guestEmail && (
                                         <div className="flex justify-between">
-                                            <span className="text-gray-500">Guest Email</span>
+                                            <span className="text-gray-500">{t('trackOrder.guestEmail')}</span>
                                             <span className="font-medium text-gray-900">{order.guestEmail}</span>
                                         </div>
                                     )}
                                     {order.guestPhone && (
                                         <div className="flex justify-between">
-                                            <span className="text-gray-500">Guest Phone</span>
+                                            <span className="text-gray-500">{t('trackOrder.guestPhone')}</span>
                                             <span className="font-medium text-gray-900">{order.guestPhone}</span>
                                         </div>
                                     )}
@@ -200,7 +226,7 @@ export const TrackOrder = () => {
                         {/* Total */}
                         <div className="p-6 bg-gray-50">
                             <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-600">Total Amount</span>
+                                <span className="text-sm font-medium text-gray-600">{t('trackOrder.totalAmount')}</span>
                                 <span className="text-2xl font-bold text-gray-900">₹{order.total}</span>
                             </div>
                         </div>

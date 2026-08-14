@@ -76,17 +76,17 @@ export const Reviews = ({ productId, averageRating }) => {
         }
         reset()
         setValue(1)
-    }, [reviewAddStatus, reset, t])
+    }, [reviewAddStatus, reset, dispatch, t])
 
     useEffect(() => {
         if (reviewDeleteStatus === 'fulfilled') toast.success(t('reviews.reviewDeleted'))
         else if (reviewDeleteStatus === 'rejected') toast.error(t('reviews.errorDeletingReview'))
-    }, [reviewDeleteStatus, t])
+    }, [reviewDeleteStatus, dispatch, t])
 
     useEffect(() => {
         if (reviewUpdateStatus === 'fulfilled') toast.success(t('reviews.reviewUpdated'))
         else if (reviewUpdateStatus === 'rejected') toast.error(t('reviews.errorUpdatingReview'))
-    }, [reviewUpdateStatus, t])
+    }, [reviewUpdateStatus, dispatch, t])
 
     useEffect(() => {
         return () => {

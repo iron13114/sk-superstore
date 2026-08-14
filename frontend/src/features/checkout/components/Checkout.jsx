@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addAddressAsync, selectAddressStatus, selectAddresses } from '../../address/AddressSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { Link, useNavigate } from 'react-router-dom'
-import { createOrderAsync, selectCurrentOrder, selectOrderStatus } from '../../order/OrderSlice'
+import { createOrderAsync, selectCurrentOrder, selectOrderStatus, resetCurrentOrder } from '../../order/OrderSlice'
 import { resetCartByUserIdAsync, selectCartItems } from '../../cart/CartSlice'
 import { SHIPPING, TAXES } from '../../../constants'
 import { motion } from 'framer-motion'
@@ -88,6 +88,8 @@ export const Checkout = () => {
 
     useEffect(() => {
         if (currentOrder && currentOrder?._id) {
+            const orderId = currentOrder._id;
+            
             if (!loggedInUser) {
                 localStorage.removeItem('guestCart')
                 addGuestOrder(currentOrder)
@@ -95,7 +97,8 @@ export const Checkout = () => {
             } else {
                 dispatch(resetCartByUserIdAsync(loggedInUser?._id))
             }
-            navigate(`/track-order/${currentOrder?._id}`)
+            dispatch(resetCurrentOrder())
+            navigate(`/track-order/${orderId}`, { replace: true })
         }
     }, [currentOrder, loggedInUser, dispatch, navigate])
 

@@ -76,12 +76,12 @@ export const Wishlist = () => {
     useEffect(() => {
         if (wishlistItemAddStatus === 'fulfilled') toast.success(t('wishlist.addedToWishlist'))
         else if (wishlistItemAddStatus === 'rejected') toast.error(t('wishlist.errorAddingWishlist'))
-    }, [wishlistItemAddStatus, t])
+    }, [wishlistItemAddStatus, dispatch, t])
 
     useEffect(() => {
         if (wishlistItemDeleteStatus === 'fulfilled') toast.success(t('wishlist.removedFromWishlist'))
         else if (wishlistItemDeleteStatus === 'rejected') toast.error(t('wishlist.errorRemovingWishlist'))
-    }, [wishlistItemDeleteStatus, t])
+    }, [wishlistItemDeleteStatus, dispatch, t])
 
     useEffect(() => {
         if (wishlistItemUpdateStatus === 'fulfilled') {
@@ -91,16 +91,16 @@ export const Wishlist = () => {
         }
         setEditIndex(-1)
         setEditValue("")
-    }, [wishlistItemUpdateStatus, t])
+    }, [wishlistItemUpdateStatus, dispatch, t])
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') toast.success(t('wishlist.addedToCart'))
         else if (cartItemAddStatus === 'rejected') toast.error(t('wishlist.errorAddingCart'))
-    }, [cartItemAddStatus, t])
+    }, [cartItemAddStatus, dispatch, t])
 
     useEffect(() => {
         if (wishlistFetchStatus === 'rejected') toast.error(t('wishlist.errorFetchingWishlist'))
-    }, [wishlistFetchStatus, t])
+    }, [wishlistFetchStatus, dispatch, t])
 
     useEffect(() => {
         return () => {

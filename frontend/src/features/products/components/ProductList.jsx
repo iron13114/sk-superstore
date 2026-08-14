@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Lottie from 'lottie-react'
 import { toast } from 'react-toastify'
@@ -88,7 +88,8 @@ export const ProductList = () => {
     const searchQuery = searchParams.get('search')
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
     const isProductFilterOpen = useSelector(selectProductIsFilterOpen)
-    const { t } = useTranslation();
+    const navigate = useNavigate()
+    const { t } = useTranslation()
 
     const sortOptions = [
         { name: t('productList.priceLowToHigh'), sort: "price", order: "asc" },
@@ -184,23 +185,41 @@ export const ProductList = () => {
     }
 
     useEffect(() => {
-        if (wishlistItemAddStatus === 'fulfilled') { toast.success(t('productList.addedToWishlist')) }
-        else if (wishlistItemAddStatus === 'rejected') { toast.error(t('productList.errorAddingWishlist')) }
-    }, [wishlistItemAddStatus])
+        if (wishlistItemAddStatus === 'fulfilled') {
+            toast.success(t('productList.addedToWishlist'))
+            dispatch(resetWishlistItemAddStatus())
+        } else if (wishlistItemAddStatus === 'rejected') {
+            toast.error(t('productList.errorAddingWishlist'))
+            dispatch(resetWishlistItemAddStatus())
+        }
+    }, [wishlistItemAddStatus, dispatch, t])
 
     useEffect(() => {
-        if (wishlistItemDeleteStatus === 'fulfilled') { toast.success(t('productList.removedFromWishlist')) }
-        else if (wishlistItemDeleteStatus === 'rejected') { toast.error(t('productList.errorRemovingWishlist')) }
-    }, [wishlistItemDeleteStatus])
+        if (wishlistItemDeleteStatus === 'fulfilled') {
+            toast.success(t('productList.removedFromWishlist'))
+            dispatch(resetWishlistItemDeleteStatus())
+        } else if (wishlistItemDeleteStatus === 'rejected') {
+            toast.error(t('productList.errorRemovingWishlist'))
+            dispatch(resetWishlistItemDeleteStatus())
+        }
+    }, [wishlistItemDeleteStatus, dispatch, t])
 
     useEffect(() => {
-        if (cartItemAddStatus === 'fulfilled') { toast.success(t('productList.addedToCart')) }
-        else if (cartItemAddStatus === 'rejected') { toast.error(t('productList.errorAddingCart')) }
-    }, [cartItemAddStatus])
+        if (cartItemAddStatus === 'fulfilled') {
+            toast.success(t('productList.addedToCart'))
+            dispatch(resetCartItemAddStatus())
+        } else if (cartItemAddStatus === 'rejected') {
+            toast.error(t('productList.errorAddingCart'))
+            dispatch(resetCartItemAddStatus())
+        }
+    }, [cartItemAddStatus, dispatch, t])
 
     useEffect(() => {
-        if (productFetchStatus === 'rejected') { toast.error(t('productList.errorFetchingProducts')) }
-    }, [productFetchStatus])
+        if (productFetchStatus === 'rejected') {
+            toast.error(t('productList.errorFetchingProducts'))
+            dispatch(resetProductFetchStatus())
+        }
+    }, [productFetchStatus, dispatch, t])
 
     useEffect(() => {
         return () => {
@@ -209,7 +228,7 @@ export const ProductList = () => {
             dispatch(resetWishlistItemDeleteStatus())
             dispatch(resetCartItemAddStatus())
         }
-    }, [])
+    }, [dispatch])
 
     const handleFilterClose = () => { dispatch(toggleFilters()) }
 
@@ -289,6 +308,19 @@ export const ProductList = () => {
                                         className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors min-h-[56px]"
                                     >
                                         <span className="font-medium text-gray-900 text-lg">{t('productList.category')}</span>
+                                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                    {/* My Orders Navigation */}
+                                    <button
+                                        onClick={() => {
+                                            dispatch(toggleFilters());
+                                            navigate('/track-order');
+                                        }}
+                                        className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors min-h-[56px]"
+                                    >
+                                        <span className="font-medium text-gray-900 text-lg">{t('productList.myOrders')}</span>
                                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>

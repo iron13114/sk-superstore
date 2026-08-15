@@ -230,5 +230,37 @@
       "Delivered": "डिलीवर हो गया",
       "Cancelled": "रद्द"
     }
+  },
+  "homepage": {
+    "shopLocation": "दुकान का पता",
+    "allProducts": "सभी प्रोडक्ट",
+    "heroBadge": "केवल थोक",
+    "heroTitle": "सकरी में खुदरा विक्रेताओं के लिए थोक कीमतें",
+    "heroSubtitle": "वितरक दरों पर किराना, नाश्ते और घरेलू सामान स्टॉक करें। स्थानीय दुकानों के लिए एक ही दिन में डिलीवरी।",
+    "heroCtaPrimary": "अभी खरीदें",
+    "heroCtaSecondary": "व्हाट्सएप पर ऑर्डर करें",
+    "trustRetailers": "खुदरा विक्रेता",
+    "trustBrands": "ब्रांड्स",
+    "trustDeliveryValue": "एक ही दिन",
+    "trustDelivery": "डिलीवरी",
+    "trustSavings": "थोक बचत",
+    "categoriesTitle": "श्रेणी के अनुसार खरीदें",
+    "featuredTitle": "विशेष उत्पाद",
+    "viewAll": "सभी देखें",
+    "howItWorksTitle": "थोक कैसे काम करता है",
+    "howItWorksSubtitle": "अपनी दुकान स्टॉक करने के तीन सरल चरण",
+    "step1Title": "ब्राउज़ करें",
+    "step1Desc": "सभी प्रमुख ब्रांड्स में 1000+ उत्पाद खोजें",
+    "step2Title": "थोक जोड़ें",
+    "step2Desc": "एकल, 10 का पैक, या 50 का कार्टन चुनें",
+    "step3Title": "डिलीवरी पाएं",
+    "step3Desc": "सकरी और आसपास के क्षेत्रों में एक ही दिन में डिलीवरी",
+    "savingsTitle": "ज़्यादा खरीदें, ज़्यादा बचत करें",
+    "savingsSubtitle": "हर खुदरा विक्रेता के लिए विशेष स्तरीय मूल्य निर्धारण",
+    "savingsPack": "10 का पैक",
+    "savingsCarton": "50 का कार्टन",
+    "whatsappTitle": "व्हाट्सएप पर ऑर्डर करें",
+    "whatsappSubtitle": "थोक ऑर्डर और त्वरित रीस्टॉकिंग के लिए सीधे चैट करें",
+    "whatsappCta": "अभी चैट करें"
   }
 }

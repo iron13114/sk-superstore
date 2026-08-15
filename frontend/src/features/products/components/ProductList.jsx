@@ -229,9 +229,19 @@ export const ProductList = () => {
             dispatch(resetCartItemAddStatus())
         }
     }, [dispatch])
+    
+    const categoryQuery = searchParams.get('category')
+
+    useEffect(() => {
+        if (categoryQuery) {
+            setFilters(prev => {
+                if (prev.category?.[0] === categoryQuery) return prev
+                return { ...prev, category: [categoryQuery] }
+            })
+        }
+    }, [categoryQuery])
 
     const handleFilterClose = () => { dispatch(toggleFilters()) }
-
     const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE)
     const panelTransition = { type: "spring", stiffness: 300, damping: 30 };
 

@@ -101,7 +101,8 @@
       "addedToCart": "Product added to cart",
       "errorAddingCart": "Error adding product to cart, please try again later",
       "errorFetchingProducts": "Error fetching products, please try again later",
-      "myOrders": "My Orders"
+      "myOrders": "My Orders",
+      "allProducts": "All Products"
     },
     "categories": {
       "Snacks": "Snacks",
@@ -230,5 +231,37 @@
       "Delivered": "Delivered",
       "Cancelled": "Cancelled"
     }
+  },
+  "homepage": {
+    "shopLocation": "Shop Location",
+    "allProducts": "All products",
+    "heroBadge": "Wholesale Only",
+    "heroTitle": "Bulk Prices for Retailers in Sakri",
+    "heroSubtitle": "Stock up on groceries, snacks, and household essentials at distributor rates. Same-day delivery for local shops.",
+    "heroCtaPrimary": "Shop Now",
+    "heroCtaSecondary": "Order on WhatsApp",
+    "trustRetailers": "Retailers",
+    "trustBrands": "Brands",
+    "trustDeliveryValue": "Same Day",
+    "trustDelivery": "Delivery",
+    "trustSavings": "Bulk Savings",
+    "categoriesTitle": "Shop by Category",
+    "featuredTitle": "Featured Products",
+    "viewAll": "View All",
+    "howItWorksTitle": "How Wholesale Works",
+    "howItWorksSubtitle": "Three simple steps to stock your shop",
+    "step1Title": "Browse",
+    "step1Desc": "Explore 1000+ products across all major brands",
+    "step2Title": "Add Bulk",
+    "step2Desc": "Choose Single, Pack of 10, or Carton of 50",
+    "step3Title": "Get Delivered",
+    "step3Desc": "Same-day delivery within Sakri & nearby areas",
+    "savingsTitle": "Buy More, Save More",
+    "savingsSubtitle": "Exclusive tier pricing for every retailer",
+    "savingsPack": "Pack of 10",
+    "savingsCarton": "Carton of 50",
+    "whatsappTitle": "Order via WhatsApp",
+    "whatsappSubtitle": "Chat directly for bulk orders & quick restocking",
+    "whatsappCta": "Chat Now"
   }
 }

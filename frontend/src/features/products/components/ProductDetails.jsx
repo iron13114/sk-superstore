@@ -55,7 +55,7 @@ const ReadOnlyRating = ({ value }) => (
             </svg>
         ))}
     </div>
-);
+)
 
 export const ProductDetails = () => {
     const { id } = useParams()
@@ -64,12 +64,7 @@ export const ProductDetails = () => {
     const dispatch = useDispatch()
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
     const { t } = useTranslation();
-    
-    const [quantities, setQuantities] = useState({
-        single: 0,
-        pack: 0,
-        carton: 0
-    })
+    const [quantities, setQuantities] = useState({})
 
     const reviews = useSelector(selectReviews)
     const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -82,7 +77,7 @@ export const ProductDetails = () => {
     const is340 = useMediaQuery('(max-width: 340px)')
 
     const wishlistItems = useSelector(selectWishlistItems)
-    const isProductAlreadyinWishlist = wishlistItems.some((item) => item.product._id === id)
+    const isProductAlreadyinWishlist = wishlistItems.some((item) => item.product?._id === id)
     const productFetchStatus = useSelector(selectProductFetchStatus)
     const reviewFetchStatus = useSelector(selectReviewFetchStatus)
 
@@ -94,12 +89,23 @@ export const ProductDetails = () => {
         window.scrollTo({ top: 0, behavior: "instant" })
     }, [])
     
+    // SINGLE fetch effect — no clearSelectedProduct on mount
     useEffect(() => {
         if (id) {
             dispatch(fetchProductByIdAsync(id))
             dispatch(fetchReviewsByProductIdAsync(id))
         }
     }, [id, dispatch])
+
+    useEffect(() => {
+        if (product?.tiers?.length > 0) {
+            const init = {}
+            product.tiers.forEach(tier => { init[tier.type] = 0 })
+            setQuantities(init)
+        } else if (product) {
+            setQuantities({ single: 0, pack: 0, carton: 0 })
+        }
+    }, [product])
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') {
@@ -110,6 +116,8 @@ export const ProductDetails = () => {
     }, [cartItemAddStatus, dispatch, t])
 
     const handleAddWholeSaleToCart = () => {
+        if (!product) return; 
+
         const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);
         
         if (selectedTiers.length === 0) {
@@ -117,30 +125,36 @@ export const ProductDetails = () => {
             return;
         }
         
-        const tierLabels = {
-            single: t('productDetails.singleUnit'),
-            pack: t('productDetails.packOf10'),
-            carton: t('productDetails.cartonOf50')
-        };
-        
-        selectedTiers.forEach(([tier, qty]) => {
+        selectedTiers.forEach(([tierType, qty]) => {
+            const tier = product?.tiers?.find(t => t.type === tierType)  
+            
+            const fallbackLabel = tierType === 'single' ? t('productDetails.singleUnit') 
+                                : tierType === 'pack' ? t('productDetails.packOf', { qty: 10 }) 
+                                : t('productDetails.cartonOf', { qty: 50 })
+            
+            const fallbackPrice = tierType === 'pack' ? (product?.price || 0) * 10 * 0.95
+                                : tierType === 'carton' ? (product?.price || 0) * 50 * 0.90
+                                : (product?.price || 0)
+
             const wholesaleItem = {
                 user: loggedInUser?._id,        
                 product: product,                
                 quantity: qty,
-                packagingTier: tier,
-                variantLabel: tierLabels[tier],
-                variantPrice: parseFloat(getTierPrice(product?.price || 0, tier))
+                packagingTier: tierType,
+                variantLabel: tier?.label || fallbackLabel,
+                variantPrice: tier ? tier.price : fallbackPrice
             };
             dispatch(addToCartAsync(wholesaleItem));
         });
 
-        setQuantities({ single: 0, pack: 0, carton: 0 });
+        const resetQty = {}
+        Object.keys(quantities).forEach(k => resetQty[k] = 0)
+        setQuantities(resetQty);
     }
-
+    
     const handleUpdateTierQty = (tier, operation) => {
         setQuantities(prev => {
-            const currentQty = prev[tier];
+            const currentQty = prev[tier] || 0;
             if (operation === 'dec' && currentQty > 0) {
                 return { ...prev, [tier]: currentQty - 1 };
             }
@@ -173,24 +187,53 @@ export const ProductDetails = () => {
         if (swiperRef.current) swiperRef.current.slidePrev();
     };
 
-    const getTierPrice = (basePrice, tier) => {
-        if (tier === 'pack') return (basePrice * 10 * 0.95).toFixed(2);
-        if (tier === 'carton') return (basePrice * 50 * 0.90).toFixed(2);
-        return basePrice;
+    const getTierDisplay = (tierType) => {
+        if (product?.tiers?.length > 0) {
+            const tier = product.tiers.find(t => t.type === tierType)
+            if (tier) {
+                return {
+                    label: tier.label,
+                    price: tier.price,
+                    stock: tier.stockQuantity,
+                    discount: tier.discountPercentage,
+                    qty: tier.quantity
+                }
+            }
+        }
+        const basePrice = product?.price || 0
+        if (tierType === 'pack') return { 
+            label: t('productDetails.packOf', { qty: 10 }), 
+            price: (basePrice * 10 * 0.95).toFixed(2),
+            stock: product?.stockQuantity || 0,
+            discount: 5,
+            qty: 10
+        }
+        if (tierType === 'carton') return { 
+            label: t('productDetails.cartonOf', { qty: 50 }), 
+            price: (basePrice * 50 * 0.90).toFixed(2),
+            stock: product?.stockQuantity || 0,
+            discount: 10,
+            qty: 50
+        }
+        return { 
+            label: t('productDetails.singleUnit'), 
+            price: basePrice,
+            stock: product?.stockQuantity || 0,
+            discount: 0,
+            qty: 1
+        }
     }
 
-    const tierLabels = {
-        single: t('productDetails.singleUnit'),
-        pack: t('productDetails.packOf10'),
-        carton: t('productDetails.cartonOf50')
-    };
+    const tierTypes = product?.tiers?.length > 0 
+        ? product.tiers.map(t => t.type) 
+        : ['single', 'pack', 'carton']
 
     return (
         <>
         {!(productFetchStatus === 'rejected' && reviewFetchStatus === 'rejected') && (
             <div className="flex flex-col justify-center items-center mb-8 gap-8">
             {
-                (productFetchStatus || reviewFetchStatus) === 'pending' ?
+                (productFetchStatus === 'pending' || reviewFetchStatus === 'pending') ?
                 <div className={`flex justify-center items-center ${is500 ? "w-[35vh]" : 'w-96'} h-[calc(100vh-4rem)]`}>
                     <Lottie animationData={loadingAnimation} />
                 </div>
@@ -245,7 +288,6 @@ export const ProductDetails = () => {
                                             ))}
                                         </Swiper>
                                         
-                                        {/* Custom Stepper replacing MUI MobileStepper */}
                                         <div className="flex items-center justify-between py-2 px-1">
                                             <button 
                                                 onClick={handleBack} 
@@ -288,61 +330,77 @@ export const ProductDetails = () => {
                         </div>
 
                         {/* Right Side: Product Details & Wholesale Purchase Card */}
-                        <div className={`flex flex-col gap-y-6 ${is480 ? "w-full" : "w-[30rem]"}`}>
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-3xl font-semibold">{product?.title}</h1>
-                                <div className={`flex items-center flex-wrap gap-y-4 ${is340 ? "gap-x-2" : "gap-x-4"}`}>
-                                    <ReadOnlyRating value={averageRating} />
-                                    <span className="text-gray-600 text-sm">
-                                        ( {totalReviews === 0 ? t('productDetails.noReviews') : totalReviews === 1 ? t('productDetails.oneReview', {count: totalReviews}) : t('productDetails.manyReviews', {count: totalReviews})} )
-                                    </span>
-                                    <span className={`text-sm font-medium ${product?.stockQuantity <= 10 ? 'text-red-600' : 'text-green-600'}`}>
-                                        {product?.stockQuantity <= 10 ? t('productDetails.onlyXLeft', {count: product?.stockQuantity}) : t('productDetails.inBulkStock')}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-3">
-                                <p className="text-gray-600 text-base">{product?.description}</p>
-                                <hr className="border-gray-200" />
-                            </div>
-
+                        <div className="space-y-3">
                             {!loggedInUser?.isAdmin && (
                                 <div className="p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
                                     <h2 className="text-lg font-semibold mb-4">{t('productDetails.selectWholesaleOptions')}</h2>
 
-                                    <div className="flex flex-col gap-5">
-                                        {['single', 'pack', 'carton'].map((tier) => (
-                                            <div key={tier} className="flex flex-row justify-between items-center">
-                                                <div>
-                                                    <p className="text-base font-medium capitalize">
-                                                        {tierLabels[tier]}
-                                                    </p>
-                                                    <p className="text-sm font-semibold text-blue-600">
-                                                        ₹{getTierPrice(product?.price || 0, tier)}
-                                                    </p>
-                                                </div>
+                                    {/* If product exists but has no pricing data yet, show mini-loader */}
+                                    {product && !product.tiers?.length && !product.price ? (
+                                        <div className="py-4 text-sm text-gray-500">
+                                            Loading pricing information...
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-5">
+                                            {tierTypes.map((tierType) => {
+                                                const display = getTierDisplay(tierType)
+                                                return (
+                                                    <div key={tierType} className="flex flex-row justify-between items-center">
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                                                                    tierType === 'single' ? 'bg-gray-100 text-gray-800' :
+                                                                    tierType === 'pack' ? 'bg-[#0055A4] text-white' :
+                                                                    'bg-[#111827] text-white'
+                                                                }`}>
+                                                                    QTY {display.qty}
+                                                                </span>
+                                                                <p className="text-base font-medium">
+                                                                    {display.label}
+                                                                </p>
+                                                            </div>
+                                                            <p className="text-sm font-semibold text-blue-600 mt-0.5">
+                                                                ₹{display.price}
+                                                                {display.discount > 0 && (
+                                                                    <span className="ml-2 text-xs text-[#E31837]">
+                                                                        {display.discount}% off
+                                                                    </span>
+                                                                )}
+                                                            </p>
+                                                            <p className={`text-xs mt-0.5 ${
+                                                                display.stock > 10 ? 'text-green-600' : display.stock === 0 ? 'text-red-500' : 'text-orange-600'
+                                                            }`}>
+                                                                {display.stock === 0 
+                                                                    ? 'Out of stock' 
+                                                                    : display.stock <= 10 
+                                                                        ? t('productDetails.onlyXLeft', { count: display.stock })
+                                                                        : t('productDetails.inBulkStock')
+                                                                }
+                                                            </p>
+                                                        </div>
 
-                                                <div className="flex flex-row items-center">
-                                                    <button 
-                                                        onClick={() => handleUpdateTierQty(tier, 'dec')}
-                                                        className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <span className="mx-3 min-w-[20px] text-center font-medium text-sm">
-                                                        {quantities[tier]}
-                                                    </span>
-                                                    <button 
-                                                        onClick={() => handleUpdateTierQty(tier, 'inc')}
-                                                        className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                        <div className="flex flex-row items-center">
+                                                            <button 
+                                                                onClick={() => handleUpdateTierQty(tierType, 'dec')}
+                                                                className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <span className="mx-3 min-w-[20px] text-center font-medium text-sm">
+                                                                {quantities[tierType] || 0}
+                                                            </span>
+                                                            <button 
+                                                                onClick={() => handleUpdateTierQty(tierType, 'inc')}
+                                                                className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
 
                                     <hr className="my-6 border-gray-200" />
 

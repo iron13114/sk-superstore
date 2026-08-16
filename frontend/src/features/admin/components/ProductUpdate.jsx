@@ -1,15 +1,21 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { clearSelectedProduct, fetchProductByIdAsync, resetProductUpdateStatus, selectProductUpdateStatus, selectSelectedProduct, updateProductByIdAsync } from '../../products/ProductSlice'
-import { Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material'
+import {
+    clearSelectedProduct,
+    fetchProductByIdAsync,
+    resetProductUpdateStatus,
+    selectProductUpdateStatus,
+    selectSelectedProduct,
+    updateProductByIdAsync
+} from '../../products/ProductSlice'
 import { useForm, Controller } from "react-hook-form"
 import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
 import { toast } from 'react-toastify'
+import { useTranslation } from 'react-i18next'
 
 export const ProductUpdate = () => {
-
     const { id } = useParams()
     const dispatch = useDispatch()
     const selectedProduct = useSelector(selectSelectedProduct)
@@ -17,44 +23,57 @@ export const ProductUpdate = () => {
     const categories = useSelector(selectCategories)
     const productUpdateStatus = useSelector(selectProductUpdateStatus)
     const navigate = useNavigate()
-    const theme = useTheme()
-    const is1100 = useMediaQuery(theme.breakpoints.down(1100))
-    const is480 = useMediaQuery(theme.breakpoints.down(480))
+    const { t } = useTranslation()
 
-    // Pass `values` directly so React Hook Form updates automatically when `selectedProduct` is fetched
+    const getTierValue = (tierType, field) => {
+        if (!selectedProduct) return ''
+        if (selectedProduct.tiers) {
+            const arr = Array.isArray(selectedProduct.tiers) ? selectedProduct.tiers : Object.values(selectedProduct.tiers)
+            const tier = arr.find(t => t.type === tierType)
+            return tier?.[field] ?? ''
+        }
+        const flatKey = `${tierType}${field.charAt(0).toUpperCase() + field.slice(1)}`
+        return selectedProduct[flatKey] ?? ''
+    }
+
     const { register, handleSubmit, control, formState: { errors } } = useForm({
         values: selectedProduct ? {
             title: selectedProduct.title || '',
             brand: selectedProduct.brand?._id || selectedProduct.brand || '',
             category: selectedProduct.category?._id || selectedProduct.category || '',
             description: selectedProduct.description || '',
-            price: selectedProduct.price || '',
-            discountPercentage: selectedProduct.discountPercentage || '',
-            stockQuantity: selectedProduct.stockQuantity || '',
+            type: selectedProduct.type || '',
             thumbnail: selectedProduct.thumbnail || '',
             image0: selectedProduct.images?.[0] || '',
             image1: selectedProduct.images?.[1] || '',
             image2: selectedProduct.images?.[2] || '',
             image3: selectedProduct.images?.[3] || '',
+            singlePrice: getTierValue('single', 'price'),
+            singleDiscount: getTierValue('single', 'discountPercentage'),
+            singleStock: getTierValue('single', 'stockQuantity'),
+            packQuantity: getTierValue('pack', 'quantity') || 10,
+            packPrice: getTierValue('pack', 'price'),
+            packDiscount: getTierValue('pack', 'discountPercentage'),
+            packStock: getTierValue('pack', 'stockQuantity'),
+            cartonQuantity: getTierValue('carton', 'quantity') || 50,
+            cartonPrice: getTierValue('carton', 'price'),
+            cartonDiscount: getTierValue('carton', 'discountPercentage'),
+            cartonStock: getTierValue('carton', 'stockQuantity'),
         } : {}
     })
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchProductByIdAsync(id))
-        }
+        if (id) dispatch(fetchProductByIdAsync(id))
     }, [id, dispatch])
 
-useEffect(() => {
-    console.log("Current productUpdateStatus:", productUpdateStatus);
-    
-    if (productUpdateStatus === 'fulfilled' || productUpdateStatus === 'fullfilled') {
-        toast.success("Product Updated");
-        navigate("/admin/dashboard");
-    } else if (productUpdateStatus === 'rejected') {
-        toast.error("Error updating product, please try again later");
-    }
-}, [productUpdateStatus, navigate]);
+    useEffect(() => {
+        if (productUpdateStatus === 'fulfilled' || productUpdateStatus === 'fullfilled') {
+            toast.success(t('productForm.successUpdate'))
+            navigate("/admin/dashboard")
+        } else if (productUpdateStatus === 'rejected') {
+            toast.error(t('productForm.error'))
+        }
+    }, [productUpdateStatus, navigate, t])
 
     useEffect(() => {
         return () => {
@@ -63,174 +82,252 @@ useEffect(() => {
         }
     }, [dispatch])
 
-const handleProductUpdate = (data) => {
-    const rawImages = [data?.image0, data?.image1, data?.image2, data?.image3];
-    const validImages = rawImages.filter((img) => img && img.trim() !== "");
+    const handleProductUpdate = (data) => {
+        const rawImages = [data?.image0, data?.image1, data?.image2, data?.image3]
+        const validImages = rawImages.filter((img) => img && img.trim() !== "")
 
-    const productUpdate = {
-        ...data,
-        price: Number(data.price),
-        discountPercentage: Number(data.discountPercentage),
-        stockQuantity: Number(data.stockQuantity),
-        _id: selectedProduct._id,
-        images: validImages.length > 0 ? validImages : [data.thumbnail]
-    };
+        const packQty = Number(data.packQuantity) || 10
+        const cartonQty = Number(data.cartonQuantity) || 50
 
-    delete productUpdate.image0;
-    delete productUpdate.image1;
-    delete productUpdate.image2;
-    delete productUpdate.image3;
+        const productUpdate = {
+            title: data.title,
+            brand: data.brand,
+            category: data.category,
+            description: data.description,
+            type: data.type,
+            thumbnail: data.thumbnail,
+            images: validImages.length > 0 ? validImages : [data.thumbnail],
+            _id: selectedProduct._id,
+            tiers: [
+                { 
+                    type: 'single', 
+                    label: t('productDetails.singleUnit'), 
+                    quantity: 1, 
+                    price: Number(data.singlePrice) || 0, 
+                    discountPercentage: Number(data.singleDiscount) || 0, 
+                    stockQuantity: Number(data.singleStock) || 0 
+                },
+                { 
+                    type: 'pack', 
+                    label: t('productDetails.packOf', { qty: packQty }), 
+                    quantity: packQty, 
+                    price: Number(data.packPrice) || 0, 
+                    discountPercentage: Number(data.packDiscount) || 0, 
+                    stockQuantity: Number(data.packStock) || 0 
+                },
+                { 
+                    type: 'carton', 
+                    label: t('productDetails.cartonOf', { qty: cartonQty }), 
+                    quantity: cartonQty, 
+                    price: Number(data.cartonPrice) || 0, 
+                    discountPercentage: Number(data.cartonDiscount) || 0, 
+                    stockQuantity: Number(data.cartonStock) || 0 
+                }
+            ]
+        }
 
-    console.log("Sending payload to Redux:", productUpdate);
-    dispatch(updateProductByIdAsync(productUpdate));
-}
-
-    // Diagnostics: Logs form errors if submission is blocked
-    const handleFormError = (errors) => {
-        console.error("Form Validation Errors:", errors);
-        toast.error("Please fill in all required fields!");
+        dispatch(updateProductByIdAsync(productUpdate))
     }
 
+    const handleFormError = () => {
+        toast.error(t('productForm.fillRequired'))
+    }
+
+    const inputBase = "w-full px-4 py-2.5 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#0055A4] focus:border-[#0055A4]"
+    const inputError = "w-full px-4 py-2.5 border border-[#E31837] text-sm focus:outline-none focus:ring-1 focus:ring-[#E31837] focus:border-[#E31837]"
+    const labelCls = "block text-sm font-medium text-[#111827] mb-1.5"
+
+    const tierConfigs = [
+        { key: 'single', label: t('productDetails.singleUnit'), defaultQty: 1, qtyReadOnly: true, color: 'bg-gray-100 text-gray-800' },
+        { key: 'pack', label: t('productDetails.packOf', { qty: 10 }), defaultQty: 10, qtyReadOnly: false, color: 'bg-[#0055A4] text-white' },
+        { key: 'carton', label: t('productDetails.cartonOf', { qty: 50 }), defaultQty: 50, qtyReadOnly: false, color: 'bg-[#111827] text-white' },
+    ]
+
     return (
-        <Stack p={'0 16px'} justifyContent={'center'} alignItems={'center'} flexDirection={'row'}>
-            {selectedProduct &&
-                <Stack 
-                    width={is1100 ? "100%" : "60rem"} 
-                    rowGap={4} 
-                    mt={is480 ? 4 : 6} 
-                    mb={6} 
-                    component={'form'} 
-                    noValidate 
+        <div className="px-4 py-8 flex justify-center bg-white min-h-screen">
+            {selectedProduct && (
+                <form
+                    noValidate
                     onSubmit={handleSubmit(handleProductUpdate, handleFormError)}
+                    className="w-full max-w-4xl space-y-6"
                 >
-                    {/* field area */}
-                    <Stack rowGap={3}>
-                        <Stack>
-                            <Typography variant='h6' fontWeight={400} gutterBottom>Title</Typography>
-                            <TextField 
-                                {...register("title", { required: 'Title is required' })} 
-                                error={!!errors.title}
-                                helperText={errors.title?.message}
-                            />
-                        </Stack>
+                    {/* Title */}
+                    <div>
+                        <label className={labelCls}>{t('productForm.title')}</label>
+                        <input
+                            {...register("title", { required: t('productForm.titleRequired') })}
+                            className={errors.title ? inputError : inputBase}
+                        />
+                        {errors.title && <p className="mt-1 text-xs text-[#E31837]">{errors.title.message}</p>}
+                    </div>
 
-                        <Stack flexDirection={'row'} columnGap={2}>
-                            <FormControl fullWidth error={!!errors.brand}>
-                                <InputLabel id="brand-selection">Brand</InputLabel>
-                                <Controller
-                                    name="brand"
-                                    control={control}
-                                    rules={{ required: "Brand is required" }}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <Select {...field} labelId="brand-selection" label="Brand">
-                                            {brands.map((brand) => (
-                                                <MenuItem key={brand._id} value={brand._id}>{brand.name}</MenuItem>
-                                            ))}
-                                        </Select>
+                    {/* Brand & Category */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>{t('productForm.brand')}</label>
+                            <Controller
+                                name="brand"
+                                control={control}
+                                rules={{ required: t('productForm.brandRequired') }}
+                                render={({ field }) => (
+                                    <select {...field} className={errors.brand ? inputError : inputBase}>
+                                        <option value="">{t('productForm.selectBrand')}</option>
+                                        {brands.map((b) => (
+                                            <option key={b._id} value={b._id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            />
+                            {errors.brand && <p className="mt-1 text-xs text-[#E31837]">{errors.brand.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className={labelCls}>{t('productForm.category')}</label>
+                            <Controller
+                                name="category"
+                                control={control}
+                                rules={{ required: t('productForm.categoryRequired') }}
+                                render={({ field }) => (
+                                    <select {...field} className={errors.category ? inputError : inputBase}>
+                                        <option value="">{t('productForm.selectCategory')}</option>
+                                        {categories.map((c) => (
+                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            />
+                            {errors.category && <p className="mt-1 text-xs text-[#E31837]">{errors.category.message}</p>}
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label className={labelCls}>{t('productForm.description')}</label>
+                        <textarea
+                            rows={4}
+                            {...register("description", { required: t('productForm.descriptionRequired') })}
+                            className={errors.description ? inputError : inputBase}
+                        />
+                        {errors.description && <p className="mt-1 text-xs text-[#E31837]">{errors.description.message}</p>}
+                    </div>
+
+                    {/* Type */}
+                    <div>
+                        <label className={labelCls}>{t('productForm.type')}</label>
+                        <input
+                            {...register("type", { required: t('productForm.typeRequired') })}
+                            className={errors.type ? inputError : inputBase}
+                        />
+                        {errors.type && <p className="mt-1 text-xs text-[#E31837]">{errors.type.message}</p>}
+                    </div>
+
+                    {/* Wholesale Tiers */}
+                    <div className="border border-gray-200 p-5 space-y-4 bg-gray-50">
+                        <h3 className="text-base font-bold text-[#111827] uppercase tracking-wide border-b border-gray-300 pb-2">
+                            {t('productForm.wholesaleTiers')}
+                        </h3>
+
+                        {tierConfigs.map((tier) => (
+                            <div key={tier.key} className="bg-white border border-gray-200 p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className={`inline-block px-2 py-0.5 text-xs font-bold ${tier.color}`}>
+                                        {tier.qtyReadOnly ? `QTY ${tier.defaultQty}` : 'QTY CUSTOM'}
+                                    </span>
+                                    <span className="text-sm font-semibold text-[#111827]">
+                                        {tier.key === 'single' ? tier.label : 
+                                         tier.key === 'pack' ? t('productDetails.packOf', { qty: tier.defaultQty }) :
+                                         t('productDetails.cartonOf', { qty: tier.defaultQty })}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                    {!tier.qtyReadOnly && (
+                                        <div>
+                                            <label className={labelCls}>Quantity per {tier.key}</label>
+                                            <input
+                                                type="number"
+                                                min={2}
+                                                {...register(`${tier.key}Quantity`, { 
+                                                    required: `${tier.key} quantity is required`,
+                                                    min: { value: 2, message: 'Must be at least 2' }
+                                                })}
+                                                className={errors[`${tier.key}Quantity`] ? inputError : inputBase}
+                                            />
+                                            {errors[`${tier.key}Quantity`] && (
+                                                <p className="mt-1 text-xs text-[#E31837]">{errors[`${tier.key}Quantity`].message}</p>
+                                            )}
+                                        </div>
                                     )}
-                                />
-                            </FormControl>
+                                    <div>
+                                        <label className={labelCls}>{t('productForm.price')} (₹)</label>
+                                        <input
+                                            type="number"
+                                            {...register(`${tier.key}Price`, { required: t('productForm.priceRequired') })}
+                                            className={errors[`${tier.key}Price`] ? inputError : inputBase}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>{t('productForm.discount')} (%)</label>
+                                        <input
+                                            type="number"
+                                            {...register(`${tier.key}Discount`, { required: t('productForm.discountRequired') })}
+                                            className={errors[`${tier.key}Discount`] ? inputError : inputBase}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>{t('productForm.stock')}</label>
+                                        <input
+                                            type="number"
+                                            {...register(`${tier.key}Stock`, { required: t('productForm.stockRequired') })}
+                                            className={errors[`${tier.key}Stock`] ? inputError : inputBase}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
 
-                            <FormControl fullWidth error={!!errors.category}>
-                                <InputLabel id="category-selection">Category</InputLabel>
-                                <Controller
-                                    name="category"
-                                    control={control}
-                                    rules={{ required: "Category is required" }}
-                                    defaultValue=""
-                                    render={({ field }) => (
-                                        <Select {...field} labelId="category-selection" label="Category">
-                                            {categories.map((category) => (
-                                                <MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    )}
-                                />
-                            </FormControl>
-                        </Stack>
+                    {/* Thumbnail */}
+                    <div>
+                        <label className={labelCls}>{t('productForm.thumbnail')}</label>
+                        <input
+                            {...register("thumbnail", { required: t('productForm.thumbnailRequired') })}
+                            className={errors.thumbnail ? inputError : inputBase}
+                        />
+                        {errors.thumbnail && <p className="mt-1 text-xs text-[#E31837]">{errors.thumbnail.message}</p>}
+                    </div>
 
-                        <Stack>
-                            <Typography variant='h6' fontWeight={400} gutterBottom>Description</Typography>
-                            <TextField 
-                                multiline rows={4} 
-                                {...register("description", { required: "Description is required" })} 
-                                error={!!errors.description}
-                                helperText={errors.description?.message}
-                            />
-                        </Stack>
+                    {/* Images */}
+                    <div className="space-y-3">
+                        <label className={labelCls}>{t('productForm.productImages')}</label>
+                        <input
+                            placeholder={t('productForm.image1')}
+                            {...register("image0", { required: t('productForm.image1Required') })}
+                            className={errors.image0 ? inputError : inputBase}
+                        />
+                        {errors.image0 && <p className="mt-1 text-xs text-[#E31837]">{errors.image0.message}</p>}
+                        <input placeholder={t('productForm.image2')} {...register("image1")} className={inputBase} />
+                        <input placeholder={t('productForm.image3')} {...register("image2")} className={inputBase} />
+                        <input placeholder={t('productForm.image4')} {...register("image3")} className={inputBase} />
+                    </div>
 
-                        <Stack flexDirection={'row'} columnGap={2}>
-                            <Stack flex={1}>
-                                <Typography variant='h6' fontWeight={400} gutterBottom>Price</Typography>
-                                <TextField 
-                                    type='number' 
-                                    {...register("price", { required: "Price is required" })} 
-                                    error={!!errors.price}
-                                    helperText={errors.price?.message}
-                                />
-                            </Stack>
-                            <Stack flex={1}>
-                                <Typography variant='h6' fontWeight={400} gutterBottom>Discount {is480 ? "%" : "Percentage"}</Typography>
-                                <TextField 
-                                    type='number' 
-                                    {...register("discountPercentage", { required: "Discount percentage is required" })} 
-                                    error={!!errors.discountPercentage}
-                                    helperText={errors.discountPercentage?.message}
-                                />
-                            </Stack>
-                        </Stack>
-
-                        <Stack>
-                            <Typography variant='h6' fontWeight={400} gutterBottom>Stock Quantity</Typography>
-                            <TextField 
-                                type='number' 
-                                {...register("stockQuantity", { required: "Stock Quantity is required" })} 
-                                error={!!errors.stockQuantity}
-                                helperText={errors.stockQuantity?.message}
-                            />
-                        </Stack>
-                        <Stack>
-                            <Typography variant='h6' fontWeight={400} gutterBottom>Type</Typography>
-                            <TextField 
-                                {...register("type", {
-                                    required: "Type is required",
-                                    value: selectedProduct?.type
-                                })}
-                            />
-                        </Stack>
-                        <Stack>
-                            <Typography variant='h6' fontWeight={400} gutterBottom>Thumbnail</Typography>
-                            <TextField 
-                                {...register("thumbnail", { required: "Thumbnail is required" })} 
-                                error={!!errors.thumbnail}
-                                helperText={errors.thumbnail?.message}
-                            />
-                        </Stack>
-
-                        <Stack>
-                            <Typography variant='h6' fontWeight={400} gutterBottom>Product Images</Typography>
-                            <Stack rowGap={2}>
-                                <TextField 
-                                    label="Image 1 (Main)" 
-                                    {...register("image0", { required: "Image 1 is required" })} 
-                                    error={!!errors.image0}
-                                    helperText={errors.image0?.message}
-                                />
-                                <TextField label="Image 2 (Optional)" {...register("image1")} />
-                                <TextField label="Image 3 (Optional)" {...register("image2")} />
-                                <TextField label="Image 4 (Optional)" {...register("image3")} />
-                            </Stack>
-                        </Stack>
-                    </Stack>
-
-                    {/* action area */}
-                    <Stack flexDirection={'row'} alignSelf={'flex-end'} columnGap={is480 ? 1 : 2}>
-                        <Button size={is480 ? 'medium' : 'large'} variant='contained' type='submit'>Update</Button>
-                        <Button size={is480 ? 'medium' : 'large'} variant='outlined' color='error' component={Link} to={'/admin/dashboard'}>Cancel</Button>
-                    </Stack>
-                </Stack>
-            }
-        </Stack>
+                    {/* Actions */}
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button
+                            type="submit"
+                            className="px-6 py-2.5 bg-[#111827] text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+                        >
+                            {t('productForm.updateProduct')}
+                        </button>
+                        <Link
+                            to="/admin/dashboard"
+                            className="px-6 py-2.5 border border-[#E31837] text-[#E31837] text-sm font-medium hover:bg-red-50 transition-colors"
+                        >
+                            {t('productForm.cancel')}
+                        </Link>
+                    </div>
+                </form>
+            )}
+        </div>
     )
 }

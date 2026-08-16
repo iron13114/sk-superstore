@@ -55,12 +55,12 @@ export const Wishlist = () => {
                 const data = { user: loggedInUser._id, product: productId }
                 dispatch(createWishlistItemAsync(data))
             } else {
-                const index = wishlistItems.findIndex((item) => item.product._id === productId)
+                const index = wishlistItems.findIndex((item) => item.product?._id === productId)
                 if (index !== -1) dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id))
             }
         } else {
             if (!e.target.checked) {
-                const index = wishlistItems.findIndex((item) => item.product._id === productId)
+                const index = wishlistItems.findIndex((item) => item.product?._id === productId)
                 if (index !== -1) {
                     dispatch(removeGuestItem(wishlistItems[index]._id))
                     toast.success(t('wishlist.removedFromWishlist'))
@@ -129,13 +129,19 @@ export const Wishlist = () => {
         setEditIndex(index)
     }
 
-    const handleAddToCart = (productId) => {
-        if (loggedInUser) {
-            const data = { user: loggedInUser._id, product: productId }
-            dispatch(addToCartAsync(data))
-        } else {
-            dispatch(addToCartAsync({ product: productId }))
+    const handleAddToCart = (product) => {
+        const singleTier = product?.tiers?.find(t => t.type === 'single')
+        
+        const cartItem = {
+            user: loggedInUser?._id,
+            product: product,
+            quantity: 1,
+            packagingTier: 'single',
+            variantLabel: singleTier?.label || 'Single Unit',
+            variantPrice: singleTier?.price ?? product?.price ?? 0
         }
+        
+        dispatch(addToCartAsync(cartItem))
     }
 
     return (
@@ -169,12 +175,12 @@ export const Wishlist = () => {
                             </div>
                         ) : (
                             <div className={`flex flex-wrap justify-center content-center ${is480 ? 'gap-2' : 'gap-4'}`}>
-                                {wishlistItems.map((item, index) => (
+                                {wishlistItems.map((item, index) => (                            
                                     <div key={item._id} className={`bg-white ${is480 ? '' : 'shadow-md rounded-lg border border-gray-100'}`}>
                                         <ProductCard
                                             item
                                             key={item._id}
-                                            brand={item.product.brand.name}
+                                            brand={item.product.brand?.name || 'Unknown'}
                                             id={item.product._id}
                                             price={item.product.price}
                                             stockQuantity={item.product.stockQuantity}
@@ -183,7 +189,6 @@ export const Wishlist = () => {
                                             handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}
                                             isWishlistCard={true}
                                         />
-
                                         <div className="px-4 pb-4">
                                             <div className="flex items-center gap-1">
                                                 <h6 className="text-lg font-normal text-gray-900">{t('wishlist.note')}</h6>
@@ -237,7 +242,7 @@ export const Wishlist = () => {
                                                 </Link>
                                             ) : (
                                                 <button
-                                                    onClick={() => handleAddToCart(item.product._id)}
+                                                    onClick={() => handleAddToCart(item.product)}
                                                     className="mt-4 w-full px-4 py-2 border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50 transition-colors"
                                                 >
                                                     {t('wishlist.addToCart')}

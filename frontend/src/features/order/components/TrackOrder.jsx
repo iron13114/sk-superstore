@@ -1,238 +1,254 @@
-import React, { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { axiosi } from '../../../config/axios'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
-import { useTranslation } from 'react-i18next';
-
-const useMediaQuery = (query) => {
-    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
-    React.useEffect(() => {
-        const media = window.matchMedia(query);
-        const listener = (e) => setMatches(e.matches);
-        media.addEventListener('change', listener);
-        return () => media.removeEventListener('change', listener);
-    }, [query]);
-    return matches;
-};
-
-const statusColors = {
-    'Pending': 'bg-[#dfc9f7] text-[#7c59a4]',
-    'Dispatched': 'bg-[#feed80] text-[#927b1e]',
-    'Out for delivery': 'bg-[#AACCFF] text-[#4793AA]',
-    'Delivered': 'bg-[#b3f5ca] text-[#548c6a]',
-    'Cancelled': 'bg-[#fac0c0] text-[#cc6d72]'
-};
+import { 
+    fetchOrderByIdAsync, 
+    selectCurrentOrder, 
+    selectOrderFetchStatus,
+    resetCurrentOrder,
+    resetOrderFetchStatus,
+    selectOrders,
+    getOrderByUserIdAsync
+} from '../OrderSlice'
+import { selectLoggedInUser } from '../../auth/AuthSlice'
 
 export const TrackOrder = () => {
-    const { id: urlId } = useParams();
-    const navigate = useNavigate(); 
-    const { t, i18n } = useTranslation();
-    const [orderId, setOrderId] = useState(urlId || '');
-    const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [searched, setSearched] = useState(false);
+    const { id } = useParams()
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const { t } = useTranslation()
+    const currentOrder = useSelector(selectCurrentOrder)
+    const orderFetchStatus = useSelector(selectOrderFetchStatus)
+    const loggedInUser = useSelector(selectLoggedInUser)
+    const userOrders = useSelector(selectOrders)
+    
+    const [searchId, setSearchId] = useState('')
+    const [guestOrders, setGuestOrders] = useState([])
+    const [loadingGuest, setLoadingGuest] = useState(false)
+    
+    const isLoading = orderFetchStatus === 'pending' || loadingGuest
 
-    const is480 = useMediaQuery('(max-width: 480px)');
-    const is900 = useMediaQuery('(max-width: 900px)');
-
-    const locale = i18n.language === 'hi' ? 'hi-IN' : 'en-IN';
-
-    const fetchOrder = async (e) => {
-        e?.preventDefault();
-        if (!orderId.trim()) {
-            toast.error(t('trackOrder.enterOrderId'));
-            return;
+    useEffect(() => {
+        if (id) {
+            dispatch(resetCurrentOrder())
+            dispatch(resetOrderFetchStatus())
+            dispatch(fetchOrderByIdAsync(id))
         }
-        setLoading(true);
-        setSearched(true);
-        setOrder(null);
-        try {
-            const res = await axiosi.get(`/orders/${orderId.trim()}`);
-            setOrder(res.data);
-        } catch (err) {
-            if (err.response?.status === 404) {
-                toast.error(t('trackOrder.orderNotFoundToast'));
-            } else {
-                toast.error(t('trackOrder.errorFetchingToast'));
+    }, [id, dispatch])
+
+    useEffect(() => {
+        if (!id && loggedInUser?._id) {
+            dispatch(getOrderByUserIdAsync(loggedInUser._id))
+        }
+    }, [id, loggedInUser, dispatch])
+
+    useEffect(() => {
+        if (!id && !loggedInUser) {
+            const stored = JSON.parse(localStorage.getItem('guestOrders') || '[]')
+            if (stored.length > 0) {
+                setLoadingGuest(true)
+                Promise.all(
+                    stored.map(orderId => 
+                        dispatch(fetchOrderByIdAsync(orderId))
+                            .unwrap()
+                            .then(res => res)
+                            .catch(() => null)
+                    )
+                ).then(results => {
+                    setGuestOrders(results.filter(Boolean))
+                    setLoadingGuest(false)
+                })
             }
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [id, loggedInUser, dispatch])
 
-    React.useEffect(() => {
-        if (urlId) {
-            fetchOrder();
+    const handleSearch = (e) => {
+        e.preventDefault()
+        if (!searchId.trim()) {
+            toast.error(t('trackOrder.enterOrderId'))
+            return
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [urlId]);
+        navigate(`/track-order/${searchId.trim()}`)
+    }
+
+    const getStatusColor = (status) => {
+        const map = {
+            'Pending': 'bg-[#dfc9f7] text-[#7c59a4]',
+            'Dispatched': 'bg-[#feed80] text-[#927b1e]',
+            'Out for delivery': 'bg-[#AACCFF] text-[#4793AA]',
+            'Delivered': 'bg-[#b3f5ca] text-[#548c6a]',
+            'Cancelled': 'bg-[#fac0c0] text-[#cc6d72]'
+        }
+        return map[status] || 'bg-gray-200 text-gray-700'
+    }
+
+    let displayOrders = []
+    if (id && currentOrder) {
+        displayOrders = [currentOrder]
+    } else if (!id && loggedInUser) {
+        displayOrders = userOrders || []
+    } else if (!id && !loggedInUser) {
+        displayOrders = guestOrders
+    }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
-            <div className={`mx-auto ${is900 ? 'w-full' : 'w-[50rem]'}`}>
+        <div className="px-4 py-8 flex flex-col items-center min-h-screen bg-white">
+            
+            {/* Header */}
+            <div className="w-full max-w-3xl flex justify-between items-center mb-8">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    {t('trackOrder.back')}
+                </button>
+                <Link to="/" className="text-sm text-gray-600 hover:text-gray-900 underline">
+                    {t('trackOrder.goHome')}
+                </Link>
+            </div>
 
-                {/* Navigation escape hatch — prevents users from getting trapped */}
-                <div className="flex items-center justify-between mb-6">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-black transition-colors"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        {t('trackOrder.back')}
-                    </button>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="text-sm text-gray-600 hover:text-black transition-colors underline"
-                    >
-                        {t('trackOrder.goHome')}
-                    </button>
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-[#111827]">{t('trackOrder.title')}</h1>
+                <p className="text-gray-500 mt-1">{t('trackOrder.subtitle')}</p>
+            </div>
+
+            {/* Search */}
+            <form onSubmit={handleSearch} className="w-full max-w-3xl flex gap-3 mb-10">
+                <input
+                    type="text"
+                    value={searchId}
+                    onChange={(e) => setSearchId(e.target.value)}
+                    placeholder={t('trackOrder.placeholder')}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#0055A4] focus:border-[#0055A4]"
+                />
+                <button type="submit" className="px-6 py-3 bg-[#111827] text-white text-sm font-medium hover:bg-gray-800 transition-colors">
+                    {t('trackOrder.trackOrder')}
+                </button>
+            </form>
+
+            {/* Loading */}
+            {isLoading && (
+                <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#111827]"></div>
                 </div>
+            )}
 
-                {/* Header */}
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('trackOrder.title')}</h1>
-                    <p className="text-gray-500">{t('trackOrder.subtitle')}</p>
-                </div>
-
-                {/* Search Box */}
-                <form onSubmit={fetchOrder} className="flex flex-col sm:flex-row gap-3 mb-10">
-                    <input
-                        type="text"
-                        value={orderId}
-                        onChange={(e) => setOrderId(e.target.value)}
-                        placeholder={t('trackOrder.placeholder')}
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
-                    />
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-8 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                        {loading ? t('trackOrder.searching') : t('trackOrder.trackOrder')}
-                    </button>
-                </form>
-
-                {/* Loading */}
-                {loading && (
-                    <div className="flex justify-center py-12">
-                        <div className="w-8 h-8 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
-                    </div>
-                )}
-
-                {/* Not Found */}
-                {!loading && searched && !order && (
-                    <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                        <div className="text-5xl mb-4">📦</div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">{t('trackOrder.orderNotFound')}</h3>
-                        <p className="text-gray-500 text-sm">{t('trackOrder.orderNotFoundDesc')}</p>
-                    </div>
-                )}
-
-                {/* Order Details */}
-                {!loading && order && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-
-                        {/* Order Header */}
-                        <div className={`flex ${is480 ? 'flex-col gap-3' : 'flex-row justify-between items-center'} p-6 border-b border-gray-100`}>
-                            <div>
-                                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{t('trackOrder.orderId')}</p>
-                                <p className="text-sm font-mono text-gray-900 break-all">{order._id}</p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${statusColors[order.status] || 'bg-gray-200 text-gray-700'}`}>
-                                    {t(`trackOrder.status.${order.status}`, order.status)}
+            {/* Orders List */}
+            {!isLoading && displayOrders.length > 0 && (
+                <div className="w-full max-w-3xl space-y-6">
+                    {displayOrders.map((order) => (
+                        <div key={order._id} className="border border-gray-200 bg-white overflow-hidden">
+                            
+                            {/* Header */}
+                            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('trackOrder.orderId')}</p>
+                                    <p className="text-sm font-mono text-[#111827]">{order._id}</p>
+                                </div>
+                                <span className={`px-3 py-1 text-xs font-medium ${getStatusColor(order.status)}`}>
+                                    {t(`trackOrder.status.${order.status}`) || order.status}
                                 </span>
                             </div>
-                        </div>
 
-                        {/* Items */}
-                        <div className="p-6 border-b border-gray-100">
-                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">{t('trackOrder.items')}</h3>
-                            <div className="flex flex-col gap-4">
-                                {order.item.map((product, idx) => (
-                                    <div key={idx} className="flex items-center gap-4">
-                                        <img
-                                            src={product.product?.thumbnail || product.thumbnail}
-                                            alt={product.product?.title || product.title}
-                                            className="w-16 h-16 rounded-lg object-cover border border-gray-200"
-                                        />
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {product.product?.title || product.title}
-                                            </p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                {t('trackOrder.qty')}: {product.quantity}
-                                                {product.variantLabel && ` · ${product.variantLabel}`}
-                                            </p>
-                                            <p className="text-sm font-medium text-gray-900 mt-1">
-                                                ₹{product.variantPrice || product.product?.price || product.price}
+                            {/* Items */}
+                            <div className="px-6 py-4 border-b border-gray-100">
+                                <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">{t('trackOrder.items')}</p>
+                                <div className="space-y-3">
+                                    {(order.item || []).map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-3">
+                                            <img 
+                                                src={item.product?.thumbnail || item.product?.images?.[0]} 
+                                                alt="" 
+                                                className="w-12 h-12 object-contain border border-gray-100"
+                                                onError={(e) => { e.target.style.display = 'none' }}
+                                            />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium text-[#111827]">
+                                                    {item.product?.title || 'Product'}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {t('trackOrder.qty')}: {item.quantity} {item.packagingTier ? `• ${item.variantLabel || item.packagingTier}` : ''}
+                                                </p>
+                                            </div>
+                                            <p className="text-sm font-semibold text-[#111827]">
+                                                ₹{item.variantPrice || item.product?.price || 0}
                                             </p>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Details Grid */}
-                        <div className={`grid ${is480 ? 'grid-cols-1' : 'grid-cols-2'} gap-6 p-6 border-b border-gray-100`}>
-
-                            {/* Shipping Address */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">{t('trackOrder.shippingAddress')}</h3>
-                                <div className="text-sm text-gray-600 space-y-1">
-                                    <p className="font-medium text-gray-900">
-                                        {t(`address.type.${order.address[0]?.type}`, order.address[0]?.type || t('trackOrder.home'))}
-                                    </p>
-                                    <p>{order.address[0]?.street}</p>
-                                    <p>{order.address[0]?.city}, {order.address[0]?.state}</p>
-                                    <p>{order.address[0]?.country} - {order.address[0]?.postalCode}</p>
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* Order Info */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">{t('trackOrder.orderInfo')}</h3>
-                                <div className="text-sm space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">{t('trackOrder.paymentMethod')}</span>
-                                        <span className="font-medium text-gray-900">{order.paymentMode}</span>
+                            {/* Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-6 py-4">
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{t('trackOrder.shippingAddress')}</p>
+                                    <div className="text-sm text-[#111827] space-y-0.5">
+                                        <p className="font-medium">{order.address?.[0]?.type || 'Home'}</p>
+                                        <p>{order.address?.[0]?.street}</p>
+                                        <p>{order.address?.[0]?.city}, {order.address?.[0]?.state}</p>
+                                        <p>{order.address?.[0]?.country} – {order.address?.[0]?.postalCode}</p>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">{t('trackOrder.orderDate')}</span>
-                                        <span className="font-medium text-gray-900">{new Date(order.createdAt).toLocaleDateString(locale)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">{t('trackOrder.orderTime')}</span>
-                                        <span className="font-medium text-gray-900">{new Date(order.createdAt).toLocaleTimeString(locale)}</span>
-                                    </div>
-                                    {order.guestEmail && (
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{t('trackOrder.orderInfo')}</p>
+                                    <div className="text-sm space-y-2">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-500">{t('trackOrder.guestEmail')}</span>
-                                            <span className="font-medium text-gray-900">{order.guestEmail}</span>
+                                            <span className="text-gray-500">{t('trackOrder.paymentMethod')}</span>
+                                            <span className="text-[#111827] font-medium">{order.paymentMode}</span>
                                         </div>
-                                    )}
-                                    {order.guestPhone && (
                                         <div className="flex justify-between">
-                                            <span className="text-gray-500">{t('trackOrder.guestPhone')}</span>
-                                            <span className="font-medium text-gray-900">{order.guestPhone}</span>
+                                            <span className="text-gray-500">{t('trackOrder.orderDate')}</span>
+                                            <span className="text-[#111827]">{new Date(order.createdAt).toLocaleDateString()}</span>
                                         </div>
-                                    )}
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">{t('trackOrder.orderTime')}</span>
+                                            <span className="text-[#111827]">{new Date(order.createdAt).toLocaleTimeString()}</span>
+                                        </div>
+                                        {!order.user && (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">{t('trackOrder.guestEmail')}</span>
+                                                    <span className="text-[#111827]">{order.guestEmail || 'N/A'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">{t('trackOrder.guestPhone')}</span>
+                                                    <span className="text-[#111827]">{order.guestPhone || 'N/A'}</span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Total */}
-                        <div className="p-6 bg-gray-50">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium text-gray-600">{t('trackOrder.totalAmount')}</span>
-                                <span className="text-2xl font-bold text-gray-900">₹{order.total}</span>
+                            {/* Total */}
+                            <div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <span className="text-sm text-gray-500">{t('trackOrder.totalAmount')}</span>
+                                <span className="text-xl font-bold text-[#111827]">₹{order.total}</span>
                             </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Empty / Not Found */}
+            {!isLoading && displayOrders.length === 0 && (
+                <div className="text-center py-12">
+                    {id ? (
+                        <>
+                            <p className="text-lg font-medium text-[#111827]">{t('trackOrder.orderNotFound')}</p>
+                            <p className="text-gray-500 mt-1">{t('trackOrder.orderNotFoundDesc')}</p>
+                        </>
+                    ) : (
+                        <p className="text-gray-500">
+                            {loggedInUser 
+                                ? 'No orders found.' 
+                                : 'No orders found. Place an order or enter an Order ID above.'}
+                        </p>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

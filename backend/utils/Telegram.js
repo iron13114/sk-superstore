@@ -9,9 +9,18 @@ exports.sendOrderNotification = async (order) => {
         return;
     }
 
-    const itemsList = order.item.map(i => 
-        `• ${i.product?.title || 'Product'} x${i.quantity}`
-    ).join('\n');
+    const itemsList = (order.item || []).map(i => {
+        const tier = i.variantLabel || i.packagingTier || ''
+        const tierStr = tier ? ` — *${tier}*` : ''
+        return `• ${i.product?.title || 'Product'}${tierStr} × ${i.quantity || 1}`
+    }).join('\n');
+
+    const address = order.address?.[0] || {};
+    
+    const email = (order.guestEmail || '').trim() || 'N/A';
+    const phone = (order.guestPhone || '').trim() 
+               || (address.phoneNumber || '').trim() 
+               || 'N/A';
 
     const message = `
 🛒 *NEW ORDER PLACED!*
@@ -19,14 +28,14 @@ exports.sendOrderNotification = async (order) => {
 📦 Order ID: \`${order._id}\`
 💰 Total: ₹${order.total}
 💳 Payment: ${order.paymentMode}
-📍 Address: ${order.address[0]?.city}, ${order.address[0]?.state}
+📍 Address: ${address.city || ''}, ${address.state || ''}
 
 *Items:*
-${itemsList}
+${itemsList || 'No items'}
 
 👤 Customer: ${order.user ? 'Registered' : 'Guest'}
-📧 ${order.guestEmail || 'N/A'}
-📞 ${order.guestPhone || order.address[0]?.phoneNumber || 'N/A'}
+📧 ${email}
+📞 ${phone}
     `.trim();
 
     try {
@@ -35,8 +44,8 @@ ${itemsList}
             text: message,
             parse_mode: 'Markdown'
         });
-        console.log('Telegram notification sent');
+        console.log('✅ Telegram notification sent');
     } catch (err) {
-        console.error('Telegram failed:', err.response?.data || err.message);
+        console.error('❌ Telegram failed:', err.response?.data || err.message);
     }
 };

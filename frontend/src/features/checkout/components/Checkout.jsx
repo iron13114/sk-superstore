@@ -94,6 +94,10 @@ export const Checkout = () => {
                 localStorage.removeItem('guestCart')
                 addGuestOrder(currentOrder)
                 clearGuestCheckoutData()
+                
+                const existing = JSON.parse(localStorage.getItem('guestOrders') || '[]')
+                const updated = [orderId, ...existing.filter(id => id !== orderId)].slice(0, 10)
+                localStorage.setItem('guestOrders', JSON.stringify(updated))
             } else {
                 dispatch(resetCartByUserIdAsync(loggedInUser?._id))
             }
@@ -374,7 +378,7 @@ export const Checkout = () => {
                         <span className="text-sm text-gray-900">{t('checkout.cod')}</span>
                     </div>
                 </div>
-            </div>
+            </div> 
 
             {/* Right Column - Order Summary */}
             <div className={`flex flex-col gap-4 ${is900 ? 'w-full' : 'w-[24rem]'}`}>

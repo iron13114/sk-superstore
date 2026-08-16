@@ -1,6 +1,6 @@
 const Order = require("../models/Order");
 const { sendOrderConfirmationEmail } = require('../utils/Emails');
-const { sendOrderNotification } = require('../utils/Telegram');
+const { sendOrderNotification } = require('../utils/telegram');
 
 exports.create = async (req, res) => {
     try {
@@ -25,6 +25,7 @@ exports.create = async (req, res) => {
         } catch (notifyErr) {
             console.error('Telegram notification failed:', notifyErr.message);
         }
+
         res.status(201).json(created);
     } catch (error) {
         console.error("Order Creation Error:", error);

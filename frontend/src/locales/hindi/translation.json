@@ -65,9 +65,9 @@
     "invalidEmail": "कृपया वैध ईमेल दर्ज करें",
     "invalidPhone": "कृपया वैध फोन नंबर दर्ज करें"
   },
-    "footer": {
+  "footer": {
     "contact": "संपर्क करें",
-    "address": "सकरी स्टेशन रोड, ब्रह्मपुर, बिहार",
+    "address": "सकरी स्टेशन रोड, ब्रह्मपुर, मधुबनी, बिहार",
     "account": "खाता",
     "myAccount": "मेरा खाता",
     "loginRegister": "लॉगिन / रजिस्टर",
@@ -80,7 +80,7 @@
     "faq": "सामान्य प्रश्न",
     "allRightsReserved": "सर्वाधिकार सुरक्षित"
   },
-    "productList": {
+  "productList": {
     "newArrivals": "नई आगमन",
     "noCategoriesLoaded": "कोई श्रेणी लोड नहीं हुई",
     "brands": "ब्रांड्स",

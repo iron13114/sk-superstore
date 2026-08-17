@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 exports.connectToDB = async () => {
     try {
         if (!process.env.MONGO_URI) {
-            throw new Error("MONGO_URI is undefined. Verify backend/.env exists and is formatted correctly.");
+            throw new Error("MONGO_URI is undefined");
         }
 
         await mongoose.connect(process.env.MONGO_URI);

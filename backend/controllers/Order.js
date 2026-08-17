@@ -1,6 +1,6 @@
 const Order = require("../models/Order");
 const { sendOrderConfirmationEmail } = require('../utils/Emails');
-const { sendOrderNotification } = require('../utils/telegram');
+const { sendOrderNotification } = require('../utils/Telegram');
 
 exports.create = async (req, res) => {
     try {

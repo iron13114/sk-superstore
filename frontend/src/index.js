@@ -21,14 +21,14 @@ const theme = createTheme({
   },
 })
 
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
+const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
         <Provider store={store}>
             <StyledEngineProvider injectFirst>
                 <ThemeProvider theme={theme}>
-                      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                      <GoogleOAuthProvider clientId={CLIENT_ID}>
                           <App />
                       </GoogleOAuthProvider>
                     </ThemeProvider>

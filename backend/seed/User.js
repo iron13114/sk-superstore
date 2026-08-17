@@ -1,16 +1,17 @@
 const User = require("../models/User");
 const bcrypt = require('bcryptjs');
 
+const PASSWORD = process.env.ADMIN_PASSWORD;
 exports.seedUser = async () => {
     // FORCE DELETE before insert
     await User.deleteMany({});
     
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    const hashedPassword = await bcrypt.hash(PASSWORD, 10);
 
     const users = [
         {
             name: 'Admin',
-            email: 'admin@sksuperstore.com',
+            email: 'skgeneralstores2016@gmail.com',
             password: hashedPassword,
             isAdmin: true,
             isVerified: true

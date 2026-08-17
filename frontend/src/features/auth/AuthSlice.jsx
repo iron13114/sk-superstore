@@ -1,5 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
 import { checkAuth, forgotPassword, login, logout, resendOtp, resetPassword, signup, verifyOtp } from './AuthApi'
+import { googleLogin as googleLoginApi } from './AuthApi';
 
 const initialState={
     status:"idle",
@@ -38,30 +39,36 @@ export const verifyOtpAsync=createAsyncThunk('auth/verifyOtpAsync',async(cred)=>
     const res=await verifyOtp(cred)
     return res
 })
-export const resendOtpAsync=createAsyncThunk("auth/resendOtpAsync",async(cred)=>{
+export const resendOtpAsync=createAsyncThunk("auth/resendOtpAsync", async(cred)=>{
     const res=await resendOtp(cred)
     return res
 })
-export const forgotPasswordAsync=createAsyncThunk('auth/forgotPasswordAsync',async(cred)=>{
+export const forgotPasswordAsync=createAsyncThunk('auth/forgotPasswordAsync', async(cred)=>{
     const res=await forgotPassword(cred)
     return res
 })
 
-export const resetPasswordAsync=createAsyncThunk('auth/resetPasswordAsync',async(cred)=>{
+export const resetPasswordAsync=createAsyncThunk('auth/resetPasswordAsync', async(cred)=>{
     const res=await resetPassword(cred)
     return res
 })
 
-export const checkAuthAsync=createAsyncThunk('auth/checkAuthAsync',async()=>{
+export const checkAuthAsync=createAsyncThunk('auth/checkAuthAsync', async()=>{
     const res=await checkAuth()
     return res
 })
 
-export const logoutAsync=createAsyncThunk("auth/logoutAsync",async()=>{
+export const logoutAsync=createAsyncThunk("auth/logoutAsync", async()=>{
     const res=await logout()
     return res
 })
 
+export const googleLoginAsync = createAsyncThunk( 'auth/googleLoginAsync', async (cred) => {
+        const data = await googleLoginApi(cred);
+        localStorage.setItem('token', data.token);
+        return data.user;
+    }
+)
 
 const authSlice=createSlice({
     name:"authSlice",
@@ -220,7 +227,16 @@ const authSlice=createSlice({
             .addCase(checkAuthAsync.rejected, (state, action) => {
                 state.isAuthChecked = true; 
                 state.loggedInUser = null;
-            });
+            })
+
+            .addCase(googleLoginAsync.fulfilled, (state, action) => {
+                state.loggedInUser = action.payload;
+                state.status = 'fulfilled';
+            })
+            .addCase(googleLoginAsync.rejected, (state, action) => {
+                state.status = 'rejected';
+                state.errors = action.error;
+            })
     }
 })
 

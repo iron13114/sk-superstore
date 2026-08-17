@@ -7,6 +7,9 @@ const Otp = require("../models/OTP");
 const { sanitizeUser } = require("../utils/SanitizeUser");
 const { generateToken } = require("../utils/GenerateToken");
 const PasswordResetToken = require("../models/PasswordResetToken");
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.signup = async (req, res) => {
     try {
@@ -259,5 +262,46 @@ exports.checkAuth = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.sendStatus(500)
+    }
+}
+
+exports.googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, sub: googleId, picture } = payload;
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            user = new User({
+                name,
+                email,
+                googleId,
+                avatar: picture,
+                isAdmin: false
+            });
+            await user.save();
+        } else if (!user.googleId) {
+            user.googleId = googleId;
+            if (picture && !user.avatar) user.avatar = picture;
+            await user.save();
+        }
+
+        const token = generateToken(user);
+
+        res.status(200).json({
+            user: sanitizeUser(user),
+            token
+        });
+    } catch (error) {
+        console.error('Google login error:', error);
+        res.status(401).json({ message: 'Google authentication failed' });
     }
 }

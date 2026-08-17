@@ -9,6 +9,7 @@ import { store } from './app/store';
 import {ToastContainer} from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const theme = createTheme({
   palette: {
@@ -18,16 +19,19 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
   },
-});
+})
 
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
         <Provider store={store}>
             <StyledEngineProvider injectFirst>
                 <ThemeProvider theme={theme}>
-                  <App />
-                </ThemeProvider>
+                      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                          <App />
+                      </GoogleOAuthProvider>
+                    </ThemeProvider>
             </StyledEngineProvider>
           <ToastContainer position='top-right' autoClose={1500} closeOnClick/>
         </Provider>

@@ -1,26 +1,24 @@
-import { FormHelperText, Stack, TextField, Typography, useMediaQuery, useTheme, Tabs, Tab } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from "react-hook-form"
 import { useDispatch, useSelector } from 'react-redux'
-import { LoadingButton } from '@mui/lab';
-import { selectLoggedInUser, loginAsync, selectLoginStatus, selectLoginError, clearLoginError, resetLoginStatus } from '../AuthSlice'
+import { selectLoggedInUser, loginAsync, selectLoginStatus, selectLoginError, clearLoginError, resetLoginStatus, googleLoginAsync } from '../AuthSlice'
 import { toast } from 'react-toastify'
-import { MotionConfig, motion } from 'framer-motion'
+import { GoogleLogin } from '@react-oauth/google'
+import { Eye, EyeOff } from 'lucide-react'
 
 export const Login = () => {
   const dispatch = useDispatch()
   const status = useSelector(selectLoginStatus)
-  const [loginMode, setLoginMode] = useState('email'); 
+  const [loginMode, setLoginMode] = useState('email')
+  const [showPassword, setShowPassword] = useState(false)
   const error = useSelector(selectLoginError)
   const loggedInUser = useSelector(selectLoggedInUser)
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
-  const theme = useTheme()
-  const is480 = useMediaQuery(theme.breakpoints.down(480))
-  
+
   useEffect(() => {
     if (loggedInUser && loggedInUser?.isVerified === true) {
       navigate(redirect)          
@@ -29,7 +27,6 @@ export const Login = () => {
     }
   }, [loggedInUser, navigate, redirect])
 
-  // Handles login error toast
   useEffect(() => {
     if (error) {
       toast.error(error.message || "Invalid Credentials")
@@ -52,117 +49,209 @@ export const Login = () => {
     delete cred.confirmPassword
 
     if (loginMode === 'mobile') {
-      delete cred.email;
-      delete cred.password;
+      delete cred.email
+      delete cred.password
     } else {
-      delete cred.mobile;
-      delete cred.otp;
+      delete cred.mobile
+      delete cred.otp
     }
 
-    // Single clean dispatch
     dispatch(loginAsync(cred))
   }
 
+  const handleGoogleSuccess = (credentialResponse) => {
+    dispatch(googleLoginAsync(credentialResponse.credential))
+      .unwrap()
+      .then(() => {
+        toast.success('Logged in with Google!')
+      })
+      .catch(() => {
+        toast.error('Google login failed')
+      })
+  }
+
+  const handleGoogleError = () => {
+    toast.error('Google login failed')
+  }
+
   return (
-    <Stack width={'100vw'} height={'100vh'} flexDirection={'row'} sx={{ overflowY: "hidden" }}>
-      <Stack flex={1} justifyContent={'center'} alignItems={'center'}>
-        <Stack flexDirection={'row'} justifyContent={'center'} alignItems={'center'}>
-          <Stack rowGap={'.4rem'}>
-            <Typography variant='h2' sx={{ wordBreak: "break-word" }} fontWeight={600}>SKSuperStore</Typography>
-            <Typography alignSelf={'flex-end'} color={'GrayText'} variant='body2'>- Shop Anything</Typography>
-          </Stack>
-        </Stack>
+    <div className="min-h-screen w-full flex flex-col justify-center items-center bg-white px-4 py-8">
+      
+      {/* Brand Header */}
+      <div className="flex flex-col items-center mb-8">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-black">
+          SKSuperStore
+        </h1>
+        <span className="self-end text-xs sm:text-sm text-gray-500 mt-1 mr-1">
+          - Shop Anything
+        </span>
+      </div>
 
-        <Stack mt={4} spacing={2} width={is480 ? "95vw" : '28rem'} component={'form'} noValidate onSubmit={handleSubmit(handleLogin)}>
-          {/* Toggle Switcher */}
-          <Tabs 
-            value={loginMode} 
-            onChange={(e, newMode) => { setLoginMode(newMode); reset(); }} 
-            variant="fullWidth" 
-            sx={{ mb: 1, borderBottom: 1, borderColor: 'divider' }}
+      {/* Form Container */}
+      <form 
+        noValidate 
+        onSubmit={handleSubmit(handleLogin)} 
+        className="w-full max-w-[24rem] flex flex-col gap-4"
+      >
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 mb-2">
+          <button
+            type="button"
+            onClick={() => { setLoginMode('email'); reset(); }}
+            className={`flex-1 pb-2.5 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2 ${
+              loginMode === 'email'
+                ? 'border-black text-black'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
           >
-            <Tab label="Email Address" value="email" />
-            <Tab label="Mobile & OTP" value="mobile" />
-          </Tabs>
+            Email Login
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLoginMode('mobile'); reset(); }}
+            className={`flex-1 pb-2.5 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2 ${
+              loginMode === 'mobile'
+                ? 'border-black text-black'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            Mobile Login
+          </button>
+        </div>
 
-          {loginMode === 'email' ? (
-            <>
-              {/* Standard Email View */}
-              <motion.div whileHover={{ y: -5 }}>
-                <TextField 
-                  fullWidth 
-                  {...register("email", { 
-                    required: "Email is required", 
-                    pattern: { 
-                      value: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g, 
-                      message: "Enter a valid email" 
-                    } 
-                  })} 
-                  placeholder='Email' 
-                />
-                {errors.email && <FormHelperText sx={{ mt: 1 }} error>{errors.email.message}</FormHelperText>}
-              </motion.div>
+        {loginMode === 'email' ? (
+          <>
+            {/* Email Input */}
+            <div>
+              <input
+                type="email"
+                placeholder="Email"
+                className={`w-full px-3.5 py-2.5 text-sm bg-white text-black placeholder-gray-400 border rounded-sm outline-none transition-colors ${
+                  errors.email 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:border-black'
+                }`}
+                {...register("email", { 
+                  required: "Email is required", 
+                  pattern: { 
+                    value: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g, 
+                    message: "Enter a valid email" 
+                  } 
+                })}
+              />
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
+              )}
+            </div>
 
-              <motion.div whileHover={{ y: -5 }}>
-                <TextField 
-                  type='password' 
-                  fullWidth 
-                  {...register("password", { required: "Password is required" })} 
-                  placeholder='Password' 
+            {/* Password Input with Visibility Toggle */}
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className={`w-full px-3.5 py-2.5 text-sm bg-white text-black placeholder-gray-400 border rounded-sm outline-none transition-colors pr-10 ${
+                    errors.password 
+                      ? 'border-red-500 focus:border-red-500' 
+                      : 'border-gray-300 focus:border-black'
+                  }`}
+                  {...register("password", { required: "Password is required" })}
                 />
-                {errors.password && <FormHelperText sx={{ mt: 1 }} error>{errors.password.message}</FormHelperText>}
-              </motion.div>
-            </>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Mobile Input */}
+            <div>
+              <input
+                type="tel"
+                placeholder="Mobile Number"
+                className={`w-full px-3.5 py-2.5 text-sm bg-white text-black placeholder-gray-400 border rounded-sm outline-none transition-colors ${
+                  errors.mobile 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:border-black'
+                }`}
+                {...register("mobile", { 
+                  required: "Mobile number is required", 
+                  pattern: { 
+                    value: /^[0-9]{10}$/, 
+                    message: "Enter a valid 10-digit mobile number" 
+                  } 
+                })}
+              />
+              {errors.mobile && (
+                <p className="mt-1 text-xs text-red-500">{errors.mobile.message}</p>
+              )}
+            </div>
+            
+            {/* OTP Input */}
+            <div>
+              <input
+                type="number"
+                placeholder="Enter 4-Digit OTP"
+                className={`w-full px-3.5 py-2.5 text-sm bg-white text-black placeholder-gray-400 border rounded-sm outline-none transition-colors ${
+                  errors.otp 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : 'border-gray-300 focus:border-black'
+                }`}
+                {...register("otp", { required: "OTP is required" })}
+              />
+              {errors.otp && (
+                <p className="mt-1 text-xs text-red-500">{errors.otp.message}</p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={status === 'pending'}
+          className="w-full py-2.5 px-4 bg-black hover:bg-neutral-800 active:bg-neutral-900 disabled:opacity-50 text-white text-xs font-semibold uppercase tracking-wider rounded-sm flex items-center justify-center transition-colors cursor-pointer"
+        >
+          {status === 'pending' ? (
+            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
           ) : (
-            <>
-              {/* Mobile Verification View */}
-              <motion.div whileHover={{ y: -5 }}>
-                <TextField 
-                  fullWidth 
-                  type='tel'
-                  {...register("mobile", { 
-                    required: "Mobile number is required", 
-                    pattern: { 
-                      value: /^[0-9]{10}$/, 
-                      message: "Enter a valid 10-digit mobile number" 
-                    } 
-                  })} 
-                  placeholder='Mobile Number' 
-                />
-                {errors.mobile && <FormHelperText sx={{ mt: 1 }} error>{errors.mobile.message}</FormHelperText>}
-              </motion.div>
-              
-              <motion.div whileHover={{ y: -5 }}>
-                <TextField 
-                  type='number' 
-                  fullWidth 
-                  {...register("otp", { required: "OTP is required" })} 
-                  placeholder='Enter 4-Digit OTP' 
-                />
-                {errors.otp && <FormHelperText sx={{ mt: 1 }} error>{errors.otp.message}</FormHelperText>}
-              </motion.div>
-            </>
+            loginMode === 'email' ? 'LOGIN' : 'VERIFY & LOGIN'
           )}
-          
-          <motion.div whileHover={{ scale: 1.020 }} whileTap={{ scale: 1 }}>
-            <LoadingButton fullWidth sx={{ height: '2.5rem' }} loading={status === 'pending'} type='submit' variant='contained'>
-              {loginMode === 'email' ? 'Login' : 'Verify & Login'}
-            </LoadingButton>
-          </motion.div>
+        </button>
 
-          <Stack flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'} flexWrap={'wrap-reverse'}>
-            <MotionConfig whileHover={{ x: 2 }} whileTap={{ scale: 1.050 }}>
-              <motion.div>
-                <Typography mr={'1.5rem'} sx={{ textDecoration: "none", color: "text.primary" }} to={'/forgot-password'} component={Link}>Forgot password</Typography>
-              </motion.div>
+        {/* Google Sign-In */}
+        <div className="flex justify-center w-full mt-1">
+          <GoogleLogin 
+            onSuccess={handleGoogleSuccess} 
+            onError={handleGoogleError}
+            shape="rectangular"
+            theme="outline"
+            size="large"
+            width="384"
+          />
+        </div>
 
-              <motion.div>
-                <Typography sx={{ textDecoration: "none", color: "text.primary" }} to={'/signup'} component={Link}>Don't have an account? <span style={{ color: theme.palette.primary.dark }}>Register</span></Typography>
-              </motion.div>
-            </MotionConfig>    
-          </Stack>
-        </Stack>
-      </Stack>
-    </Stack>
+        {/* Footer Navigation Links */}
+        <div className="flex flex-row justify-between items-center text-xs text-black mt-2">
+          <Link to="/forgot-password" className="hover:underline">
+            Forgot password
+          </Link>
+          <Link to="/signup" className="hover:underline">
+            Don't have an account? <span className="font-semibold">Register</span>
+          </Link>
+        </div>
+      </form>
+    </div>
   )
 }

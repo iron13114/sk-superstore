@@ -15,7 +15,7 @@ import { loadingAnimation } from '../../../assets'
 import { resetCartItemAddStatus, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { fetchAllBrandsAsync } from '../../brands/BrandSlice'
 import { fetchAllCategoriesAsync } from '../../categories/CategoriesSlice'
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
@@ -153,7 +153,7 @@ export const ProductList = () => {
         if (searchQuery) { finalFilters['search'] = searchQuery }
         if (!loggedInUser?.isAdmin) { finalFilters['user'] = true }
         dispatch(fetchProductsAsync(finalFilters))
-    }, [filters, page, sort, searchQuery])
+    }, [filters, page, sort, searchQuery, loggedInUser?.isAdmin, dispatch])
 
     const handleAddRemoveFromWishlist = (e, productId) => {
         if (loggedInUser) {
@@ -487,5 +487,5 @@ export const ProductList = () => {
                 </>
             )}
         </>
-    )
-}
+    );
+};

@@ -208,6 +208,7 @@ export const Homepage = () => {
                                     brand={product.brand?.name || product.brand}
                                     price={product.price}
                                     stockQuantity={product.stockQuantity}
+                                    reviews={product.reviews} 
                                     handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}
                                 />
                             ))}

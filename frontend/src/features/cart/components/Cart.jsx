@@ -6,29 +6,29 @@ import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
 import { resetCartItemRemoveStatus, selectCartItemRemoveStatus, selectCartItems } from '../CartSlice'
 import { SHIPPING, TAXES } from '../../../constants'
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'
 
 const useMediaQuery = (query) => {
-    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
+    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches)
     useEffect(() => {
-        const media = window.matchMedia(query);
-        const listener = (e) => setMatches(e.matches);
-        media.addEventListener('change', listener);
-        return () => media.removeEventListener('change', listener);
-    }, [query]);
-    return matches;
-};
+        const media = window.matchMedia(query)
+        const listener = (e) => setMatches(e.matches)
+        media.addEventListener('change', listener)
+        return () => media.removeEventListener('change', listener)
+    }, [query])
+    return matches
+}
 
 export const Cart = ({ checkout }) => {
     const items = useSelector(selectCartItems)
     const subtotal = items.reduce((acc, item) => {
-        const price = item.variantPrice || item.product?.price || 0;
-        return acc + (price * (item.quantity || 0));
+        const price = item.variantPrice || item.product?.price || 0
+        return acc + (price * (item.quantity || 0))
     }, 0)
     const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
     const navigate = useNavigate()
     const is900 = useMediaQuery('(max-width: 900px)')
-    const { t } = useTranslation();
+    const { t } = useTranslation()
 
     const cartItemRemoveStatus = useSelector(selectCartItemRemoveStatus)
     const dispatch = useDispatch()
@@ -58,11 +58,11 @@ export const Cart = ({ checkout }) => {
     }, [dispatch])
 
     return (
-        <div className="flex flex-col items-center mb-20">
-            <div className={`flex flex-col mt-12 gap-8 ${is900 ? 'w-full' : 'w-[50rem]'} ${checkout ? 'px-0' : 'px-4'}`}>
+        <div className={`w-full ${checkout ? 'mb-0' : 'flex flex-col items-center mb-20'}`}>
+            <div className={`flex flex-col ${checkout ? 'mt-0 w-full gap-4 px-0' : `${is900 ? 'w-full' : 'w-[50rem]'} mt-12 gap-8 px-4`}`}>
                 
                 {/* cart items */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 w-full min-w-0">
                     {items && items.map((item) => (
                         <CartItem 
                             key={item._id} 
@@ -81,25 +81,25 @@ export const Cart = ({ checkout }) => {
                 </div>
                 
                 {/* subtotal */}
-                <div className="flex flex-row justify-between items-center">
+                <div className="flex flex-row justify-between items-center w-full">
                     {checkout ? (
-                        <div className="flex flex-col gap-4 w-full">
-                            <div className="flex flex-row justify-between">
-                                <p className="text-base text-gray-900">{t('cart.subtotal')}</p>
-                                <p className="text-base text-gray-900">₹{subtotal}</p>
+                        <div className="flex flex-col gap-3 w-full text-sm">
+                            <div className="flex flex-row justify-between text-gray-700">
+                                <p>{t('cart.subtotal')}</p>
+                                <p>₹{subtotal}</p>
                             </div>
-                            <div className="flex flex-row justify-between">
-                                <p className="text-base text-gray-900">{t('cart.shipping')}</p>
-                                <p className="text-base text-gray-900">₹{SHIPPING}</p>
+                            <div className="flex flex-row justify-between text-gray-700">
+                                <p>{t('cart.shipping')}</p>
+                                <p>₹{SHIPPING}</p>
                             </div>
-                            <div className="flex flex-row justify-between">
-                                <p className="text-base text-gray-900">{t('cart.taxes')}</p>
-                                <p className="text-base text-gray-900">₹{TAXES}</p> 
+                            <div className="flex flex-row justify-between text-gray-700">
+                                <p>{t('cart.taxes')}</p>
+                                <p>₹{TAXES}</p> 
                             </div>
-                            <hr className="border-gray-200" />
-                            <div className="flex flex-row justify-between">
-                                <p className="text-base font-semibold text-gray-900">{t('cart.total')}</p>
-                                <p className="text-base font-semibold text-gray-900">₹{subtotal + SHIPPING + TAXES}</p>
+                            <hr className="border-gray-200 my-1" />
+                            <div className="flex flex-row justify-between text-base font-semibold text-gray-900">
+                                <p>{t('cart.total')}</p>
+                                <p>₹{subtotal + SHIPPING + TAXES}</p>
                             </div>
                         </div>
                     ) : (

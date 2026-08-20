@@ -5,6 +5,7 @@ import { selectWishlistItems } from '../../wishlist/WishlistSlice';
 import { addToCartAsync, selectCartItems } from '../../cart/CartSlice';
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next';
+import { selectReviewsByProductId } from '../../review/ReviewSlice';
 
 const HeartCheckbox = ({ checked, onChange }) => (
     <label className="cursor-pointer relative inline-flex">
@@ -21,7 +22,61 @@ const HeartCheckbox = ({ checked, onChange }) => (
     </label>
 );
 
-export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, handleAddRemoveFromWishlist, isWishlistCard, isAdminCard}) => {
+const StarRating = ({ rating, count }) => {
+    if (!rating && !count) return null;
+    const fullStars = Math.floor(rating || 0);
+    const hasHalf = (rating || 0) - fullStars >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+
+    return (
+        <div className="flex items-center gap-1 mt-0.5">
+            <div className="flex items-center">
+                {/* Full stars */}
+                {Array.from({ length: fullStars }).map((_, i) => (
+                    <svg key={`f${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>
+                ))}
+                {/* Half star */}
+                {hasHalf && (
+                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" viewBox="0 0 24 24">
+                        <defs>
+                            <linearGradient id="half">
+                                <stop offset="50%" stopColor="currentColor" />
+                                <stop offset="50%" stopColor="#e5e7eb" />
+                            </linearGradient>
+                        </defs>
+                        <path fill="url(#half)" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>
+                )}
+                {/* Empty stars */}
+                {Array.from({ length: emptyStars }).map((_, i) => (
+                    <svg key={`e${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>
+                ))}
+            </div>
+            {count > 0 && (
+                <span className="text-[10px] sm:text-xs text-gray-400">
+                    ({count})
+                </span>
+            )}
+        </div>
+    );
+};
+
+export const ProductCard = ({
+    id, 
+    title, 
+    price, 
+    thumbnail, 
+    brand, 
+    stockQuantity, 
+    reviews,
+    handleAddRemoveFromWishlist, 
+    isWishlistCard, 
+    isAdminCard
+}) => {
     const navigate = useNavigate()
     const wishlistItems = useSelector(selectWishlistItems)
     const cartItems = useSelector(selectCartItems)
@@ -30,6 +85,13 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
 
     const isInWishlist = wishlistItems.some((item) => item.product?._id === id)
     const isProductAlreadyInCart = cartItems.some((item) => item.product?._id === id)
+
+    // Derive rating from reviews array if provided
+    const reviewList = Array.isArray(reviews) ? reviews : [];
+    const reviewCount = reviewList.length;
+    const avgRating = reviewCount > 0 
+        ? reviewList.reduce((sum, r) => sum + (r.rating || 0), 0) / reviewCount 
+        : 0;
 
     const handleAddToCart = async (e) => {
         e.stopPropagation();
@@ -64,7 +126,7 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
             </div>
 
             {/* lower section */}
-            <div className="flex-1 flex flex-col justify-end gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+            <div className="flex-1 flex flex-col justify-end gap-1 sm:gap-1.5 mt-1.5 sm:mt-2">
 
                 {/* title + wishlist */}
                 <div>
@@ -87,6 +149,8 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
                     <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
                         {t(`brands.${brandName}`, brandName)}
                     </p>
+                    {/* Reviews */}
+                    <StarRating rating={avgRating} count={reviewCount} />
                 </div>
 
                 {/* price + cart */}

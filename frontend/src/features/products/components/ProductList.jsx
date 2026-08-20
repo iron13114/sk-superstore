@@ -422,7 +422,9 @@ export const ProductList = () => {
                                             title={product.title}
                                             thumbnail={product.thumbnail}
                                             brand={product.brand.name}
+                                            stockQuantity={product.stockQuantity}
                                             price={product.price}
+                                            reviews={product.reviews} 
                                             handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}
                                         />
                                     ))}

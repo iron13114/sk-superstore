@@ -51,6 +51,9 @@ export const AddProduct = () => {
         const packQty = Number(data.packQuantity) || 10
         const cartonQty = Number(data.cartonQuantity) || 50
 
+        const singlePrice = Number(data.singlePrice) || 0
+        const singleStock = Number(data.singleStock) || 0
+
         const newProduct = {
             title: data.title,
             brand: data.brand,
@@ -59,30 +62,39 @@ export const AddProduct = () => {
             type: data.type,
             thumbnail: data.thumbnail,
             images: validImages.length > 0 ? validImages : [data.thumbnail],
+            // Root-level fields for backward compatibility
+            price: singlePrice,
+            stockQuantity: singleStock,
             tiers: [
                 { 
                     type: 'single', 
                     label: t('productDetails.singleUnit'), 
                     quantity: singleQty, 
-                    price: Number(data.singlePrice) || 0, 
-                    discountPercentage: Number(data.singleDiscount) || 0, 
-                    stockQuantity: Number(data.singleStock) || 0 
+                    price: singlePrice, 
+                    discount: Number(data.singleDiscount) || 0,
+                    discountPercentage: Number(data.singleDiscount) || 0,
+                    stock: singleStock,
+                    stockQuantity: singleStock
                 },
                 { 
                     type: 'pack', 
                     label: t('productDetails.packOf', { qty: packQty }), 
                     quantity: packQty, 
                     price: Number(data.packPrice) || 0, 
-                    discountPercentage: Number(data.packDiscount) || 0, 
-                    stockQuantity: Number(data.packStock) || 0 
+                    discount: Number(data.packDiscount) || 0,
+                    discountPercentage: Number(data.packDiscount) || 0,
+                    stock: Number(data.packStock) || 0,
+                    stockQuantity: Number(data.packStock) || 0
                 },
                 { 
                     type: 'carton', 
                     label: t('productDetails.cartonOf', { qty: cartonQty }), 
                     quantity: cartonQty, 
                     price: Number(data.cartonPrice) || 0, 
-                    discountPercentage: Number(data.cartonDiscount) || 0, 
-                    stockQuantity: Number(data.cartonStock) || 0 
+                    discount: Number(data.cartonDiscount) || 0,
+                    discountPercentage: Number(data.cartonDiscount) || 0,
+                    stock: Number(data.cartonStock) || 0,
+                    stockQuantity: Number(data.cartonStock) || 0
                 }
             ]
         }

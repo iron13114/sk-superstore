@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { 
     fetchOrderByIdAsync, 
     selectCurrentOrder, 
@@ -67,7 +67,7 @@ export const TrackOrder = () => {
     const handleSearch = (e) => {
         e.preventDefault()
         if (!searchId.trim()) {
-            toast.error(t('trackOrder.enterOrderId'))
+            showToast.error(t('trackOrder.enterOrderId'))
             return
         }
         navigate(`/track-order/${searchId.trim()}`)

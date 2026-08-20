@@ -9,7 +9,7 @@ import {
 import { useForm, Controller } from "react-hook-form"
 import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { useTranslation } from 'react-i18next'
 
 export const AddProduct = () => {
@@ -29,11 +29,11 @@ export const AddProduct = () => {
 
     useEffect(() => {
         if (productAddStatus === 'fulfilled' || productAddStatus === 'fullfilled') {
-            toast.success(t('productForm.successAdd'))
+            showToast.success(t('productForm.successAdd'))
             reset()
             navigate("/admin/dashboard")
         } else if (productAddStatus === 'rejected') {
-            toast.error(t('productForm.error'))
+            showToast.error(t('productForm.error'))
         }
     }, [productAddStatus, navigate, reset, t])
 
@@ -103,7 +103,7 @@ export const AddProduct = () => {
     }
 
     const handleFormError = () => {
-        toast.error(t('productForm.fillRequired'))
+        showToast.error(t('productForm.fillRequired'))
     }
 
     const inputBase = "w-full px-4 py-2.5 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#0055A4] focus:border-[#0055A4]"

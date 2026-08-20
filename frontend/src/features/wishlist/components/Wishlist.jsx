@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Lottie from 'lottie-react'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { useForm } from "react-hook-form"
 import { useTranslation } from 'react-i18next';
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistFetchStatus, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, resetWishlistItemUpdateStatus, selectWishlistFetchStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItemUpdateStatus, selectWishlistItems, updateWishlistItemByIdAsync, loadGuestWishlist, removeGuestItem, updateGuestItem } from '../WishlistSlice'
@@ -63,7 +63,7 @@ export const Wishlist = () => {
                 const index = wishlistItems.findIndex((item) => item.product?._id === productId)
                 if (index !== -1) {
                     dispatch(removeGuestItem(wishlistItems[index]._id))
-                    toast.success(t('wishlist.removedFromWishlist'))
+                    showToast.success(t('wishlist.removedFromWishlist'))
                 }
             }
         }
@@ -74,32 +74,32 @@ export const Wishlist = () => {
     }, [])
 
     useEffect(() => {
-        if (wishlistItemAddStatus === 'fulfilled') toast.success(t('wishlist.addedToWishlist'))
-        else if (wishlistItemAddStatus === 'rejected') toast.error(t('wishlist.errorAddingWishlist'))
+        if (wishlistItemAddStatus === 'fulfilled') showToast.success(t('wishlist.addedToWishlist'))
+        else if (wishlistItemAddStatus === 'rejected') showToast.error(t('wishlist.errorAddingWishlist'))
     }, [wishlistItemAddStatus, dispatch, t])
 
     useEffect(() => {
-        if (wishlistItemDeleteStatus === 'fulfilled') toast.success(t('wishlist.removedFromWishlist'))
-        else if (wishlistItemDeleteStatus === 'rejected') toast.error(t('wishlist.errorRemovingWishlist'))
+        if (wishlistItemDeleteStatus === 'fulfilled') showToast.success(t('wishlist.removedFromWishlist'))
+        else if (wishlistItemDeleteStatus === 'rejected') showToast.error(t('wishlist.errorRemovingWishlist'))
     }, [wishlistItemDeleteStatus, dispatch, t])
 
     useEffect(() => {
         if (wishlistItemUpdateStatus === 'fulfilled') {
-            toast.success(t('wishlist.wishlistItemUpdated'))
+            showToast.success(t('wishlist.wishlistItemUpdated'))
         } else if (wishlistItemUpdateStatus === 'rejected') {
-            toast.error(t('wishlist.errorUpdatingWishlist'))
+            showToast.error(t('wishlist.errorUpdatingWishlist'))
         }
         setEditIndex(-1)
         setEditValue("")
     }, [wishlistItemUpdateStatus, dispatch, t])
 
     useEffect(() => {
-        if (cartItemAddStatus === 'fulfilled') toast.success(t('wishlist.addedToCart'))
-        else if (cartItemAddStatus === 'rejected') toast.error(t('wishlist.errorAddingCart'))
+        if (cartItemAddStatus === 'fulfilled') showToast.success(t('wishlist.addedToCart'))
+        else if (cartItemAddStatus === 'rejected') showToast.error(t('wishlist.errorAddingCart'))
     }, [cartItemAddStatus, dispatch, t])
 
     useEffect(() => {
-        if (wishlistFetchStatus === 'rejected') toast.error(t('wishlist.errorFetchingWishlist'))
+        if (wishlistFetchStatus === 'rejected') showToast.error(t('wishlist.errorFetchingWishlist'))
     }, [wishlistFetchStatus, dispatch, t])
 
     useEffect(() => {
@@ -118,7 +118,7 @@ export const Wishlist = () => {
             dispatch(updateWishlistItemByIdAsync(update))
         } else {
             dispatch(updateGuestItem({ _id: wishlistItemId, note: editValue }))
-            toast.success(t('wishlist.noteUpdated'))
+            showToast.success(t('wishlist.noteUpdated'))
             setEditIndex(-1)
             setEditValue("")
         }

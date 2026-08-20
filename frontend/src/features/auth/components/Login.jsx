@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from "react-hook-form"
 import { useDispatch, useSelector } from 'react-redux'
 import { selectLoggedInUser, loginAsync, selectLoginStatus, selectLoginError, clearLoginError, resetLoginStatus, googleLoginAsync } from '../AuthSlice'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { GoogleLogin } from '@react-oauth/google'
 
 export const Login = () => {
@@ -28,13 +28,13 @@ export const Login = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message || "Invalid Credentials")
+      showToast.error(error.message || "Invalid Credentials")
     }
   }, [error])
 
   useEffect(() => {
     if (status === 'fulfilled' && loggedInUser?.isVerified === true) {
-      toast.success(`Login successful`)
+      showToast.success(`Login successful`)
       reset()
     }
     return () => {
@@ -62,15 +62,15 @@ export const Login = () => {
     dispatch(googleLoginAsync(credentialResponse.credential))
       .unwrap()
       .then(() => {
-        toast.success('Logged in with Google!')
+        showToast.success('Logged in with Google!')
       })
       .catch(() => {
-        toast.error('Google login failed')
+        showToast.error('Google login failed')
       })
   }
 
   const handleGoogleError = () => {
-    toast.error('Google login failed')
+    showToast.error('Google login failed')
   }
 
   return (

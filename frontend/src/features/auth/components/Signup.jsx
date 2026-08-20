@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form"
 import {useDispatch,useSelector} from 'react-redux'
 import { LoadingButton } from '@mui/lab';
 import {selectLoggedInUser, signupAsync,selectSignupStatus, selectSignupError, clearSignupError, resetSignupStatus} from '../AuthSlice'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { MotionConfig , motion} from 'framer-motion'
 
 export const Signup = () => {
@@ -38,14 +38,14 @@ export const Signup = () => {
   // handles signup error and toast them
   useEffect(()=>{
     if(error){
-      toast.error(error.message)
+      showToast.error(error.message)
     }
   },[error])
 
   
   useEffect(()=>{
     if(status==='fullfilled'){
-      toast.success("Welcome! Verify your email to start shopping on mern-ecommerce.")
+      showToast.success("Welcome! Verify your email to start shopping on mern-ecommerce.")
       reset()
     }
     return ()=>{

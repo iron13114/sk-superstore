@@ -6,7 +6,7 @@ import { addToCartAsync, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { fetchReviewsByProductIdAsync, selectReviewFetchStatus, selectReviews } from '../../review/ReviewSlice'
 import { Reviews } from '../../review/components/Reviews'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { motion } from 'framer-motion'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems } from '../../wishlist/WishlistSlice'
 import Lottie from 'lottie-react'
@@ -109,9 +109,9 @@ export const ProductDetails = () => {
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') {
-            toast.success(t('productDetails.itemsAddedToCart'))
+            showToast.success(t('productDetails.itemsAddedToCart'))
         } else if (cartItemAddStatus === 'rejected') {
-            toast.error(t('productDetails.errorAddingToCart'))
+            showToast.error(t('productDetails.errorAddingToCart'))
         }
     }, [cartItemAddStatus, dispatch, t])
 
@@ -121,7 +121,7 @@ export const ProductDetails = () => {
         const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);
         
         if (selectedTiers.length === 0) {
-            toast.info(t('productDetails.selectAtLeastOneTier'));
+            showToast.info(t('productDetails.selectAtLeastOneTier'));
             return;
         }
         

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { clearForgotPasswordError, clearForgotPasswordSuccessMessage, forgotPasswordAsync, resetForgotPasswordStatus, selectForgotPasswordError, selectForgotPasswordStatus, selectForgotPasswordSuccessMessage } from '../AuthSlice'
@@ -16,7 +16,7 @@ export const ForgotPassword = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(error?.message)
+      showToast.error(error?.message)
     }
     return () => {
       dispatch(clearForgotPasswordError())
@@ -25,7 +25,7 @@ export const ForgotPassword = () => {
 
   useEffect(() => {
     if (status === 'fullfilled' || status === 'fulfilled') {
-      toast.success(successMessage?.message)
+      showToast.success(successMessage?.message)
     }
     return () => {
       dispatch(clearForgotPasswordSuccessMessage())

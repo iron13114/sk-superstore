@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Lottie from 'lottie-react'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { fetchProductsAsync, resetProductFetchStatus, selectProductFetchStatus, selectProductIsFilterOpen, selectProductTotalResults, selectProducts, toggleFilters } from '../ProductSlice'
 import { ProductCard } from './ProductCard'
 import { selectBrands } from '../../brands/BrandSlice'
@@ -172,13 +172,13 @@ export const ProductList = () => {
                         product,
                         note: ''
                     }))
-                    toast.success(t('productList.addedToWishlist'))
+                    showToast.success(t('productList.addedToWishlist'))
                 }
             } else {
                 const index = wishlistItems.findIndex((item) => item.product._id === productId)
                 if (index !== -1) {
                     dispatch(removeGuestItem(wishlistItems[index]._id))
-                    toast.success(t('productList.removedFromWishlist'))
+                    showToast.success(t('productList.removedFromWishlist'))
                 }
             }
         }
@@ -186,37 +186,37 @@ export const ProductList = () => {
 
     useEffect(() => {
         if (wishlistItemAddStatus === 'fulfilled') {
-            toast.success(t('productList.addedToWishlist'))
+            showToast.success(t('productList.addedToWishlist'))
             dispatch(resetWishlistItemAddStatus())
         } else if (wishlistItemAddStatus === 'rejected') {
-            toast.error(t('productList.errorAddingWishlist'))
+            showToast.error(t('productList.errorAddingWishlist'))
             dispatch(resetWishlistItemAddStatus())
         }
     }, [wishlistItemAddStatus, dispatch, t])
 
     useEffect(() => {
         if (wishlistItemDeleteStatus === 'fulfilled') {
-            toast.success(t('productList.removedFromWishlist'))
+            showToast.success(t('productList.removedFromWishlist'))
             dispatch(resetWishlistItemDeleteStatus())
         } else if (wishlistItemDeleteStatus === 'rejected') {
-            toast.error(t('productList.errorRemovingWishlist'))
+            showToast.error(t('productList.errorRemovingWishlist'))
             dispatch(resetWishlistItemDeleteStatus())
         }
     }, [wishlistItemDeleteStatus, dispatch, t])
 
     useEffect(() => {
         if (cartItemAddStatus === 'fulfilled') {
-            toast.success(t('productList.addedToCart'))
+            showToast.success(t('productList.addedToCart'))
             dispatch(resetCartItemAddStatus())
         } else if (cartItemAddStatus === 'rejected') {
-            toast.error(t('productList.errorAddingCart'))
+            showToast.error(t('productList.errorAddingCart'))
             dispatch(resetCartItemAddStatus())
         }
     }, [cartItemAddStatus, dispatch, t])
 
     useEffect(() => {
         if (productFetchStatus === 'rejected') {
-            toast.error(t('productList.errorFetchingProducts'))
+            showToast.error(t('productList.errorFetchingProducts'))
             dispatch(resetProductFetchStatus())
         }
     }, [productFetchStatus, dispatch, t])

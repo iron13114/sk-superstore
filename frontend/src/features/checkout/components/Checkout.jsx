@@ -9,7 +9,7 @@ import { createOrderAsync, selectCurrentOrder, selectOrderStatus, resetCurrentOr
 import { resetCartByUserIdAsync, selectCartItems } from '../../cart/CartSlice'
 import { SHIPPING, TAXES } from '../../../constants'
 import { motion } from 'framer-motion'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { useTranslation } from 'react-i18next';
 import 'react-toastify/dist/ReactToastify.css'
 import { getGuestCheckoutAddresses, saveGuestCheckoutAddresses, getGuestSelectedAddress, saveGuestSelectedAddress, getGuestPaymentMethod, saveGuestPaymentMethod, addGuestOrder, clearGuestCheckoutData } from '../../cart/guestCheckout'
@@ -82,7 +82,7 @@ export const Checkout = () => {
         if (addressStatus === 'fulfilled') {
             reset()
         } else if (addressStatus === 'rejected') {
-            toast.error(t('checkout.addressError'))
+            showToast.error(t('checkout.addressError'))
         }
     }, [addressStatus, reset, t])
 
@@ -122,7 +122,7 @@ export const Checkout = () => {
             setGuestAddresses(prev => [...prev, newAddress])
             setSelectedAddress(newAddress)
             reset()
-            toast.success(t('checkout.addressAdded'))
+            showToast.success(t('checkout.addressAdded'))
             return
         }
         const address = { ...data, user: loggedInUser._id }
@@ -131,24 +131,24 @@ export const Checkout = () => {
 
     const handleCreateOrder = () => {
         if (!selectedPaymentMethod) {
-            toast.error(t('checkout.selectPayment'))
+            showToast.error(t('checkout.selectPayment'))
             return
         }
         if (!selectedAddress) {
-            toast.error(t('checkout.selectAddress'))
+            showToast.error(t('checkout.selectAddress'))
             return
         }
         if (!cartItems || cartItems.length === 0) {
-            toast.error(t('checkout.emptyCart'))
+            showToast.error(t('checkout.emptyCart'))
             return
         }
         if (!loggedInUser) {
             if (!guestEmail || !guestEmail.includes('@')) {
-                toast.error(t('checkout.invalidEmail'))
+                showToast.error(t('checkout.invalidEmail'))
                 return
             }
             if (!guestPhone || guestPhone.length < 10) {
-                toast.error(t('checkout.invalidPhone'))
+                showToast.error(t('checkout.invalidPhone'))
                 return
             }
         }

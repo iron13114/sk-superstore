@@ -7,7 +7,7 @@ import {Link} from 'react-router-dom'
 import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
 import Lottie from 'lottie-react'
 import { loadingAnimation, noOrdersAnimation } from '../../../assets'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {motion} from 'framer-motion'
 
@@ -42,17 +42,17 @@ export const UserOrders = () => {
     useEffect(()=>{
 
         if(cartItemAddStatus==='fulfilled'){
-            toast.success("Product added to cart")
+            showToast.success("Product added to cart")
         }
 
         else if(cartItemAddStatus==='rejected'){
-            toast.error('Error adding product to cart, please try again later')
+            showToast.error('Error adding product to cart, please try again later')
         }
     },[cartItemAddStatus])
 
     useEffect(()=>{
         if(orderFetchStatus==='rejected'){
-            toast.error("Error fetching orders, please try again later")
+            showToast.error("Error fetching orders, please try again later")
         }
     },[orderFetchStatus])
 

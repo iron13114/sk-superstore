@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllOrdersAsync, resetOrderUpdateStatus, selectOrderUpdateStatus, selectOrders, updateOrderByIdAsync } from '../../order/OrderSlice'
 import { useForm } from "react-hook-form"
-import { toast } from 'react-toastify';
 import { noOrdersAnimation } from '../../../assets/index'
 import Lottie from 'lottie-react'
+import { showToast } from '../../../utils/toast';
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
@@ -34,10 +34,10 @@ export const AdminOrders = () => {
 
     useEffect(() => {
         if (orderUpdateStatus === 'fulfilled') {
-            toast.success("Status updated")
+            showToast.success("Status updated")
         }
         else if (orderUpdateStatus === 'rejected') {
-            toast.error("Error updating order status")
+            showToast.error("Error updating order status")
         }
     }, [orderUpdateStatus])
 

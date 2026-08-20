@@ -3,7 +3,7 @@ import { CartItem } from './CartItem'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { resetCartItemRemoveStatus, selectCartItemRemoveStatus, selectCartItems } from '../CartSlice'
 import { SHIPPING, TAXES } from '../../../constants'
 import { useTranslation } from 'react-i18next'
@@ -45,9 +45,9 @@ export const Cart = ({ checkout }) => {
 
     useEffect(() => {
         if (cartItemRemoveStatus === 'fulfilled') {
-            toast.success(t('cart.productRemoved'))
+            showToast.success(t('cart.productRemoved'))
         } else if (cartItemRemoveStatus === 'rejected') {
-            toast.error(t('cart.removeError'))
+            showToast.error(t('cart.removeError'))
         }
     }, [cartItemRemoveStatus, t])
 

@@ -6,7 +6,7 @@ import { addAddressAsync, resetAddressAddStatus, resetAddressDeleteStatus, reset
 import { Address } from '../../address/components/Address'
 import { useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
-import {toast} from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 
 export const UserProfile = () => {
 
@@ -36,30 +36,30 @@ export const UserProfile = () => {
 
     useEffect(()=>{
         if(addressAddStatus==='fulfilled'){
-            toast.success("Address added")
+            showToast.success("Address added")
         }
         else if(addressAddStatus==='rejected'){
-            toast.error("Error adding address, please try again later")
+            showToast.error("Error adding address, please try again later")
         }
     },[addressAddStatus])
 
     useEffect(()=>{
 
         if(addressUpdateStatus==='fulfilled'){
-            toast.success("Address updated")
+            showToast.success("Address updated")
         }
         else if(addressUpdateStatus==='rejected'){
-            toast.error("Error updating address, please try again later")
+            showToast.error("Error updating address, please try again later")
         }
     },[addressUpdateStatus])
 
     useEffect(()=>{
 
         if(addressDeleteStatus==='fulfilled'){
-            toast.success("Address deleted")
+            showToast.success("Address deleted")
         }
         else if(addressDeleteStatus==='rejected'){
-            toast.error("Error deleting address, please try again later")
+            showToast.error("Error deleting address, please try again later")
         }
     },[addressDeleteStatus])
 

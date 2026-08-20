@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { clearOtpVerificationError, clearResendOtpError, clearResendOtpSuccessMessage, resendOtpAsync, resetOtpVerificationStatus, resetResendOtpStatus, selectLoggedInUser, selectOtpVerificationError, selectOtpVerificationStatus, selectResendOtpError, selectResendOtpStatus, selectResendOtpSuccessMessage, verifyOtpAsync, logoutAsync } from '../AuthSlice'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 
 export const OtpVerfication = () => {
   const { register, handleSubmit, formState: { errors } } = useForm()
@@ -40,23 +40,23 @@ export const OtpVerfication = () => {
   }
 
   useEffect(() => {
-    if (resendOtpError) toast.error(resendOtpError.message)
+    if (resendOtpError) showToast.error(resendOtpError.message)
     return () => { dispatch(clearResendOtpError()) }
   }, [resendOtpError, dispatch])
 
   useEffect(() => {
-    if (resendOtpSuccessMessage) toast.success(resendOtpSuccessMessage.message)
+    if (resendOtpSuccessMessage) showToast.success(resendOtpSuccessMessage.message)
     return () => { dispatch(clearResendOtpSuccessMessage()) }
   }, [resendOtpSuccessMessage, dispatch])
 
   useEffect(() => {
-    if (otpVerificationError) toast.error(otpVerificationError.message)
+    if (otpVerificationError) showToast.error(otpVerificationError.message)
     return () => { dispatch(clearOtpVerificationError()) }
   }, [otpVerificationError, dispatch])
 
   useEffect(() => {
     if (otpVerificationStatus === 'fulfilled' || otpVerificationStatus === 'fullfilled') {
-      toast.success("Email verified! We are happy to have you here")
+      showToast.success("Email verified! We are happy to have you here")
       dispatch(resetResendOtpStatus())
     }
     return () => { dispatch(resetOtpVerificationStatus()) }

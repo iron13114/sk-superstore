@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { motion, MotionConfig } from 'framer-motion'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { useTranslation } from 'react-i18next';
 import {
     createReviewAsync, resetReviewAddStatus, resetReviewDeleteStatus,
@@ -70,22 +70,22 @@ export const Reviews = ({ productId, averageRating }) => {
 
     useEffect(() => {
         if (reviewAddStatus === 'fulfilled') {
-            toast.success(t('reviews.reviewAdded'))
+            showToast.success(t('reviews.reviewAdded'))
         } else if (reviewAddStatus === 'rejected') {
-            toast.error(t('reviews.errorPostingReview'))
+            showToast.error(t('reviews.errorPostingReview'))
         }
         reset()
         setValue(1)
     }, [reviewAddStatus, reset, dispatch, t])
 
     useEffect(() => {
-        if (reviewDeleteStatus === 'fulfilled') toast.success(t('reviews.reviewDeleted'))
-        else if (reviewDeleteStatus === 'rejected') toast.error(t('reviews.errorDeletingReview'))
+        if (reviewDeleteStatus === 'fulfilled') showToast.success(t('reviews.reviewDeleted'))
+        else if (reviewDeleteStatus === 'rejected') showToast.error(t('reviews.errorDeletingReview'))
     }, [reviewDeleteStatus, dispatch, t])
 
     useEffect(() => {
-        if (reviewUpdateStatus === 'fulfilled') toast.success(t('reviews.reviewUpdated'))
-        else if (reviewUpdateStatus === 'rejected') toast.error(t('reviews.errorUpdatingReview'))
+        if (reviewUpdateStatus === 'fulfilled') showToast.success(t('reviews.reviewUpdated'))
+        else if (reviewUpdateStatus === 'rejected') showToast.error(t('reviews.errorUpdatingReview'))
     }, [reviewUpdateStatus, dispatch, t])
 
     useEffect(() => {
@@ -103,7 +103,7 @@ export const Reviews = ({ productId, averageRating }) => {
 
     const handleAddReview = (data) => {
         if (!loggedInUser) {
-            toast.error(t('reviews.loginToWriteReview'))
+            showToast.error(t('reviews.loginToWriteReview'))
             setWriteReview(false)
             return
         }
@@ -114,7 +114,7 @@ export const Reviews = ({ productId, averageRating }) => {
 
     const handleWriteReviewClick = () => {
         if (!loggedInUser) {
-            toast.error(t('reviews.loginToWriteReview'))
+            showToast.error(t('reviews.loginToWriteReview'))
             return
         }
         setWriteReview(true)

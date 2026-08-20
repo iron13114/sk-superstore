@@ -11,7 +11,7 @@ import {
 import { useForm, Controller } from "react-hook-form"
 import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
-import { toast } from 'react-toastify'
+import { showToast } from '../../../utils/toast';
 import { useTranslation } from 'react-i18next'
 
 export const ProductUpdate = () => {
@@ -75,10 +75,10 @@ export const ProductUpdate = () => {
 
     useEffect(() => {
         if (productUpdateStatus === 'fulfilled' || productUpdateStatus === 'fullfilled') {
-            toast.success(t('productForm.successUpdate'))
+            showToast.success(t('productForm.successUpdate'))
             navigate("/admin/dashboard")
         } else if (productUpdateStatus === 'rejected') {
-            toast.error(t('productForm.error'))
+            showToast.error(t('productForm.error'))
         }
     }, [productUpdateStatus, navigate, t])
 
@@ -149,7 +149,7 @@ export const ProductUpdate = () => {
     }
 
     const handleFormError = () => {
-        toast.error(t('productForm.fillRequired'))
+        showToast.error(t('productForm.fillRequired'))
     }
 
     const inputBase = "w-full px-4 py-2.5 border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-[#0055A4] focus:border-[#0055A4]"

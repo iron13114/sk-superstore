@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { verifyEmail } from '../AuthApi';
-import { toast } from 'react-toastify';
+import { showToast } from '../../../utils/toast';
 
 export const VerifyEmail = () => {
     const { token } = useParams();
@@ -14,11 +14,11 @@ export const VerifyEmail = () => {
                 const res = await verifyEmail(token);
                 setStatus('success');
                 setMessage(res.message);
-                toast.success(res.message);
+                showToast.success(res.message);
             } catch (err) {
                 setStatus('error');
                 setMessage(err.response?.data?.message || 'Verification failed');
-                toast.error(err.response?.data?.message || 'Verification failed');
+                showToast.error(err.response?.data?.message || 'Verification failed');
             }
         };
         verify();

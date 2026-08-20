@@ -6,22 +6,11 @@ import { addToCartAsync, selectCartItems } from '../../cart/CartSlice';
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next';
 
-const useMediaQuery = (query) => {
-    const [matches, setMatches] = React.useState(() => window.matchMedia(query).matches);
-    React.useEffect(() => {
-        const media = window.matchMedia(query);
-        const listener = (e) => setMatches(e.matches);
-        media.addEventListener('change', listener);
-        return () => media.removeEventListener('change', listener);
-    }, [query]);
-    return matches;
-};
-
 const HeartCheckbox = ({ checked, onChange }) => (
     <label className="cursor-pointer relative inline-flex">
         <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
         <svg 
-            className={`w-6 h-6 transition-all duration-200 ${checked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${checked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
             viewBox="0 0 24 24" 
             stroke="currentColor" 
             strokeWidth="2"
@@ -39,26 +28,8 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
     const dispatch = useDispatch()
     const { t } = useTranslation();
 
-    const is1410 = useMediaQuery('(max-width: 1410px)')
-    const is932 = useMediaQuery('(max-width: 932px)')
-    const is752 = useMediaQuery('(max-width: 752px)')
-    const is608 = useMediaQuery('(max-width: 608px)')
-    const is500 = useMediaQuery('(max-width: 500px)')
-    const is488 = useMediaQuery('(max-width: 488px)')
-    const is408 = useMediaQuery('(max-width: 408px)')
-
     const isInWishlist = wishlistItems.some((item) => item.product?._id === id)
     const isProductAlreadyInCart = cartItems.some((item) => item.product?._id === id)
-
-    const getWidth = () => {
-        if (is408) return 'auto';
-        if (is488) return '200px';
-        if (is608) return '240px';
-        if (is752) return '300px';
-        if (is932) return '240px';
-        if (is1410) return '300px';
-        return '340px';
-    };
 
     const handleAddToCart = async (e) => {
         e.stopPropagation();
@@ -76,14 +47,11 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
         dispatch(addToCartAsync(data));
     }
 
-    const cardWidth = getWidth();
-    const btnFontSize = is408 ? '.9rem' : is488 ? '.7rem' : is500 ? '.8rem' : '.9rem';
     const brandName = typeof brand === 'string' ? brand : brand?.name || '';
 
     return (
         <div 
-            className={`flex flex-col cursor-pointer ${isAdminCard || isWishlistCard || is408 ? '' : 'bg-white shadow-md rounded-lg'} p-4 ${is408 ? 'mt-2' : 'mt-0'}`}
-            style={{ width: cardWidth }}
+            className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-2 sm:p-3 lg:p-4`}
             onClick={() => navigate(`/product-details/${id}`)}
         >
             {/* image display */}
@@ -96,17 +64,17 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
             </div>
 
             {/* lower section */}
-            <div className="flex-1 flex flex-col justify-end gap-3 mt-2">
-                
+            <div className="flex-1 flex flex-col justify-end gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+
                 {/* title + wishlist */}
                 <div>
-                    <div className="flex items-center justify-between gap-2">
-                        <h6 className="text-base font-normal leading-tight">{title}</h6>
+                    <div className="flex items-center justify-between gap-1 sm:gap-2">
+                        <h6 className="text-sm sm:text-base font-normal leading-tight line-clamp-2">{title}</h6>
                         {!isAdminCard && (
                             <motion.div 
-                                whileHover={{ scale: 1.3, y: -10, zIndex: 100 }} 
+                                whileHover={{ scale: 1.2 }} 
                                 whileTap={{ scale: 1 }} 
-                                transition={{ duration: .4, type: "spring" }}
+                                transition={{ duration: .2, type: "spring" }}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <HeartCheckbox 
@@ -116,18 +84,18 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
                             </motion.div>
                         )}
                     </div>
-                    <p className="text-gray-500 text-sm mt-1">
+                    <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
                         {t(`brands.${brandName}`, brandName)}
                     </p>
                 </div>
 
                 {/* price + cart */}
-                <div className="flex flex-row justify-between items-center gap-2">
-                    <p className="font-medium text-base">₹{price}</p>
-                    
+                <div className="flex flex-row justify-between items-center gap-1 sm:gap-2">
+                    <p className="font-medium text-sm sm:text-base">₹{price}</p>
+
                     {!isWishlistCard && (
                         isProductAlreadyInCart ? (
-                            <span className="text-sm text-green-600 font-medium whitespace-nowrap">
+                            <span className="text-xs sm:text-sm text-green-600 font-medium whitespace-nowrap">
                                 {t('productCard.addedToCart')}
                             </span>
                         ) : (
@@ -136,8 +104,7 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 1 }}
                                     onClick={(e) => handleAddToCart(e)}
-                                    className="px-3 py-2 rounded bg-black text-white text-sm font-medium whitespace-nowrap"
-                                    style={{ fontSize: btnFontSize }}
+                                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded bg-black text-white text-xs sm:text-sm font-medium whitespace-nowrap"
                                 >
                                     {t('productCard.addToCart')}
                                 </motion.button>
@@ -148,7 +115,7 @@ export const ProductCard = ({id, title, price, thumbnail, brand, stockQuantity, 
 
                 {/* stock warning */}
                 {stockQuantity <= 20 && (
-                    <p className="text-sm text-red-600 font-medium">
+                    <p className="text-xs sm:text-sm text-red-600 font-medium">
                         {stockQuantity === 1 
                             ? t('productCard.onlyOneLeft') 
                             : t('productCard.onlyFewLeft')

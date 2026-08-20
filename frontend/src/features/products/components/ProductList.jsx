@@ -37,7 +37,7 @@ const Pagination = ({ page, onChange, count }) => {
             <button
                 onClick={() => onChange(null, page - 1)}
                 disabled={page === 1}
-                className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-sm transition-colors"
+                className="px-2 sm:px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm transition-colors"
             >
                 {t('productList.prev')}
             </button>
@@ -45,7 +45,7 @@ const Pagination = ({ page, onChange, count }) => {
                 <button
                     key={p}
                     onClick={() => onChange(null, p)}
-                    className={`px-3 py-1 border rounded text-sm transition-colors ${
+                    className={`px-2 sm:px-3 py-1 border rounded text-xs sm:text-sm transition-colors ${
                         p === page
                             ? 'bg-black text-white border-black'
                             : 'border-gray-300 hover:bg-gray-100'
@@ -57,7 +57,7 @@ const Pagination = ({ page, onChange, count }) => {
             <button
                 onClick={() => onChange(null, page + 1)}
                 disabled={page === count}
-                className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-sm transition-colors"
+                className="px-2 sm:px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm transition-colors"
             >
                 {t('productList.next')}
             </button>
@@ -229,7 +229,7 @@ export const ProductList = () => {
             dispatch(resetCartItemAddStatus())
         }
     }, [dispatch])
-    
+
     const categoryQuery = searchParams.get('category')
 
     useEffect(() => {
@@ -268,40 +268,11 @@ export const ProductList = () => {
                         animate={isProductFilterOpen === true ? "show" : "hide"}
                     >
                         <div className="relative h-full w-full">
-                            
                             <motion.div
                                 className="absolute inset-0 p-4 overflow-y-auto"
                                 animate={{ x: activePanel ? '-100%' : 0 }}
                                 transition={panelTransition}
                             >
-                                <div className="flex items-center justify-between mb-6">
-                                    <h4 className="text-2xl font-medium text-gray-900">{t('productList.newArrivals')}</h4>
-                                    <button
-                                        onClick={handleFilterClose}
-                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                    >
-                                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <div className="flex flex-col gap-3 mb-6">
-                                    {categories && categories.length > 0 ? (
-                                        categories.map((category) => (
-                                            <p
-                                                key={category._id}
-                                                className="cursor-pointer text-base text-gray-700 hover:text-black transition-colors py-1"
-                                                onClick={() => handleCategoryFilterText(category._id)}
-                                            >
-                                                {t(`categories.${category.name}`, category.name)}
-                                            </p>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-gray-500">{t('productList.noCategoriesLoaded')}</p>
-                                    )}
-                                </div>
-
                                 <div className="border-t border-gray-200 pt-4 space-y-2">
                                     <button
                                         onClick={() => setActivePanel('brands')}
@@ -423,16 +394,16 @@ export const ProductList = () => {
                         </div>
                     </motion.div>
 
-                    <div className="mb-12">
-                        <div className="flex flex-col gap-10 mt-0 max-sm:mt-2">
-                            
-                            <div className="flex flex-row px-4 sm:px-8 justify-center sm:justify-end items-center gap-5">
+                    <div className="mb-6 sm:mb-12">
+                        <div className="flex flex-col gap-6 sm:gap-10 mt-0 max-sm:mt-2">
+
+                            <div className="flex flex-row px-2 sm:px-4 lg:px-8 justify-center sm:justify-end items-center gap-3 sm:gap-5">
                                 <div className="w-full sm:w-48">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('productList.sort')}</label>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">{t('productList.sort')}</label>
                                     <select
                                         value={sort}
                                         onChange={(e) => setSort(e.target.value)}
-                                        className="w-full border-b border-gray-300 bg-transparent py-2 pr-8 text-sm focus:outline-none focus:border-black transition-colors cursor-pointer"
+                                        className="w-full border-b border-gray-300 bg-transparent py-1.5 sm:py-2 pr-8 text-xs sm:text-sm focus:outline-none focus:border-black transition-colors cursor-pointer"
                                     >
                                         <option value="">{t('productList.reset')}</option>
                                         {sortOptions.map((option) => (
@@ -443,7 +414,7 @@ export const ProductList = () => {
                             </div>
 
                             {products && products.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 px-1 sm:px-2 lg:px-4">
                                     {products.map((product) => (
                                         <ProductCard
                                             key={product._id}
@@ -457,23 +428,23 @@ export const ProductList = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-20 px-4">
-                                    <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="flex flex-col items-center justify-center py-12 sm:py-20 px-4">
+                                    <svg className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                     </svg>
-                                    <p className="text-xl text-gray-500 font-medium">{t('productList.productNotAvailable')}</p>
-                                    <p className="text-sm text-gray-400 mt-1">{t('productList.adjustFilters')}</p>
+                                    <p className="text-lg sm:text-xl text-gray-500 font-medium">{t('productList.productNotAvailable')}</p>
+                                    <p className="text-xs sm:text-sm text-gray-400 mt-1">{t('productList.adjustFilters')}</p>
                                 </div>
                             )}
 
                             {products && products.length > 0 && (
-                                <div className={`flex flex-col gap-4 p-0 ${is488 ? 'items-center self-center' : 'items-center self-end mr-5'}`}>
+                                <div className={`flex flex-col gap-3 sm:gap-4 p-0 ${is488 ? 'items-center self-center' : 'items-center self-end mr-2 sm:mr-5'}`}>
                                     <Pagination
                                         page={page}
                                         onChange={(e, page) => setPage(page)}
                                         count={totalPages}
                                     />
-                                    <p className="text-center text-sm text-gray-600">
+                                    <p className="text-center text-xs sm:text-sm text-gray-600">
                                         {t('productList.showingResults', {
                                             start: (page - 1) * ITEMS_PER_PAGE + 1,
                                             end: page * ITEMS_PER_PAGE > totalResults ? totalResults : page * ITEMS_PER_PAGE,

@@ -52,13 +52,13 @@ export const Navbar = ({ isProductList = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState('all');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  
+
   const userInfo = useSelector(selectUserInfo);
   const cartItems = useSelector(selectCartItems);
   const loggedInUser = useSelector(selectLoggedInUser);
   const wishlistItems = useSelector(selectWishlistItems);
   const isProductFilterOpen = useSelector(selectProductIsFilterOpen);
-  
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const menuRef = useRef(null);
@@ -117,25 +117,31 @@ export const Navbar = ({ isProductList = false }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: isMobile ? '56px' : '64px',
-    padding: isMobile ? '0 12px' : isTablet ? '0 16px' : '0 24px',
-    gap: isMobile ? '8px' : '16px',
+    height: isMobile ? '48px' : '64px',
+    padding: isMobile ? '0 8px' : isTablet ? '0 16px' : '0 24px',
+    gap: isMobile ? '6px' : '16px',
   });
 
   const getLeftSectionStyles = () => ({
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
     flexShrink: 0,
   });
 
   const getFilterBtnStyles = () => ({
-    padding: '6px',
-    border: 'none',
-    background: 'transparent',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    height: isMobile ? '32px' : '36px',
+    padding: isMobile ? '0 8px' : '0 10px',
+    backgroundColor: 'transparent',
+    border: '1px solid #cdcdcd',
+    borderRadius: '4px',
     cursor: 'pointer',
-    borderRadius: '50%',
-    transition: 'background-color 0.2s',
+    outline: 'none',
+    whiteSpace: 'nowrap',
+    transition: 'background-color 0.15s ease',
   });
 
   const getLogoStyles = () => ({
@@ -153,19 +159,20 @@ export const Navbar = ({ isProductList = false }) => {
     alignItems: 'center',
     margin: isMobile ? '0' : '0 16px',
     position: isMobile ? 'absolute' : 'relative',
-    top: isMobile ? '56px' : 'auto',
+    top: isMobile ? '48px' : 'auto',
     left: isMobile ? 0 : 'auto',
     right: isMobile ? 0 : 'auto',
-    padding: isMobile ? '8px 12px' : '0',
+    padding: isMobile ? '6px 8px' : '0',
     backgroundColor: isMobile ? '#ffffff' : 'transparent',
     borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
     boxShadow: isMobile ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
   });
 
   const getSelectStyles = () => ({
-    height: '36px',
-    padding: '0 8px',
-    fontSize: '14px',
+    height: isMobile ? '32px' : '36px',
+    width: isMobile ? '55px' : '70px',
+    padding: '0 4px',
+    fontSize: isMobile ? '12px' : '14px',
     backgroundColor: '#f3f3f3',
     border: '1px solid #cdcdcd',
     borderRight: 'none',
@@ -177,9 +184,9 @@ export const Navbar = ({ isProductList = false }) => {
 
   const getInputStyles = () => ({
     flex: 1,
-    height: '36px',
-    padding: '0 12px',
-    fontSize: '14px',
+    height: isMobile ? '32px' : '36px',
+    padding: '0 8px',
+    fontSize: isMobile ? '12px' : '14px',
     backgroundColor: '#ffffff',
     border: '1px solid #cdcdcd',
     borderLeft: 'none',
@@ -189,8 +196,8 @@ export const Navbar = ({ isProductList = false }) => {
   });
 
   const getSearchBtnStyles = () => ({
-    height: '36px',
-    width: '44px',
+    height: isMobile ? '32px' : '36px',
+    width: isMobile ? '36px' : '44px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -205,13 +212,13 @@ export const Navbar = ({ isProductList = false }) => {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: isMobile ? '8px' : '12px',
+    gap: isMobile ? '4px' : '12px',
     flexShrink: 0,
   });
 
   const getAvatarStyles = () => ({
-    width: isMobile ? '32px' : '36px',
-    height: isMobile ? '32px' : '36px',
+    width: isMobile ? '28px' : '36px',
+    height: isMobile ? '28px' : '36px',
     borderRadius: '50%',
     backgroundColor: '#e5e7eb',
     color: '#374151',
@@ -219,16 +226,16 @@ export const Navbar = ({ isProductList = false }) => {
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: 500,
-    fontSize: '14px',
+    fontSize: isMobile ? '11px' : '14px',
     border: 'none',
     cursor: 'pointer',
   });
 
   const getGreetingStyles = () => ({
-    fontSize: isMobile ? '12px' : '14px',
+    fontSize: isMobile ? '11px' : '14px',
     fontWeight: 300,
     whiteSpace: 'nowrap',
-    maxWidth: isMobile ? '80px' : '200px',
+    maxWidth: isMobile ? '60px' : '200px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   });
@@ -257,8 +264,8 @@ export const Navbar = ({ isProductList = false }) => {
   });
 
   const getLoginBtnStyles = () => ({
-    padding: '6px 12px',
-    fontSize: '14px',
+    padding: isMobile ? '4px 8px' : '6px 12px',
+    fontSize: isMobile ? '12px' : '14px',
     border: '1px solid #d1d5db',
     borderRadius: '4px',
     textDecoration: 'none',
@@ -268,8 +275,8 @@ export const Navbar = ({ isProductList = false }) => {
   });
 
   const getAdminBadgeStyles = () => ({
-    padding: '6px 12px',
-    fontSize: '14px',
+    padding: isMobile ? '4px 8px' : '6px 12px',
+    fontSize: isMobile ? '12px' : '14px',
     backgroundColor: '#000000',
     color: '#ffffff',
     border: 'none',
@@ -280,7 +287,7 @@ export const Navbar = ({ isProductList = false }) => {
 
   const getIconBtnStyles = () => ({
     position: 'relative',
-    padding: '6px',
+    padding: isMobile ? '4px' : '6px',
     border: 'none',
     background: 'transparent',
     cursor: 'pointer',
@@ -289,26 +296,16 @@ export const Navbar = ({ isProductList = false }) => {
 
   const getBadgeStyles = () => ({
     position: 'absolute',
-    top: '-4px',
-    right: '-4px',
+    top: '-3px',
+    right: '-3px',
     backgroundColor: '#ef4444',
     color: '#ffffff',
-    fontSize: '10px',
+    fontSize: '9px',
     fontWeight: 'bold',
     borderRadius: '50%',
-    height: '18px',
-    width: '18px',
+    height: isMobile ? '15px' : '18px',
+    width: isMobile ? '15px' : '18px',
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  });
-
-  const getMobileSearchToggleStyles = () => ({
-    padding: '6px',
-    border: 'none',
-    background: 'transparent',
-    cursor: 'pointer',
-    display: isDesktop ? 'none' : 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   });
@@ -317,82 +314,22 @@ export const Navbar = ({ isProductList = false }) => {
     <>
       <header style={getNavStyles()}>
         <nav style={getContainerStyles()}>
-          
-          {/* LEFT: Filter + Logo */}
-          <div style={getLeftSectionStyles()}>
-            {isProductList && (
-              <button 
-                onClick={handleToggleFilters}
-                style={getFilterBtnStyles()}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <svg 
-                  style={{ 
-                    width: '20px', 
-                    height: '20px', 
-                    color: isProductFilterOpen ? '#000000' : '#4b5563' 
-                  }} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-              </button>
-            )}
-            
+
+          {/* LEFT: Logo + Language Switcher */}
+          <div style = {getLeftSectionStyles()}>
             <Link to="/" style={getLogoStyles()}>
-              <img src="/logo.jpeg" alt="SK Superstore" style={{ height: '40px', width: 'auto', maxHeight: '40px', objectFit: 'contain' }} />
+              <img src="/logo.jpeg" alt="SK Superstore" style={{ height: isMobile ? '32px' : '40px', width: 'auto', maxHeight: isMobile ? '32px' : '40px', objectFit: 'contain' }} />
             </Link>
-          </div>
 
-          {/* CENTER: Search Bar */}
-          <div style={getSearchContainerStyles()}>
-            <select
-              value={searchCategory}
-              onChange={(e) => setSearchCategory(e.target.value)}
-              style={getSelectStyles()}
-            >
-              <option value="all">{t('navbar.all')}</option>
-              <option value="products">{t('navbar.products')}</option>
-              <option value="brands">{t('navbar.brands')}</option>
-            </select>
-            
-            <input
-              type="text"
-              placeholder={t('navbar.search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              style={getInputStyles()}
-            />
-            
-            <button onClick={handleSearch} style={getSearchBtnStyles()}>
-              <svg style={{ width: '20px', height: '20px', color: '#131921' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* RIGHT: Language Switcher, Profile, Greetings, Cart, Wishlist */}
-          <div style={getRightSectionStyles()}>
-            
-            {/* Language Switcher */}
             <LanguageSwitcher />
-            
-            {/* Mobile search toggle */}
-            <button 
-              style={getMobileSearchToggleStyles()}
-              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-            >
-              <svg style={{ width: '20px', height: '20px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
+          </div>
 
+          {/* RIGHT: Profile, Greetings, Cart, Wishlist */}
+          <div style={getRightSectionStyles()}>
+
+            {/* Mobile search toggle */}
             {loggedInUser ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '8px' }}>
                 <div style={{ position: 'relative' }} ref={menuRef}>
                   <button 
                     onClick={handleOpenUserMenu} 
@@ -401,7 +338,7 @@ export const Navbar = ({ isProductList = false }) => {
                   >
                     {userInfo?.name?.charAt(0)?.toUpperCase() || 'U'}
                   </button>
-                  
+
                   {anchorElUser && (
                     <div style={getDropdownStyles()}>
                       {loggedInUser?.isAdmin && (
@@ -430,7 +367,7 @@ export const Navbar = ({ isProductList = false }) => {
                     </div>
                   )}
                 </div>
-                
+
                 <span style={getGreetingStyles()}>
                   {isMobile ? `${userInfo?.name?.toString().split(" ")[0]}` : t('navbar.greeting', { name: userInfo?.name })}
                 </span>
@@ -440,20 +377,20 @@ export const Navbar = ({ isProductList = false }) => {
                 {t('navbar.login')}
               </Link>
             )}
-            
+
             {loggedInUser?.isAdmin && (
               <button style={getAdminBadgeStyles()}>
                 {t('navbar.admin')}
               </button>
             )}
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '12px' }}>
               {cartItems?.length > 0 && (
                 <button 
                   onClick={() => navigate("/cart")}
                   style={getIconBtnStyles()}
                 >
-                  <svg style={{ width: '24px', height: '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   <span style={getBadgeStyles()}>
@@ -461,13 +398,13 @@ export const Navbar = ({ isProductList = false }) => {
                   </span>
                 </button>
               )}
-              
+
               {!loggedInUser?.isAdmin && (
                 <Link 
                   to="/wishlist" 
                   style={getIconBtnStyles()}
                 >
-                  <svg style={{ width: '24px', height: '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                   {wishlistItems?.length > 0 && (
@@ -480,10 +417,72 @@ export const Navbar = ({ isProductList = false }) => {
             </div>
           </div>
         </nav>
+        <nav>
+          <div style={getLeftSectionStyles()}>
+            
+            {isProductList && (
+              <button 
+                onClick={handleToggleFilters}
+                style={getFilterBtnStyles()}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <svg 
+                  style={{ 
+                    width: isMobile ? '18px' : '20px', 
+                    height: isMobile ? '18px' : '20px', 
+                    color: isProductFilterOpen ? '#000000' : '#4b5563' 
+                  }} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                <span 
+                  style={{ 
+                    fontSize: isMobile ? '12px' : '13px', 
+                    fontWeight: 500, 
+                    color: isProductFilterOpen ? '#000000' : '#374151' 
+                  }}
+                >
+                  Shop
+                </span>
+              </button>
+            )}
+
+            {/* CENTER: Search Bar */}
+              <select
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                style={getSelectStyles()}
+              >
+                <option value="all">{t('navbar.all')}</option>
+                <option value="products">{t('navbar.products')}</option>
+                <option value="brands">{t('navbar.brands')}</option>
+              </select>
+
+              <input
+                type="text"
+                placeholder={t('navbar.search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                style={getInputStyles()}
+              />
+
+              <button onClick={handleSearch} style={getSearchBtnStyles()}>
+                <svg style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px', color: '#131921' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+          </div>
+        </nav>
+ 
       </header>
-      
+
       {/* Mobile search spacer */}
-      {isMobile && mobileSearchOpen && <div style={{ height: '52px' }} />}
+      {isMobile && mobileSearchOpen && <div style={{ height: '46px' }} />}
     </>
   );
 };

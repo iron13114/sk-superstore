@@ -9,7 +9,6 @@ import { AddProductPage, AdminOrdersPage, CartPage, CheckoutPage, ForgotPassword
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { VerifyEmail } from './features/auth/components/VerifyEmail';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { CircularProgress, Stack, Typography } from '@mui/material'; 
 import { TrackOrder } from './features/order/components/TrackOrder'; 
 import { useEffect, useState } from 'react';
 import { Homepage } from './features/homepage/components/Homepage';
@@ -31,7 +30,7 @@ function App() {
     const timer = setTimeout(() => setAuthTimeout(true), 8000); 
     return () => clearTimeout(timer);
   }, []);
-  
+
   const ready = isAuthChecked || authTimeout;
 
   const routes = createBrowserRouter(
@@ -79,7 +78,7 @@ function App() {
             <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage />} />
             <Route exact path='/logout' element={<Protected><Logout /></Protected>} />
             <Route path="/verify-email/:token" element={<VerifyEmail />} />
-            
+
             {/* User account routes (strictly protected) */}
             <Route path='/profile' element={<Protected><UserProfilePage /></Protected>} />
             <Route path='/order-success/:id' element={<Protected><OrderSuccessPage /></Protected>} />
@@ -99,10 +98,10 @@ function App() {
     )
   )
     return ready ? <RouterProvider router={routes} /> : (
-    <Stack height="100vh" justifyContent="center" alignItems="center">
-      <CircularProgress />
-      <Typography mt={2} color="text.secondary">Waking up server...</Typography>
-    </Stack>
+    <div className="h-screen w-full flex flex-col items-center justify-center bg-white">
+      <div className="w-10 h-10 border-4 border-gray-200 border-t-[#E31837] rounded-full animate-spin mb-4" />
+      <p className="text-sm text-gray-500">Waking up server...</p>
+    </div>
   );
 }
 

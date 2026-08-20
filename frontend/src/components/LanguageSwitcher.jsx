@@ -14,7 +14,7 @@ export const LanguageSwitcher = () => {
     <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
       <button
         onClick={() => changeLanguage('en')}
-        className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+        className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all ${
           currentLang.startsWith('en')
             ? 'bg-black text-white'
             : 'text-gray-600 hover:text-gray-900'
@@ -24,7 +24,7 @@ export const LanguageSwitcher = () => {
       </button>
       <button
         onClick={() => changeLanguage('hi')}
-        className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+        className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all ${
           currentLang.startsWith('hi')
             ? 'bg-black text-white'
             : 'text-gray-600 hover:text-gray-900'

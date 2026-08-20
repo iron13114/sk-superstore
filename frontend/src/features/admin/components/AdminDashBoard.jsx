@@ -97,19 +97,6 @@ export const AdminDashBoard = () => {
         transition={{ ease: "easeInOut", duration: 0.7, type: "spring" }}
       >
         <div className="mb-20">
-          <h2 className="text-2xl font-normal mb-4">{t('productList.newArrivals')}</h2>
-          
-          <button 
-            onClick={handleFilterClose}
-            className="absolute top-4 right-4 p-2 hover:bg-gray-100 transition-colors"
-          >
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </motion.div>
-          </button>
-
           {/* Brand Filters */}
           <div className="mt-4 border border-gray-200">
             <button

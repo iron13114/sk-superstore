@@ -103,6 +103,7 @@ function App() {
         rtl={false}
         pauseOnFocusLoss
         draggable
+        limit={1}  
         pauseOnHover
         theme="light"
         toastClassName={() =>

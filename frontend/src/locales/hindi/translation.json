@@ -103,14 +103,6 @@
     "errorFetchingProducts": "उत्पाद लाने में त्रुटि, कृपया बाद में पुनः प्रयास करें",
     "myOrders": "मेरे ऑर्डर"
   },
-  "categories": {
-    "Snacks": "नाश्ता",
-    "Biscuits": "बिस्कुट",
-    "Beverages": "पेय पदार्थ",
-    "Personal Care": "व्यक्तिगत देखभाल",
-    "Household": "घरेलू सामान",
-    "Grocery": "किराना"
-  },
   "brands": {
     "HUL": "HUL",
     "ITC": "ITC",

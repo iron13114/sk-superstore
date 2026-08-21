@@ -10,15 +10,6 @@ import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems, loadGuestWishlist, addGuestItem, removeGuestItem } from '../../wishlist/WishlistSlice'
 import { ProductList } from '../../products/components/ProductList'
 
-const categoryIcons = {
-    'Snacks': '🍿',
-    'Biscuits': '🍪',
-    'Beverages': '🥤',
-    'Personal Care': '🧴',
-    'Household': '🏠',
-    'Grocery': '🌾',
-}
-
 const TrustBadge = ({ number, label }) => (
     <div className="text-center px-2 sm:px-4">
         <div className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#0055A4]">{number}</div>
@@ -176,9 +167,9 @@ export const Homepage = () => {
                             onClick={() => handleCategoryClick(cat._id)}
                             className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
                         >
-                            <span className="text-2xl sm:text-3xl">{categoryIcons[cat.name] || '📦'}</span>
+                            <span className="text-2xl sm:text-3xl">{cat.icon || '📦'}</span>                            
                             <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                {t(`categories.${cat.name}`, cat.name)}
+                                {cat.name}
                             </span>
                         </motion.button>
                     ))}

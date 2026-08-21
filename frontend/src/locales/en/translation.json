@@ -104,14 +104,6 @@
     "myOrders": "My Orders",
     "allProducts": "All Products"
   },
-    "categories": {
-      "Snacks": "Snacks",
-      "Biscuits": "Biscuits",
-      "Beverages": "Beverages",
-      "Personal Care": "Personal Care",
-      "Household": "Household",
-      "Grocery": "Grocery"
-    },
     "brands": {
       "HUL": "HUL",
       "ITC": "ITC",

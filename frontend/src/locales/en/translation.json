@@ -295,6 +295,7 @@
   "adminDashboard": {
     "undelete": "Un-delete",
     "delete": "Delete",
-    "update": "Update"
+    "update": "Update",
+    "filters": "Product List"
   }
 }

@@ -87,6 +87,42 @@
   background: #d97706 !important;
 }
 
+/* === Toast Position: Inside Navbar Search Area === */
+
+.Toastify__toast-container--top-center {
+  top: 64px !important;           /* Desktop navbar height */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: 90vw;
+  padding: 0 8px;
+}
+
+/* Mobile: align with smaller navbar */
+@media (max-width: 640px) {
+  .Toastify__toast-container--top-center {
+    top: 48px !important;
+  }
+}
+
+/* Compact pill-style toast */
+.toast-navbar {
+  min-height: 2.25rem !important;
+  padding: 0.375rem 0.875rem !important;
+  border-radius: 9999px !important;   /* Pill shape */
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Hide default left border */
+.toast-navbar[data-type="success"] {
+  border-left: none !important;
+}
+
 /* ============================================
    MOBILE
    ============================================ */

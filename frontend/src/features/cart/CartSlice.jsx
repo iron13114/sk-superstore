@@ -113,7 +113,18 @@ const cartSlice=createSlice({
                 if (Array.isArray(action.payload)) {
                     state.items = action.payload;
                 } else {
-                    state.items.push(action.payload);
+                    const index = state.items.findIndex((item) => 
+                        item._id === action.payload._id || 
+                        (
+                            (item.product?._id || item.product) === (action.payload.product?._id || action.payload.product) &&
+                            (item.packagingTier || 'single') === (action.payload.packagingTier || 'single')
+                        )
+                    );
+                    if (index >= 0) {
+                        state.items[index] = action.payload;
+                    } else {
+                        state.items.push(action.payload);
+                    }
                 }
             })
             .addCase(addToCartAsync.rejected,(state,action)=>{

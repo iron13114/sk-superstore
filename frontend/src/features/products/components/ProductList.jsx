@@ -421,7 +421,7 @@ export const ProductList = () => {
                                             id={product._id}
                                             title={product.title}
                                             thumbnail={product.thumbnail}
-                                            brand={product.brand.name}
+                                            brand={product.brand?.name || product.brand || 'Unknown Brand'}
                                             stockQuantity={product.stockQuantity}
                                             price={product.price}
                                             reviews={product.reviews} 

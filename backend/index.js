@@ -28,11 +28,16 @@ const { seedWishlist } = require("./seed/Wishlist");
 
 const server = express();
 
+server.set('etag', false);
+server.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
+
 const allowedOrigins = [
     'http://localhost:3000',
     'https://www.sksuperstore.com',
-    'https://sksuperstore.com',
-    'https://sk-superstore-g6pv1bfvh-priyanshu-prince-s-projects.vercel.app' 
+    'https://sksuperstore.com'
 ];
 
 server.use(cors({
@@ -62,6 +67,7 @@ server.use("/categories", categoryRoutes);
 server.use("/address", addressRoutes);
 server.use("/reviews", reviewRoutes);
 server.use("/wishlist", wishlistRoutes);
+server.use("/icons", express.static(path.join(__dirname, "public", "icons")));
 
 server.get("/", (req, res) => {
     res.status(200).json({ message: 'running' });
@@ -74,15 +80,6 @@ server.listen(PORT, () => {
 
 connectToDB().then(() => {
     console.log("DB connected, starting seeds...");
-    seedUser(); 
-    seedBrand();
-    seedCategory();
-    seedProduct();
-    seedAddress();
-    seedCart();
-    seedOrder();
-    seedReview();
-    seedWishlist();
 }).catch(err => {
     console.error("DB connection failed:", err);
 });

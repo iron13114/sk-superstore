@@ -3,15 +3,15 @@ require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const { connectToDB } = require("../database/db");
 
-const { seedUser } = require("./user");
-const { seedBrand } = require("./brand");
-const { seedCategory } = require("./category");
-const { seedProduct } = require("./product");
-const { seedAddress } = require("./address");
-const { seedCart } = require("./cart");
-const { seedWishlist } = require("./wishlist");
-const { seedReview } = require("./review");
-const { seedOrder } = require("./order");
+const { seedUser } = require("./User");
+const { seedBrand } = require("./Brand");
+const { seedCategory } = require("./Category");
+const { seedProduct } = require("./Product");
+const { seedAddress } = require("./Address");
+const { seedCart } = require("./Cart");
+const { seedWishlist } = require("./Wishlist");
+const { seedReview } = require("./Review");
+const { seedOrder } = require("./Order");
 
 const seedData = async () => {
   try {

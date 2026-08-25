@@ -32,9 +32,9 @@ export const FaqPage = () => {
     const { t } = useTranslation()
     const [openIndex, setOpenIndex] = useState(null)
 
-    const email = process.env.REACT_APP_CONTACT_EMAIL
-    const phone = process.env.REACT_APP_CONTACT_PHONE
-    const address = process.env.REACT_APP_CONTACT_ADDRESS
+    const email = import.meta.VITE_CONTACT_EMAIL
+    const phone = import.meta.VITE_CONTACT_PHONE
+    const address = import.meta.VITE_CONTACT_ADDRESS
     const whatsappNum = phone ? phone.replace(/\D/g, '') : ''
 
     const toggle = (index) => {

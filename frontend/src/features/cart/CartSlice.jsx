@@ -1,27 +1,27 @@
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
-import {addToCart,fetchCartByUserId,updateCartItemById,deleteCartItemById, resetCartByUserId} from './CartApi'
+import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit'
+import { addToCart, fetchCartByUserId, updateCartItemById, deleteCartItemById, resetCartByUserId } from './CartApi'
 
-const getGuestCart = () => 
-    JSON.parse(localStorage.getItem('guestCart') || '[]');
-const initialState={
-    status:"idle",
-    items:[],
-    cartItemAddStatus:"idle",
-    cartItemRemoveStatus:"idle",
-    errors:null,
-    successMessage:null
+const getGuestCart = () => JSON.parse(localStorage.getItem('guestCart') || '[]');
+
+const initialState = {
+    status: "idle",
+    items: [],
+    cartItemAddStatus: "idle",
+    cartItemRemoveStatus: "idle",
+    errors: null,
+    successMessage: null
 }
 
-export const addToCartAsync = createAsyncThunk('cart/addToCartAsync', async(item, { getState }) => {
-    const loggedInUser = getState().AuthSlice.loggedInUser;
-    
+const normalize = (res) => res?.data || res || []
+
+export const addToCartAsync = createAsyncThunk('cart/addToCartAsync', async (item, { getState }) => {
+    const loggedInUser = getState().AuthSlice?.loggedInUser;
     if (!loggedInUser) {
         const guestCart = getGuestCart();
-        const existingIndex = guestCart.findIndex(c => 
+        const existingIndex = guestCart.findIndex(c =>
             (c.product?._id || c.product) === (item.product?._id || item.product) &&
             (c.packagingTier || 'single') === (item.packagingTier || 'single')
         );
-        
         if (existingIndex >= 0) {
             guestCart[existingIndex].quantity += (item.quantity || 1);
         } else {
@@ -37,26 +37,19 @@ export const addToCartAsync = createAsyncThunk('cart/addToCartAsync', async(item
         localStorage.setItem('guestCart', JSON.stringify(guestCart));
         return guestCart;
     }
-    
     const res = await addToCart(item);
-    return res;
+    return normalize(res);
 });
 
-export const fetchCartByUserIdAsync = createAsyncThunk('cart/fetchCartItemsAsync', async(_, { getState }) => {
-    const loggedInUser = getState().AuthSlice.loggedInUser;
-    
-    if (!loggedInUser) {
-        return getGuestCart();
-    }
-    
+export const fetchCartByUserIdAsync = createAsyncThunk('cart/fetchCartItemsAsync', async (_, { getState }) => {
+    const loggedInUser = getState().AuthSlice?.loggedInUser;
+    if (!loggedInUser) return getGuestCart();
     const res = await fetchCartByUserId(loggedInUser._id);
-    return res;
+    return normalize(res);
 });
 
-// Replace updateCartItemByIdAsync
-export const updateCartItemByIdAsync = createAsyncThunk('cart/updateCartItemByIdAsync', async(update, { getState }) => {
-    const loggedInUser = getState().AuthSlice.loggedInUser;
-    
+export const updateCartItemByIdAsync = createAsyncThunk('cart/updateCartItemByIdAsync', async (update, { getState }) => {
+    const loggedInUser = getState().AuthSlice?.loggedInUser;
     if (!loggedInUser) {
         const guestCart = getGuestCart();
         const index = guestCart.findIndex(item => item._id === update._id);
@@ -64,89 +57,68 @@ export const updateCartItemByIdAsync = createAsyncThunk('cart/updateCartItemById
         localStorage.setItem('guestCart', JSON.stringify(guestCart));
         return guestCart;
     }
-    
     const res = await updateCartItemById(update);
-    return res;
+    return normalize(res);
 });
 
-// Replace deleteCartItemByIdAsync
-export const deleteCartItemByIdAsync = createAsyncThunk('cart/deleteCartItemByIdAsync', async(id, { getState }) => {
-    const loggedInUser = getState().AuthSlice.loggedInUser;
-    
+export const deleteCartItemByIdAsync = createAsyncThunk('cart/deleteCartItemByIdAsync', async (id, { getState }) => {
+    const loggedInUser = getState().AuthSlice?.loggedInUser;
     if (!loggedInUser) {
         const guestCart = getGuestCart().filter(item => item._id !== id);
         localStorage.setItem('guestCart', JSON.stringify(guestCart));
         return guestCart;
     }
-    
     const res = await deleteCartItemById(id);
-    return res;
+    return normalize(res);
 });
 
-// Replace resetCartByUserIdAsync
-export const resetCartByUserIdAsync = createAsyncThunk('cart/resetCartByUserIdAsync', async(userId, { getState }) => {
+export const resetCartByUserIdAsync = createAsyncThunk('cart/resetCartByUserIdAsync', async (userId, { getState }) => {
     if (!userId) {
         localStorage.removeItem('guestCart');
         return [];
     }
     const res = await resetCartByUserId(userId);
-    return res;
+    return normalize(res);
 });
-const cartSlice=createSlice({
-    name:"cartSlice",
-    initialState:initialState,
-    reducers:{
-        resetCartItemAddStatus:(state)=>{
-            state.cartItemAddStatus='idle'
-        },
-        resetCartItemRemoveStatus:(state)=>{
-            state.cartItemRemoveStatus='idle'
-        }
+
+const cartSlice = createSlice({
+    name: "CartSlice",
+    initialState,
+    reducers: {
+        resetCartItemAddStatus: (state) => { state.cartItemAddStatus = 'idle' },
+        resetCartItemRemoveStatus: (state) => { state.cartItemRemoveStatus = 'idle' }
     },
-    extraReducers:(builder)=>{
+    extraReducers: (builder) => {
         builder
-            .addCase(addToCartAsync.pending,(state)=>{
-                state.cartItemAddStatus='pending'
-            })
+            .addCase(addToCartAsync.pending, (state) => { state.cartItemAddStatus = 'pending' })
             .addCase(addToCartAsync.fulfilled, (state, action) => {
                 state.cartItemAddStatus = 'fulfilled';
                 if (Array.isArray(action.payload)) {
                     state.items = action.payload;
                 } else {
-                    const index = state.items.findIndex((item) => 
-                        item._id === action.payload._id || 
-                        (
-                            (item.product?._id || item.product) === (action.payload.product?._id || action.payload.product) &&
-                            (item.packagingTier || 'single') === (action.payload.packagingTier || 'single')
-                        )
+                    const index = state.items.findIndex((item) =>
+                        item._id === action.payload._id ||
+                        ((item.product?._id || item.product) === (action.payload.product?._id || action.payload.product) &&
+                        (item.packagingTier || 'single') === (action.payload.packagingTier || 'single'))
                     );
-                    if (index >= 0) {
-                        state.items[index] = action.payload;
-                    } else {
-                        state.items.push(action.payload);
-                    }
+                    if (index >= 0) state.items[index] = action.payload;
+                    else state.items.push(action.payload);
                 }
             })
-            .addCase(addToCartAsync.rejected,(state,action)=>{
-                state.cartItemAddStatus='rejected'
-                state.errors=action.error
+            .addCase(addToCartAsync.rejected, (state, action) => {
+                state.cartItemAddStatus = 'rejected'
+                state.errors = action.error
             })
-
-            .addCase(fetchCartByUserIdAsync.pending,(state)=>{
-                state.status='pending'
+            .addCase(fetchCartByUserIdAsync.pending, (state) => { state.status = 'pending' })
+            .addCase(fetchCartByUserIdAsync.fulfilled, (state, action) => {
+                state.status = 'fulfilled'
+                state.items = action.payload
             })
-            .addCase(fetchCartByUserIdAsync.fulfilled,(state,action)=>{
-                state.status='fulfilled'
-                state.items=action.payload
+            .addCase(fetchCartByUserIdAsync.rejected, (state, action) => {
+                state.status = 'rejected'
+                state.errors = action.error
             })
-            .addCase(fetchCartByUserIdAsync.rejected,(state,action)=>{
-                state.status='rejected'
-                state.errors=action.error
-            })
-
-            .addCase(updateCartItemByIdAsync.pending,(state)=>{
-                state.status='pending'
-            })
+            .addCase(updateCartItemByIdAsync.pending, (state) => { state.status = 'pending' })
             .addCase(updateCartItemByIdAsync.fulfilled, (state, action) => {
                 state.status = 'fulfilled';
                 if (Array.isArray(action.payload)) {
@@ -156,14 +128,11 @@ const cartSlice=createSlice({
                     if (index >= 0) state.items[index] = action.payload;
                 }
             })
-            .addCase(updateCartItemByIdAsync.rejected,(state,action)=>{
-                state.status='rejected'
-                state.errors=action.error
+            .addCase(updateCartItemByIdAsync.rejected, (state, action) => {
+                state.status = 'rejected'
+                state.errors = action.error
             })
-
-            .addCase(deleteCartItemByIdAsync.pending,(state)=>{
-                state.cartItemRemoveStatus='pending'
-            })
+            .addCase(deleteCartItemByIdAsync.pending, (state) => { state.cartItemRemoveStatus = 'pending' })
             .addCase(deleteCartItemByIdAsync.fulfilled, (state, action) => {
                 state.cartItemRemoveStatus = 'fulfilled';
                 if (Array.isArray(action.payload)) {
@@ -172,34 +141,32 @@ const cartSlice=createSlice({
                     state.items = state.items.filter((item) => item._id !== action.payload._id);
                 }
             })
-            .addCase(deleteCartItemByIdAsync.rejected,(state,action)=>{
-                state.cartItemRemoveStatus='rejected'
-                state.errors=action.error
+            .addCase(deleteCartItemByIdAsync.rejected, (state, action) => {
+                state.cartItemRemoveStatus = 'rejected'
+                state.errors = action.error
             })
-
-            .addCase(resetCartByUserIdAsync.pending,(state)=>{
-                state.status='pending'
+            .addCase(resetCartByUserIdAsync.pending, (state) => { state.status = 'pending' })
+            .addCase(resetCartByUserIdAsync.fulfilled, (state) => {
+                state.status = 'fulfilled'
+                state.items = []
             })
-            .addCase(resetCartByUserIdAsync.fulfilled,(state)=>{
-                state.status='fulfilled'
-                state.items=[]
-            })
-            .addCase(resetCartByUserIdAsync.rejected,(state,action)=>{
-                state.status='rejected'
-                state.errors=action.error
+            .addCase(resetCartByUserIdAsync.rejected, (state, action) => {
+                state.status = 'rejected'
+                state.errors = action.error
             })
     }
 })
 
-// exporting selectors
-export const selectCartStatus=(state)=>state.CartSlice.status
-export const selectCartItems=(state)=>state.CartSlice.items
-export const selectCartErrors=(state)=>state.CartSlice.errors
-export const selectCartSuccessMessage=(state)=>state.CartSlice.successMessage
-export const selectCartItemAddStatus=(state)=>state.CartSlice.cartItemAddStatus
-export const selectCartItemRemoveStatus=(state)=>state.CartSlice.cartItemRemoveStatus
+export const selectCartStatus = createSelector([(state) => state.CartSlice?.status], (status) => status || 'idle')
+export const selectCartItems = createSelector(
+    [(state) => state.CartSlice?.items],
+    (items) => Array.isArray(items) ? [...items] : []
+)
+export const selectCartErrors = createSelector([(state) => state.CartSlice?.errors], (errors) => errors || null)
+export const selectCartSuccessMessage = createSelector([(state) => state.CartSlice?.successMessage], (msg) => msg || null)
+export const selectCartItemAddStatus = createSelector([(state) => state.CartSlice?.cartItemAddStatus], (status) => status || 'idle')
+export const selectCartItemRemoveStatus = createSelector([(state) => state.CartSlice?.cartItemRemoveStatus], (status) => status || 'idle')
 
-// exporting reducers
-export const {resetCartItemAddStatus,resetCartItemRemoveStatus}=cartSlice.actions
+export const { resetCartItemAddStatus, resetCartItemRemoveStatus } = cartSlice.actions
 
 export default cartSlice.reducer

@@ -1,10 +1,6 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { Stack, Paper, Typography, Button, IconButton, Chip } from '@mui/material'
-import RemoveIcon from '@mui/icons-material/Remove'
-import AddIcon from '@mui/icons-material/Add'
-import { useTheme, useMediaQuery } from '@mui/material'
 import { deleteCartItemByIdAsync, updateCartItemByIdAsync } from '../../cart/CartSlice'
 
 export const CartItem = ({ 
@@ -19,10 +15,6 @@ export const CartItem = ({
     variantLabel
 }) => {
     const dispatch = useDispatch()
-    const theme = useTheme()
-    const is900 = useMediaQuery(theme.breakpoints.down(900))
-    const is552 = useMediaQuery(theme.breakpoints.down(552))
-    const is480 = useMediaQuery(theme.breakpoints.down(480))
 
     const handleProductRemove = () => {
         dispatch(deleteCartItemByIdAsync(id))
@@ -41,42 +33,84 @@ export const CartItem = ({
     }
 
     return (
-        <Stack bgcolor={'white'} component={is900 ? '' : Paper} p={is900 ? 0 : 2} elevation={1} flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'}>
+        <div className="flex flex-row justify-between items-center bg-white p-0 md:p-4 rounded-lg md:shadow-sm border border-transparent md:border-gray-100 w-full min-w-0">
             
-            {/* image and details */}
-            <Stack flexDirection={'row'} rowGap={'1rem'} alignItems={'center'} columnGap={2} flexWrap={'wrap'}>
+            {/* Image and Details */}
+            <div className="flex flex-row items-center gap-4 flex-wrap min-w-0">
+                
+                {/* Thumbnail */}
+                <Link 
+                    to={`/product-details/${productId}`}
+                    className="w-full sm:w-[120px] md:w-[150px] lg:w-[180px] h-[120px] sm:h-[120px] md:h-[150px] lg:h-[180px] shrink-0 flex items-center justify-center overflow-hidden rounded bg-gray-50 border border-gray-100"
+                >
+                    <img 
+                        className="w-full h-full object-contain aspect-square" 
+                        src={thumbnail} 
+                        alt={`${title} image unavailable`} 
+                    />
+                </Link>
 
-                <Stack width={is552 ? "auto" : '200px'} height={is552 ? "auto" : '200px'} component={Link} to={`/product-details/${productId}`}>
-                    <img style={{ width: "100%", height: is552 ? "auto" : "100%", aspectRatio: is552 ? 1 / 1 : '', objectFit: 'contain' }} src={thumbnail} alt={`${title} image unavailable`} />
-                </Stack>
-
-                <Stack>
-                    <Typography component={Link} to={`/product-details/${productId}`} sx={{ textDecoration: "none", color: theme.palette.primary.main }} variant='h6' fontWeight={500}>{title}</Typography>
+                {/* Details */}
+                <div className="flex flex-col min-w-0">
+                    <Link 
+                        to={`/product-details/${productId}`}
+                        className="text-base sm:text-lg font-medium text-indigo-600 hover:text-indigo-800 transition-colors truncate max-w-[200px] sm:max-w-xs"
+                    >
+                        {title}
+                    </Link>
                     
-                    <Typography variant='body2' color={'text.secondary'}>{brand}</Typography>
+                    <p className="text-sm text-gray-500">{brand}</p>
                     
                     {(variantLabel || (packagingTier && packagingTier !== 'single')) && (
-                        <Chip 
-                            size="small" 
-                            label={variantLabel || (packagingTier === 'pack' ? 'Pack (10 Units)' : packagingTier === 'carton' ? 'Carton (50 Units)' : '')}
-                            sx={{ mt: 0.5, mb: 0.5, width: 'fit-content', bgcolor: '#f3f4f6', color: '#374151', fontWeight: 500, fontSize: '0.75rem' }}
-                        />
+                        <span className="mt-1 mb-1 inline-block w-fit px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium">
+                            {variantLabel || (packagingTier === 'pack' ? 'Pack (10 Units)' : packagingTier === 'carton' ? 'Carton (50 Units)' : '')}
+                        </span>
                     )}
 
-                    <Typography mt={1}>Quantity</Typography>
-                    <Stack flexDirection={'row'} alignItems={'center'}>
-                        <IconButton onClick={handleRemoveQty}><RemoveIcon fontSize='small' /></IconButton>
-                        <Typography>{quantity}</Typography>
-                        <IconButton onClick={handleAddQty}><AddIcon fontSize='small' /></IconButton>
-                    </Stack>
-                </Stack>
-            </Stack>
+                    <span className="mt-2 text-xs sm:text-sm text-gray-700 font-medium">Quantity</span>
+                    
+                    {/* Quantity Selector */}
+                    <div className="flex flex-row items-center gap-2 mt-1">
+                        <button 
+                            type="button"
+                            onClick={handleRemoveQty}
+                            className="p-1 rounded-full hover:bg-gray-100 text-gray-600 active:scale-95 transition-all focus:outline-none"
+                            aria-label="Decrease quantity"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                        </button>
+                        
+                        <span className="text-sm font-medium text-gray-900 min-w-[20px] text-center">
+                            {quantity}
+                        </span>
+                        
+                        <button 
+                            type="button"
+                            onClick={handleAddQty}
+                            className="p-1 rounded-full hover:bg-gray-100 text-gray-600 active:scale-95 transition-all focus:outline-none"
+                            aria-label="Increase quantity"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-            {/* price and remove button */}
-            <Stack justifyContent={'space-evenly'} alignSelf={is552 ? 'flex-end' : ''} height={'100%'} rowGap={'1rem'} alignItems={'flex-end'}>
-                <Typography variant='body2'>₹{price}</Typography>
-                <Button size={is480 ? "small" : ""} onClick={handleProductRemove} variant='contained'>Remove</Button>
-            </Stack>
-        </Stack>
+            {/* Price and Remove Button */}
+            <div className="flex flex-col justify-between items-end gap-4 self-end sm:self-center shrink-0 pl-2">
+                <span className="text-sm sm:text-base font-semibold text-gray-900">₹{price}</span>
+                <button 
+                    type="button"
+                    onClick={handleProductRemove} 
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-black hover:bg-gray-800 text-white rounded text-xs sm:text-sm font-medium transition-colors shadow-sm focus:outline-none"
+                >
+                    Remove
+                </button>
+            </div>
+        </div>
     )
 }

@@ -1,52 +1,48 @@
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit'
 import { createWishlistItem, deleteWishlistItemById, fetchWishlistByUserId, updateWishlistItemById } from './WishlistApi'
 import { getGuestWishlist, saveGuestWishlist, clearGuestWishlist } from './guestWishlist'
 
-const initialState={
-    wishlistItemUpdateStatus:"idle",
-    wishlistItemAddStatus:'idle',
-    wishlistItemDeleteStatus:"idle",
-    wishlistFetchStatus:'idle',
-    items:[],
-    totalResults:0,
-    errors:null,
-    successMessage:null,
+const initialState = {
+    wishlistItemUpdateStatus: "idle",
+    wishlistItemAddStatus: 'idle',
+    wishlistItemDeleteStatus: "idle",
+    wishlistFetchStatus: 'idle',
+    items: [],
+    totalResults: 0,
+    errors: null,
+    successMessage: null,
 }
 
-export const createWishlistItemAsync=createAsyncThunk('wishlist/createWishlistItemAsync',async(data)=>{
-    const createdItem=await createWishlistItem(data)
-    return createdItem
-})
-export const fetchWishlistByUserIdAsync=createAsyncThunk('wishlist/fetchWishlistByUserIdAsync',async(id)=>{
-    const fetchedWishlist=await fetchWishlistByUserId(id)
-    return fetchedWishlist
-})
-export const updateWishlistItemByIdAsync=createAsyncThunk('wishlist/updateWishlistItemByIdAsync',async(update)=>{
-    const updatedWishlistItem=await updateWishlistItemById(update)
-    return updatedWishlistItem
-})
-export const deleteWishlistItemByIdAsync=createAsyncThunk('wishlist/deleteWishlistItemByIdAsync',async(id)=>{
-    const deletedWishlistItem=await deleteWishlistItemById(id)
-    return deletedWishlistItem
+const normalize = (res) => res?.data || res || []
+
+export const createWishlistItemAsync = createAsyncThunk('wishlist/createWishlistItemAsync', async (data) => {
+    const res = await createWishlistItem(data)
+    return res?.data || res
 })
 
-const wishlistSlice=createSlice({
-    name:"wishlistSlice",
-    initialState:initialState,
-    reducers:{
-        resetWishlistItemUpdateStatus:(state)=>{
-            state.wishlistItemUpdateStatus='idle'
-        },
-        resetWishlistItemAddStatus:(state)=>{
-            state.wishlistItemAddStatus='idle'
-        },
-        resetWishlistItemDeleteStatus:(state)=>{
-            state.wishlistItemDeleteStatus='idle'
-        },
-        resetWishlistFetchStatus:(state)=>{
-            state.wishlistFetchStatus='idle'
-        },
-        // Guest reducers
+export const fetchWishlistByUserIdAsync = createAsyncThunk('wishlist/fetchWishlistByUserIdAsync', async (id) => {
+    const res = await fetchWishlistByUserId(id)
+    return normalize(res)
+})
+
+export const updateWishlistItemByIdAsync = createAsyncThunk('wishlist/updateWishlistItemByIdAsync', async (update) => {
+    const res = await updateWishlistItemById(update)
+    return res?.data || res
+})
+
+export const deleteWishlistItemByIdAsync = createAsyncThunk('wishlist/deleteWishlistItemByIdAsync', async (id) => {
+    const res = await deleteWishlistItemById(id)
+    return res?.data || res
+})
+
+const wishlistSlice = createSlice({
+    name: "WishlistSlice",
+    initialState,
+    reducers: {
+        resetWishlistItemUpdateStatus: (state) => { state.wishlistItemUpdateStatus = 'idle' },
+        resetWishlistItemAddStatus: (state) => { state.wishlistItemAddStatus = 'idle' },
+        resetWishlistItemDeleteStatus: (state) => { state.wishlistItemDeleteStatus = 'idle' },
+        resetWishlistFetchStatus: (state) => { state.wishlistFetchStatus = 'idle' },
         loadGuestWishlist: (state) => {
             const items = getGuestWishlist();
             state.items = items;
@@ -79,68 +75,61 @@ const wishlistSlice=createSlice({
             clearGuestWishlist();
         }
     },
-    extraReducers:(builder)=>{
+    extraReducers: (builder) => {
         builder
-            .addCase(createWishlistItemAsync.pending,(state)=>{
-                state.wishlistItemAddStatus='pending'
-            })
-            .addCase(createWishlistItemAsync.fulfilled,(state,action)=>{
-                state.wishlistItemAddStatus='fulfilled'
+            .addCase(createWishlistItemAsync.pending, (state) => { state.wishlistItemAddStatus = 'pending' })
+            .addCase(createWishlistItemAsync.fulfilled, (state, action) => {
+                state.wishlistItemAddStatus = 'fulfilled'
                 state.items.push(action.payload)
             })
-            .addCase(createWishlistItemAsync.rejected,(state,action)=>{
-                state.wishlistItemAddStatus='rejected'
-                state.errors=action.error
+            .addCase(createWishlistItemAsync.rejected, (state, action) => {
+                state.wishlistItemAddStatus = 'rejected'
+                state.errors = action.error
             })
-
-            .addCase(fetchWishlistByUserIdAsync.pending,(state)=>{
-                state.wishlistFetchStatus='pending'
+            .addCase(fetchWishlistByUserIdAsync.pending, (state) => { state.wishlistFetchStatus = 'pending' })
+            .addCase(fetchWishlistByUserIdAsync.fulfilled, (state, action) => {
+                state.wishlistFetchStatus = 'fulfilled'
+                state.items = action.payload
+                state.totalResults = action.payload.length
             })
-            .addCase(fetchWishlistByUserIdAsync.fulfilled,(state,action)=>{
-                state.wishlistFetchStatus='fulfilled'
-                state.items=action.payload.data
-                state.totalResults=action.payload.totalResults
+            .addCase(fetchWishlistByUserIdAsync.rejected, (state, action) => {
+                state.wishlistFetchStatus = 'rejected'
+                state.errors = action.error
             })
-            .addCase(fetchWishlistByUserIdAsync.rejected,(state,action)=>{
-                state.wishlistFetchStatus='rejected'
-                state.errors=action.error
+            .addCase(updateWishlistItemByIdAsync.pending, (state) => { state.wishlistItemUpdateStatus = 'pending' })
+            .addCase(updateWishlistItemByIdAsync.fulfilled, (state, action) => {
+                state.wishlistItemUpdateStatus = 'fulfilled'
+                const index = state.items.findIndex((item) => item._id === action.payload._id)
+                if (index !== -1) state.items[index] = action.payload
             })
-
-            .addCase(updateWishlistItemByIdAsync.pending,(state)=>{
-                state.wishlistItemUpdateStatus='pending'
+            .addCase(updateWishlistItemByIdAsync.rejected, (state, action) => {
+                state.wishlistItemUpdateStatus = 'rejected'
+                state.errors = action.error
             })
-            .addCase(updateWishlistItemByIdAsync.fulfilled,(state,action)=>{
-                state.wishlistItemUpdateStatus='fulfilled'
-                const index=state.items.findIndex((item)=>item._id===action.payload._id)
-                state.items[index]=action.payload
+            .addCase(deleteWishlistItemByIdAsync.pending, (state) => { state.wishlistItemDeleteStatus = 'pending' })
+            .addCase(deleteWishlistItemByIdAsync.fulfilled, (state, action) => {
+                state.wishlistItemDeleteStatus = 'fulfilled'
+                state.items = state.items.filter((item) => item._id !== action.payload._id)
+                state.totalResults = state.items.length
             })
-            .addCase(updateWishlistItemByIdAsync.rejected,(state,action)=>{
-                state.wishlistItemUpdateStatus='rejected'
-                state.errors=action.error
-            })
-
-            .addCase(deleteWishlistItemByIdAsync.pending,(state)=>{
-                state.wishlistItemDeleteStatus='pending'
-            })
-            .addCase(deleteWishlistItemByIdAsync.fulfilled,(state,action)=>{
-                state.wishlistItemDeleteStatus='fulfilled'
-                state.items=state.items.filter((item)=>item._id!==action.payload._id)
-            })
-            .addCase(deleteWishlistItemByIdAsync.rejected,(state,action)=>{
-                state.wishlistItemDeleteStatus='rejected'
-                state.errors=action.error
+            .addCase(deleteWishlistItemByIdAsync.rejected, (state, action) => {
+                state.wishlistItemDeleteStatus = 'rejected'
+                state.errors = action.error
             })
     }
 })
 
-export const selectWishlistItems=(state)=>state.WishlistSlice.items
-export const selectWishlistFetchStatus=(state)=>state.WishlistSlice.wishlistFetchStatus
-export const selectWishlistItemUpdateStatus=(state)=>state.WishlistSlice.wishlistItemUpdateStatus
-export const selectWishlistItemAddStatus=(state)=>state.WishlistSlice.wishlistItemAddStatus
-export const selectWishlistItemDeleteStatus=(state)=>state.WishlistSlice.wishlistItemDeleteStatus
-export const selectWishlistErrors=(state)=>state.WishlistSlice.errors
-export const selectWishlistSuccessMessage=(state)=>state.WishlistSlice.successMessage
-export const selectWishlistTotalResults=(state)=>state.WishlistSlice.totalResults
+export const selectWishlistItems = createSelector(
+    [(state) => state.WishlistSlice?.items],
+    (items) => Array.isArray(items) ? [...items] : []
+)
+export const selectWishlistFetchStatus = (state) => state.WishlistSlice?.wishlistFetchStatus || 'idle'
+export const selectWishlistItemUpdateStatus = (state) => state.WishlistSlice?.wishlistItemUpdateStatus || 'idle'
+export const selectWishlistItemAddStatus = (state) => state.WishlistSlice?.wishlistItemAddStatus || 'idle'
+export const selectWishlistItemDeleteStatus = (state) => state.WishlistSlice?.wishlistItemDeleteStatus || 'idle'
+export const selectWishlistErrors = (state) => state.WishlistSlice?.errors || null
+export const selectWishlistSuccessMessage = (state) => state.WishlistSlice?.successMessage || null
+export const selectWishlistTotalResults = (state) => state.WishlistSlice?.totalResults || 0
 
 export const {
     resetWishlistFetchStatus,
@@ -152,6 +141,6 @@ export const {
     removeGuestItem,
     updateGuestItem,
     clearGuestWishlistState
-}=wishlistSlice.actions
+} = wishlistSlice.actions
 
 export default wishlistSlice.reducer

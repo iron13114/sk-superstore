@@ -20,11 +20,14 @@ const useMediaQuery = (query) => {
 }
 
 export const Cart = ({ checkout }) => {
-    const items = useSelector(selectCartItems)
+    const itemsRaw = useSelector(selectCartItems)
+    const items = Array.isArray(itemsRaw) ? itemsRaw : []  // ← DEFENSE
+    
     const subtotal = items.reduce((acc, item) => {
         const price = item.variantPrice || item.product?.price || 0
         return acc + (price * (item.quantity || 0))
     }, 0)
+    
     const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
     const navigate = useNavigate()
     const is900 = useMediaQuery('(max-width: 900px)')
@@ -63,8 +66,8 @@ export const Cart = ({ checkout }) => {
                 
                 {/* cart items */}
                 <div className="flex flex-col gap-4 w-full min-w-0">
-                    {items && items.map((item) => (
-                        <CartItem 
+                        {items.map((item) => (
+                            <CartItem 
                             key={item._id} 
                             id={item._id} 
                             title={item.product?.title} 
@@ -78,6 +81,9 @@ export const Cart = ({ checkout }) => {
                             variantLabel={item.variantLabel}
                         />
                     ))}
+                        {items.length === 0 && (
+                            <p className="text-center text-gray-500 py-8">Your cart is empty</p>
+                        )}
                 </div>
                 
                 {/* subtotal */}

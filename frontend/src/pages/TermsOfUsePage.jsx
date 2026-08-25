@@ -27,9 +27,9 @@ const Bullet = ({ children }) => (
 export const TermsOfUsePage = () => {
     const { t } = useTranslation()
     
-    const email = process.env.REACT_APP_CONTACT_EMAIL
-    const phone = process.env.REACT_APP_CONTACT_PHONE
-    const address = process.env.REACT_APP_CONTACT_ADDRESS
+    const email = import.meta.VITE_CONTACT_EMAIL
+    const phone = import.meta.VITE_CONTACT_PHONE
+    const address = import.meta.VITE_CONTACT_ADDRESS
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">

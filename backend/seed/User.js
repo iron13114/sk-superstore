@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 
 const PASSWORD = process.env.ADMIN_PASSWORD;
 exports.seedUser = async () => {
-    // FORCE DELETE before insert
     await User.deleteMany({});
     
     const hashedPassword = await bcrypt.hash(PASSWORD, 10);

@@ -32,6 +32,8 @@ export const Homepage = () => {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const { t } = useTranslation()
+    
+    // ✅ Safe selectors (now memoized in slices)
     const categories = useSelector(selectCategories)
     const products = useSelector(selectProducts)
     const wishlistItems = useSelector(selectWishlistItems)
@@ -78,7 +80,10 @@ export const Homepage = () => {
         }
     }
 
-    const featuredProducts = products?.slice(0, 4) || []
+    const productList = Array.isArray(products) ? products : []
+    const featuredProducts = productList.slice(0, 4)
+
+    const safeCategories = Array.isArray(categories) ? categories : []
 
     return (
         <div className="flex flex-col w-full bg-white">
@@ -154,25 +159,33 @@ export const Homepage = () => {
             </section>
 
             {/* ===== CATEGORY GRID ===== */}
-            <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 w-full">
+            <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 w-full">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{t('homepage.categoriesTitle')}</h2>
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+                        {t('homepage.categoriesTitle') || 'Shop by Category'}
+                    </h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
-                    {categories?.map((cat) => (
-                        <motion.button
-                            key={cat._id}
-                            whileHover={{ y: -2 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleCategoryClick(cat._id)}
-                            className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
-                        >
-                            <span className="text-2xl sm:text-3xl">{cat.icon || '📦'}</span>                            
-                            <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                {cat.name}
-                            </span>
-                        </motion.button>
-                    ))}
+                    {safeCategories.length > 0 ? (
+                        safeCategories.map((cat) => (
+                            <motion.button
+                                key={cat._id || cat.id || `cat-${Math.random()}`}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleCategoryClick(cat._id || cat.id)}
+                                className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
+                            >
+                                <span className="text-2xl sm:text-3xl">{cat.icon || '📦'}</span>                            
+                                <span className="text-xs sm:text-sm font-medium text-gray-900">
+                                    {cat.name}
+                                </span>
+                            </motion.button>
+                        ))
+                    ) : (
+                        <p className="col-span-full text-center text-gray-400 text-sm py-8">
+                            No categories found
+                        </p>
+                    )}
                 </div>
             </section>
 

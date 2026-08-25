@@ -71,3 +71,6 @@ Thumbs.db
 *.pid
 *.pid.lock
 *.user.js
+
+# Vite
+*.local

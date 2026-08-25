@@ -26,7 +26,8 @@ const useMediaQuery = (query) => {
 }
 
 export const Checkout = () => {
-    const addresses = useSelector(selectAddresses)
+    const addressesRaw = useSelector(selectAddresses)
+    const addresses = Array.isArray(addressesRaw) ? addressesRaw : [] 
     const [selectedAddress, setSelectedAddress] = useState(null)
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
     const { register, handleSubmit, reset, formState: { errors } } = useForm()
@@ -39,7 +40,8 @@ export const Checkout = () => {
     const allAddresses = loggedInUser ? addresses : guestAddresses
     const addressStatus = useSelector(selectAddressStatus)
     const navigate = useNavigate()
-    const cartItems = useSelector(selectCartItems)
+    const cartItemsRaw = useSelector(selectCartItems)
+    const cartItems = Array.isArray(cartItemsRaw) ? cartItemsRaw : []  
     const orderStatus = useSelector(selectOrderStatus)
     const currentOrder = useSelector(selectCurrentOrder)
 

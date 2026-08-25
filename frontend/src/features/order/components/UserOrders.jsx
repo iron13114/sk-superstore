@@ -2,203 +2,219 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getOrderByUserIdAsync, resetOrderFetchStatus, selectOrderFetchStatus, selectOrders } from '../OrderSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import { Button, IconButton, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
 import Lottie from 'lottie-react'
 import { loadingAnimation, noOrdersAnimation } from '../../../assets'
-import { showToast } from '../../../utils/toast';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import {motion} from 'framer-motion'
+import { showToast } from '../../../utils/toast'
+import { motion } from 'framer-motion'
 
 export const UserOrders = () => {
+    const dispatch = useDispatch()
+    const loggedInUser = useSelector(selectLoggedInUser)
+    const orders = useSelector(selectOrders)
+    const cartItems = useSelector(selectCartItems)
+    const orderFetchStatus = useSelector(selectOrderFetchStatus)
+    const cartItemAddStatus = useSelector(selectCartItemAddStatus)
 
-    const dispatch=useDispatch()
-    const loggedInUser=useSelector(selectLoggedInUser)
-    const orders=useSelector(selectOrders)
-    const cartItems=useSelector(selectCartItems)
-    const orderFetchStatus=useSelector(selectOrderFetchStatus)
-
-    const theme=useTheme()
-    const is1200=useMediaQuery(theme.breakpoints.down("1200"))
-    const is768=useMediaQuery(theme.breakpoints.down("768"))
-    const is660=useMediaQuery(theme.breakpoints.down(660))
-    const is480=useMediaQuery(theme.breakpoints.down("480"))
-
-    const cartItemAddStatus=useSelector(selectCartItemAddStatus)
-    
-    useEffect(()=>{
+    useEffect(() => {
         window.scrollTo({
-            top:0,
-            behavior:"instant"
+            top: 0,
+            behavior: "instant"
         })
-    },[])
+    }, [])
 
-    useEffect(()=>{
-        dispatch(getOrderByUserIdAsync(loggedInUser?._id))
-    },[dispatch])
-
-
-    useEffect(()=>{
-
-        if(cartItemAddStatus==='fulfilled'){
-            showToast.success("Product added to cart")
+    useEffect(() => {
+        if (loggedInUser?._id) {
+            dispatch(getOrderByUserIdAsync(loggedInUser._id))
         }
+    }, [dispatch, loggedInUser])
 
-        else if(cartItemAddStatus==='rejected'){
+    useEffect(() => {
+        if (cartItemAddStatus === 'fulfilled') {
+            showToast.success("Product added to cart")
+        } else if (cartItemAddStatus === 'rejected') {
             showToast.error('Error adding product to cart, please try again later')
         }
-    },[cartItemAddStatus])
+    }, [cartItemAddStatus])
 
-    useEffect(()=>{
-        if(orderFetchStatus==='rejected'){
+    useEffect(() => {
+        if (orderFetchStatus === 'rejected') {
             showToast.error("Error fetching orders, please try again later")
         }
-    },[orderFetchStatus])
+    }, [orderFetchStatus])
 
-    useEffect(()=>{
-        return ()=>{
+    useEffect(() => {
+        return () => {
             dispatch(resetOrderFetchStatus())
             dispatch(resetCartItemAddStatus())
         }
-    },[])
+    }, [dispatch])
 
-
-    const handleAddToCart=(product)=>{
-        const item={user:loggedInUser._id,product:product._id,quantity:1}
+    const handleAddToCart = (product) => {
+        const item = { user: loggedInUser._id, product: product._id, quantity: 1 }
         dispatch(addToCartAsync(item))
     }
 
+    return (
+        <div className="flex justify-center items-center w-full min-h-screen bg-gray-50 py-6">
+            {orderFetchStatus === 'pending' ? (
+                <div className="w-full max-w-[25rem] h-[calc(100vh-4rem)] flex justify-center items-center">
+                    <Lottie animationData={loadingAnimation} />
+                </div>
+            ) : (
+                <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 mb-20">
+                    
+                    {/* Heading and Navigation */}
+                    <div className="flex items-center gap-3 mb-8">
+                        <motion.div whileHover={{ x: -5 }} className="hidden sm:block">
+                            <Link 
+                                to="/" 
+                                className="p-2 rounded-full hover:bg-gray-200 transition-colors inline-flex items-center justify-center text-gray-700"
+                                aria-label="Go Back"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                            </Link>
+                        </motion.div>
 
-  return (
-    <Stack justifyContent={'center'} alignItems={'center'}>
-        {
-            orderFetchStatus==='pending'?
-            <Stack width={is480?'auto':'25rem'} height={'calc(100vh - 4rem)'} justifyContent={'center'} alignItems={'center'}>
-                <Lottie animationData={loadingAnimation}/>
-            </Stack>
-            :
-            <Stack width={is1200?"auto":"60rem"} p={is480?2:4} mb={'5rem'}>
-                
-                {/* heading and navigation */}
-                <Stack flexDirection={'row'} columnGap={2} >
-                    {
-                        !is480 && <motion.div whileHover={{x:-5}} style={{alignSelf:"center"}}>
-                        <IconButton component={Link} to={"/"}><ArrowBackIcon fontSize='large'/></IconButton>
-                    </motion.div>
-                    }
-    
+                        <div className="flex flex-col gap-1">
+                            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Order history</h1>
+                            <p className="text-sm text-gray-500 break-words">
+                                Check the status of recent orders, manage returns, and discover similar products.
+                            </p>
+                        </div>
+                    </div>
 
-                    <Stack rowGap={1} >
-                        <Typography variant='h4' fontWeight={500}>Order history</Typography>
-                        <Typography sx={{wordWrap:"break-word"}} color={'text.secondary'}>Check the status of recent orders, manage returns, and discover similar products.</Typography>
-                    </Stack>
+                    {/* Orders List */}
+                    <div className="flex flex-col gap-6">
+                        {orders && [...orders].reverse().map((order) => (
+                            <div 
+                                key={order._id} 
+                                className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-5"
+                            >
+                                {/* Header Info Bar */}
+                                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                                    <div className="flex flex-wrap gap-6 sm:gap-10">
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Order Number</p>
+                                            <p className="text-sm font-semibold text-gray-800 mt-0.5">{order._id}</p>
+                                        </div>
 
-                </Stack>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Date Placed</p>
+                                            <p className="text-sm text-gray-700 mt-0.5">{new Date(order.createdAt).toDateString()}</p>
+                                        </div>
 
-                {/* orders */}
-                <Stack mt={5} rowGap={5}>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</p>
+                                            <p className="text-sm font-semibold text-gray-900 mt-0.5">₹{order.total}</p>
+                                        </div>
+                                    </div>
 
-                        {/* orders mapping */}
-                        {
-                            orders && [...orders].reverse().map((order) => (
-                                <Stack p={is480?0:2} component={is480?"":Paper} elevation={1} rowGap={2}>
-                                    
-                                    {/* upper */}
-                                    <Stack flexDirection={'row'} rowGap={'1rem'}  justifyContent={'space-between'} flexWrap={'wrap'}>
-                                        <Stack flexDirection={'row'} columnGap={4} rowGap={'1rem'} flexWrap={'wrap'}>
-                                            <Stack>
-                                                <Typography>Order Number</Typography>
-                                                <Typography color={'text.secondary'}>{order._id}</Typography>
-                                            </Stack>
+                                    <div>
+                                        <span className="text-xs sm:text-sm font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+                                            Items: {order.item.length}
+                                        </span>
+                                    </div>
+                                </div>
 
-                                            <Stack>
-                                                <Typography>Date Placed</Typography>
-                                                <Typography color={'text.secondary'}>{new Date(order.createdAt).toDateString()}</Typography>
-                                            </Stack>
+                                {/* Products in Order */}
+                                <div className="flex flex-col divide-y divide-gray-100">
+                                    {order.item.map((product) => (
+                                        <div 
+                                            key={product._id || product.product?._id} 
+                                            className="flex flex-col md:flex-row items-start md:items-center gap-4 py-4"
+                                        >
+                                            <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                                <img 
+                                                    className="w-full h-full object-contain aspect-square" 
+                                                    src={product.product?.images?.[0] || product.product?.thumbnail} 
+                                                    alt={product.product?.title || "Product image"} 
+                                                />
+                                            </div>
 
-                                            <Stack>
-                                                <Typography>Total Amount</Typography>
-                                                <Typography>₹{order.total}</Typography>
-                                            </Stack>
-                                        </Stack>
+                                            <div className="flex flex-col flex-1 min-w-0 gap-1 w-full">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-sm sm:text-base font-medium text-gray-900 truncate">
+                                                            {product.product?.title}
+                                                        </h3>
+                                                        <p className="text-xs sm:text-sm text-gray-500">
+                                                            {product.product?.brand?.name || product.product?.brand || 'Brand'}
+                                                        </p>
+                                                        <p className="text-xs text-gray-600 mt-0.5">Qty: {product.quantity}</p>
+                                                    </div>
+                                                    <span className="text-sm sm:text-base font-semibold text-gray-900">
+                                                        ₹{product.product?.price}
+                                                    </span>
+                                                </div>
 
-                                        <Stack>
-                                            <Typography>Item: {order.item.length}</Typography>
-                                        </Stack>
-                                    </Stack>
+                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                                                    {product.product?.description}
+                                                </p>
 
-                                    {/* middle */}
-                                    <Stack rowGap={2}>
+                                                {/* Action Buttons */}
+                                                <div className="flex items-center gap-3 mt-3 self-start sm:self-end">
+                                                    <Link 
+                                                        to={`/product-details/${product.product?._id}`} 
+                                                        className="px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                                                    >
+                                                        View Product
+                                                    </Link>
 
-                                        {
-                                            order.item.map((product)=>(
-                                                
-                                                <Stack mt={2} flexDirection={'row'} rowGap={is768?'2rem':''} columnGap={4} flexWrap={is768?"wrap":"nowrap"}>
-                                                    
-                                                    <Stack>
-                                                        <img style={{width:"100%",aspectRatio:is480?3/2:1/1,objectFit:"contain"}} src={product.product.images[0]} alt="" />
-                                                    </Stack>
+                                                    {cartItems.some((cartItem) => cartItem.product?._id === product.product?._id) ? (
+                                                        <Link 
+                                                            to="/cart" 
+                                                            className="px-3 py-1.5 bg-black text-white rounded text-xs font-medium hover:bg-gray-800 transition-colors"
+                                                        >
+                                                            Already in Cart
+                                                        </Link>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => handleAddToCart(product.product)}
+                                                            className="px-3 py-1.5 bg-black text-white rounded text-xs font-medium hover:bg-gray-800 transition-colors"
+                                                        >
+                                                            Buy Again
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
 
-                                                    <Stack rowGap={1} width={'100%'}>
+                                {/* Order Status Footer */}
+                                <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Status</span>
+                                    <span className="font-semibold text-gray-900 bg-gray-100 px-3 py-1 rounded-full text-xs">
+                                        {order.status}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
 
-                                                        <Stack flexDirection={'row'} justifyContent={'space-between'}>
-                                                            <Stack>
-                                                                <Typography variant='h6' fontSize={'1rem'} fontWeight={500}>{product.product.title}</Typography>
-                                                                <Typography variant='body1'  fontSize={'.9rem'}  color={'text.secondary'}>{product.product.brand.name}</Typography>
-                                                                <Typography color={'text.secondary'} fontSize={'.9rem'}>Qty: {product.quantity}</Typography>
-                                                            </Stack>
-                                                            <Typography>${product.product.price}</Typography>
-                                                        </Stack>
-
-                                                        <Typography color={'text.secondary'}>{product.product.description}</Typography>
-
-                                                        <Stack mt={2} alignSelf={is480?"flex-start":'flex-end'} flexDirection={'row'} columnGap={2} >
-                                                            <Button size='small' component={Link} to={`/product-details/${product.product._id}`} variant='outlined'>View Product</Button>
-                                                            {
-                                                                cartItems.some((cartItem)=>cartItem.product._id===product.product._id)?
-                                                                <Button  size='small' variant='contained' component={Link} to={"/cart"}>Already in Cart</Button>
-                                                                :<Button  size='small' variant='contained' onClick={()=>handleAddToCart(product.product)}>Buy Again</Button>
-                                                            }
-                                                        </Stack>
-
-                                                    </Stack>
-
-
-
-                                                </Stack>
-                                            ))
-                                        }
-
-                                    </Stack>
-
-                                    {/* lower */}
-                                    <Stack mt={2} flexDirection={'row'} justifyContent={'space-between'}>
-                                        <Typography mb={2}>Status : {order.status}</Typography>
-                                    </Stack>
-                                        
-                                </Stack>
-                                
-                            ))
-
-                        }
-                        
-                        {/* no orders animation */}
-                        {
-                        !orders.length && 
-                            <Stack mt={is480?'2rem':0} mb={'7rem'} alignSelf={'center'} rowGap={2}>
-
-                                <Stack width={is660?"auto":'30rem'} height={is660?"auto":'30rem'}>
-                                    <Lottie animationData={noOrdersAnimation}/>
-                                </Stack>
-
-                                <Typography textAlign={'center'} alignSelf={'center'} variant='h6' >oh! Looks like you haven't been shopping lately</Typography>
-
-                            </Stack>
-                        }
-                </Stack>
-            </Stack>
-        }
-    </Stack>
-  )
+                        {/* Empty State */}
+                        {!orders.length && (
+                            <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                <div className="w-64 h-64 sm:w-80 sm:h-80">
+                                    <Lottie animationData={noOrdersAnimation} />
+                                </div>
+                                <p className="text-base sm:text-lg font-medium text-gray-600 text-center">
+                                    Looks like you haven't been shopping lately
+                                </p>
+                                <Link 
+                                    to="/" 
+                                    className="px-5 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                                >
+                                    Start Shopping
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
 }

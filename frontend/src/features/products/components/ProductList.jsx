@@ -328,7 +328,7 @@ export const ProductList = () => {
                                 </div>
 
                                 <div className="space-y-3">
-                                    {brands?.map((brand) => (
+                                    {Array.isArray(brands) && brands.map((brand) => (
                                         <motion.div
                                             key={brand._id}
                                             className="w-fit"
@@ -415,7 +415,7 @@ export const ProductList = () => {
 
                             {products && products.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 px-1 sm:px-2 lg:px-4">
-                                    {products.map((product) => (
+                                    {Array.isArray(products) && products.map((product) => (
                                         <ProductCard
                                             key={product._id}
                                             id={product._id}

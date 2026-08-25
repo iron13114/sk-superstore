@@ -1,204 +1,245 @@
-import {FormHelperText, Stack, TextField, Typography, useTheme, useMediaQuery, Tabs, Tab, InputAdornment, IconButton} from '@mui/material'
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
-import {useDispatch,useSelector} from 'react-redux'
-import { LoadingButton } from '@mui/lab';
-import {selectLoggedInUser, signupAsync,selectSignupStatus, selectSignupError, clearSignupError, resetSignupStatus} from '../AuthSlice'
+import {useDispatch, useSelector} from 'react-redux'
+import {selectLoggedInUser, signupAsync, selectSignupStatus, selectSignupError, clearSignupError, resetSignupStatus} from '../AuthSlice'
 import { showToast } from '../../../utils/toast';
-import { MotionConfig , motion} from 'framer-motion'
+import { MotionConfig, motion} from 'framer-motion'
+
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = React.useState(false)
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    const listener = (e) => setMatches(e.matches)
+    media.addEventListener('change', listener)
+    setMatches(media.matches)
+    return () => media.removeEventListener('change', listener)
+  }, [query])
+  return matches
+}
+
+const EyeIcon = ({ open, className = "w-5 h-5" }) => (
+  open ? (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ) : (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  )
+)
+
+const Spinner = () => (
+  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+)
 
 export const Signup = () => {
-  const dispatch=useDispatch()
-  const status=useSelector(selectSignupStatus)
-  const error=useSelector(selectSignupError)
+  const dispatch = useDispatch()
+  const status = useSelector(selectSignupStatus)
+  const error = useSelector(selectSignupError)
   const [signupMode, setSignupMode] = useState('email');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const loggedInUser=useSelector(selectLoggedInUser)
-  const {register,handleSubmit,reset,formState: { errors }} = useForm()
-  const navigate=useNavigate()
-  const theme=useTheme()
-  const is900=useMediaQuery(theme.breakpoints.down(900))
-  const is480=useMediaQuery(theme.breakpoints.down(480))
+  const loggedInUser = useSelector(selectLoggedInUser)
+  const {register, handleSubmit, reset, formState: { errors }} = useForm()
+  const navigate = useNavigate()
+  const is900 = useMediaQuery('(max-width: 900px)')
+  const is480 = useMediaQuery('(max-width: 480px)')
 
-  // handles user redirection
-  useEffect(()=>{
+  useEffect(() => {
     if(loggedInUser && !loggedInUser?.isVerified){
       navigate("/verify-otp")
     }
     else if(loggedInUser){
       navigate("/")
     }
-  },[loggedInUser])
+  }, [loggedInUser])
 
-
-  // handles signup error and toast them
-  useEffect(()=>{
+  useEffect(() => {
     if(error){
       showToast.error(error.message)
     }
-  },[error])
+  }, [error])
 
-  
-  useEffect(()=>{
-    if(status==='fullfilled'){
+  useEffect(() => {
+    if(status === 'fullfilled'){
       showToast.success("Welcome! Verify your email to start shopping on mern-ecommerce.")
       reset()
     }
-    return ()=>{
+    return () => {
       dispatch(clearSignupError())
       dispatch(resetSignupStatus())
     }
-  },[status])
+  }, [status])
 
   const handleSignup = (data) => {
     const cred = { ...data };
-
     if (signupMode === 'mobile') {
       delete cred.email;
     } else {
       delete cred.mobile;
     }
-
     dispatch(signupAsync(cred));
   };
 
   return (
-    <Stack width={'100vw'} height={'100vh'} flexDirection={'row'} sx={{overflowY:"hidden"}}>
+    <div className="w-screen h-screen flex flex-row overflow-y-hidden">
+        <div className="flex-1 flex flex-col justify-center items-center">
 
-        <Stack flex={1} justifyContent={'center'} alignItems={'center'}>
+              <div className="flex flex-row justify-center items-center">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-3xl sm:text-4xl font-semibold break-words">SKSuperStore</h2>
+                    <p className="self-end text-gray-500 text-sm">- Shop Anything</p>
+                  </div>
+              </div>
 
-              <Stack flexDirection={'row'} justifyContent={'center'} alignItems={'center'}>
-                  <Stack rowGap={'.4rem'}>
-                    <Typography variant='h2' sx={{wordBreak:"break-word"}} fontWeight={600}>SKSuperStore</Typography>
-                    <Typography alignSelf={'flex-end'} color={'GrayText'} variant='body2'>- Shop Anything</Typography>
-                  </Stack>
+                <div className={`mt-6 flex flex-col gap-3 ${is480 ? "w-[95vw]" : "w-[28rem]"}`}>
+                  <form noValidate onSubmit={handleSubmit(handleSignup)} className="flex flex-col gap-3">
 
-              </Stack>
-
-                <Stack mt={4} spacing={2} width={is480?"95vw":'28rem'} component={'form'} noValidate onSubmit={handleSubmit(handleSignup)}>
-                  <Tabs value={signupMode} onChange={(e, newMode) => { setSignupMode(newMode); reset(); }} variant="fullWidth" sx={{ mb: 1 }}>
-                              <Tab label="Email Signup" value="email" />
-                              <Tab label="Mobile Signup" value="mobile" />
-                          </Tabs>
+                    {/* Tabs */}
+                    <div className="flex border-b border-gray-200 mb-1">
+                      <button
+                        type="button"
+                        onClick={() => { setSignupMode('email'); reset(); }}
+                        className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
+                          signupMode === 'email' ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        Email Signup
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setSignupMode('mobile'); reset(); }}
+                        className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
+                          signupMode === 'mobile' ? 'border-black text-black' : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        Mobile Signup
+                      </button>
+                    </div>
 
                     <MotionConfig whileHover={{y:-5}}>
 
                       <motion.div>
-                        <TextField fullWidth {...register("name",{required:"Username is required"})} placeholder='Username'/>
-                        {errors.name && <FormHelperText error>{errors.name.message}</FormHelperText>}
+                        <input 
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                          placeholder="Username"
+                          {...register("name", {required: "Username is required"})}
+                        />
+                        {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
                       </motion.div>
 
                     {signupMode === 'email' ? (
-                      /* ---------------- EMAIL FORM FIELDS ---------------- */
-                      <>
-                        <motion.div>
-                          <TextField 
-                            fullWidth 
-                            {...register("email", {
-                              required: "Email is required",
-                              pattern: {
-                                value: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g,
-                                message: "Enter a valid email"
-                              }
-                            })} 
-                            placeholder='Email'
-                          />
-                          {errors.email && <FormHelperText error>{errors.email.message}</FormHelperText>}
-                        </motion.div>
-                      </>
+                      <motion.div>
+                        <input 
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                          placeholder="Email"
+                          {...register("email", {
+                            required: "Email is required",
+                            pattern: {
+                              value: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g,
+                              message: "Enter a valid email"
+                            }
+                          })}
+                        />
+                        {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+                      </motion.div>
                     ) : (
-                      /* ---------------- MOBILE FORM FIELDS ---------------- */
-                      <>
-                        <motion.div>
-                          <TextField 
-                            fullWidth 
-                            type='tel'
-                            {...register("mobile", {
-                              required: "Mobile number is required",
-                              pattern: {
-                                value: /^[0-9]{10}$/,
-                                message: "Enter a valid 10-digit mobile number"
-                              }
-                            })} 
-                            placeholder='Mobile Number'
-                          />
-                          {errors.mobile && <FormHelperText error>{errors.mobile.message}</FormHelperText>}
-                        </motion.div>
-                      </>
+                      <motion.div>
+                        <input 
+                          type="tel"
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                          placeholder="Mobile Number"
+                          {...register("mobile", {
+                            required: "Mobile number is required",
+                            pattern: {
+                              value: /^[0-9]{10}$/,
+                              message: "Enter a valid 10-digit mobile number"
+                            }
+                          })}
+                        />
+                        {errors.mobile && <p className="text-xs text-red-500 mt-1">{errors.mobile.message}</p>}
+                      </motion.div>
                     )}
 
-                        <motion.div>
-                          <TextField 
-                            type={showPassword ? 'text' : 'password'} 
-                            fullWidth 
-                            {...register("password", {
-                              required: "Password is required",
-                              pattern: {
-                                value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
-                                message: `at least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number, Can contain special characters`
-                              }
-                            })} 
-                            placeholder='Password'
-                            InputProps={{
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                  </IconButton>
-                                </InputAdornment>
-                              ),
-                            }}
-                          />
-                          {errors.password && <FormHelperText error>{errors.password.message}</FormHelperText>}
-                        </motion.div>
+                      <motion.div className="relative">
+                        <input 
+                          type={showPassword ? 'text' : 'password'}
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black pr-10"
+                          placeholder="Password"
+                          {...register("password", {
+                            required: "Password is required",
+                            pattern: {
+                              value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
+                              message: `at least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number, Can contain special characters`
+                            }
+                          })}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
+                        >
+                          <EyeIcon open={showPassword} />
+                        </button>
+                        {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+                      </motion.div>
                       
-                      <motion.div>
-                        <TextField 
-                          type={showConfirmPassword ? 'text' : 'password'} 
-                          fullWidth 
+                      <motion.div className="relative">
+                        <input 
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          className="w-full px-3 py-2.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black pr-10"
+                          placeholder="Confirm Password"
                           {...register("confirmPassword", {
                             required: "Confirm Password is required",
                             validate: (value, fromValues) => value === fromValues.password || "Passwords doesn't match"
-                          })} 
-                          placeholder='Confirm Password'
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
+                          })}
                         />
-                        {errors.confirmPassword && <FormHelperText error>{errors.confirmPassword.message}</FormHelperText>}
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700"
+                        >
+                          <EyeIcon open={showConfirmPassword} />
+                        </button>
+                        {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
                       </motion.div>
                     </MotionConfig>
 
                     <motion.div whileHover={{scale:1.020}} whileTap={{scale:1}}>
-                      <LoadingButton sx={{height:'2.5rem'}} fullWidth loading={status==='pending'} type='submit' variant='contained'>Signup</LoadingButton>
+                      <button
+                        type="submit"
+                        disabled={status === 'pending'}
+                        className="w-full h-10 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 disabled:opacity-60 flex items-center justify-center gap-2"
+                      >
+                        {status === 'pending' && <Spinner />}
+                        Signup
+                      </button>
                     </motion.div>
 
-                    <Stack flexDirection={'row'} justifyContent={'space-between'} alignItems={'center'} flexWrap={'wrap-reverse'}>
+                    <div className="flex flex-row justify-between items-center flex-wrap-reverse gap-2 text-sm">
                         <MotionConfig whileHover={{x:2}} whileTap={{scale:1.050}}>
                             <motion.div>
-                                <Typography mr={'1.5rem'} sx={{textDecoration:"none",color:"text.primary"}} to={'/forgot-password'} component={Link}>Forgot password</Typography>
+                                <Link to="/forgot-password" className="text-gray-900 hover:underline">Forgot password</Link>
                             </motion.div>
 
                             <motion.div>
-                                <Typography sx={{textDecoration:"none",color:"text.primary"}} to={'/login'} component={Link}>Already a member? <span style={{color:theme.palette.primary.dark}}>Login</span></Typography>
+                                <Link to="/login" className="text-gray-900 hover:underline">
+                                  Already a member? <span className="text-gray-700 font-medium">Login</span>
+                                </Link>
                             </motion.div>
                         </MotionConfig>
-                    </Stack>
+                    </div>
 
-                </Stack>
-
-
-        </Stack>
-    </Stack>
+                </form>
+                </div>
+        </div>
+    </div>
   )
 }

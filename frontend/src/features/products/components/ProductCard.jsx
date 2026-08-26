@@ -125,7 +125,7 @@ export const ProductCard = ({
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 flex-shrink-0 rounded overflow-hidden flex items-center justify-center">
                     <img src={thumbnail} alt={title} className="w-full h-full object-contain p-1" />
                 </div>
-                
+
                 {/* Content */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
@@ -140,16 +140,16 @@ export const ProductCard = ({
                                 </span>
                             )}
                         </div>
-                        
+
                         <StarRating rating={avgRating} count={reviewCount} />
                     </div>
-                    
+
                     <div className="flex items-center justify-between mt-2">
                         <div className="flex items-baseline gap-2">
                             <span className="text-base sm:text-lg font-bold text-gray-900">₹{variantPrice || price}</span>
                             {variantPrice && <span className="text-xs text-gray-400 line-through">₹{price}</span>}
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                             <span className={`text-xs ${stockQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>
                                 {stockQuantity > 0 
@@ -174,7 +174,7 @@ export const ProductCard = ({
             </div>
         )
     }
-  
+
     // ─── GRID VIEW ───
     return (
         <div 

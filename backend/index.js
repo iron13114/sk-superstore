@@ -16,15 +16,7 @@ const addressRoutes = require('./routes/Address');
 const reviewRoutes = require("./routes/Review");
 const wishlistRoutes = require("./routes/Wishlist");
 const { connectToDB } = require("./database/db");
-const { seedUser } = require("./seed/User");
-const { seedBrand } = require("./seed/Brand");
-const { seedCategory } = require("./seed/Category");
-const { seedProduct } = require("./seed/Product");
-const { seedAddress } = require("./seed/Address");
-const { seedCart } = require("./seed/Cart");
-const { seedOrder } = require("./seed/Order");
-const { seedReview } = require("./seed/Review");
-const { seedWishlist } = require("./seed/Wishlist");
+const uploadRoutes = require('./routes/Upload');
 
 const server = express();
 
@@ -68,6 +60,8 @@ server.use("/address", addressRoutes);
 server.use("/reviews", reviewRoutes);
 server.use("/wishlist", wishlistRoutes);
 server.use("/icons", express.static(path.join(__dirname, "public", "icons")));
+server.use('/api/upload', uploadRoutes);
+server.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 server.get("/", (req, res) => {
     res.status(200).json({ message: 'running' });

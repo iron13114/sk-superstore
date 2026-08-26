@@ -68,7 +68,7 @@ export const ProductDetails = () => {
 
     const reviews = useSelector(selectReviews)
     const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-    
+
     const is1420 = useMediaQuery('(max-width: 1420px)')
     const is990 = useMediaQuery('(max-width: 990px)')
     const is840 = useMediaQuery('(max-width: 840px)')
@@ -88,8 +88,7 @@ export const ProductDetails = () => {
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" })
     }, [])
-    
-    // SINGLE fetch effect — no clearSelectedProduct on mount
+
     useEffect(() => {
         if (id) {
             dispatch(fetchProductByIdAsync(id))
@@ -119,19 +118,19 @@ export const ProductDetails = () => {
         if (!product) return; 
 
         const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);
-        
+
         if (selectedTiers.length === 0) {
             showToast.info(t('productDetails.selectAtLeastOneTier'));
             return;
         }
-        
+
         selectedTiers.forEach(([tierType, qty]) => {
             const tier = product?.tiers?.find(t => t.type === tierType)  
-            
+
             const fallbackLabel = tierType === 'single' ? t('productDetails.singleUnit') 
                                 : tierType === 'pack' ? t('productDetails.packOf', { qty: 10 }) 
                                 : t('productDetails.cartonOf', { qty: 50 })
-            
+
             const fallbackPrice = tierType === 'pack' ? (product?.price || 0) * 10 * 0.95
                                 : tierType === 'carton' ? (product?.price || 0) * 50 * 0.90
                                 : (product?.price || 0)
@@ -151,7 +150,7 @@ export const ProductDetails = () => {
         Object.keys(quantities).forEach(k => resetQty[k] = 0)
         setQuantities(resetQty);
     }
-    
+
     const handleUpdateTierQty = (tier, operation) => {
         setQuantities(prev => {
             const currentQty = prev[tier] || 0;
@@ -178,11 +177,11 @@ export const ProductDetails = () => {
     const [activeStep, setActiveStep] = useState(0);
     const swiperRef = useRef(null);
     const maxSteps = product?.images ? product.images.length : 0;
-    
+
     const handleNext = () => {
         if (swiperRef.current) swiperRef.current.slideNext();
     };
-    
+
     const handleBack = () => {
         if (swiperRef.current) swiperRef.current.slidePrev();
     };
@@ -240,7 +239,7 @@ export const ProductDetails = () => {
                 :
                 <div className="flex flex-col">
                     <div className={`flex ${is840 ? "flex-col h-auto" : "flex-row h-[50rem]"} ${is480 ? "p-2" : "p-0"} ${is840 ? "mt-0" : "mt-20"} justify-center mb-20 gap-y-20 ${is990 ? "gap-x-8" : "gap-x-20"} ${is1420 || is480 ? "w-auto" : 'w-[88rem]'}`}>
-                        
+
                         {/* Left Side: Images */}
                         <div className="flex flex-row gap-x-10 self-start h-full">
                             {!is1420 && (
@@ -250,27 +249,20 @@ export const ProductDetails = () => {
                                             key={index} 
                                             whileHover={{ scale: 1.1 }} 
                                             whileTap={{ scale: 1 }} 
-                                            className="w-[200px] cursor-pointer"
+                                            className={`w-[200px] cursor-pointer border-2 rounded-lg overflow-hidden ${selectedImageIndex === index ? 'border-black' : 'border-transparent'}`}
                                             onClick={() => setSelectedImageIndex(index)}
                                         >
                                             <img 
                                                 src={image} 
                                                 alt={t('productDetails.thumbnailAlt', { number: index + 1 })}
-                                                className="w-full aspect-square object-contain"
+                                                className="w-full aspect-square object-contain p-2"
+                                                onError={(e) => { e.target.src = '/placeholder-product.png' }}
                                             />
-                                            {/* Thumbnail list */}
-<img 
-    src={image} 
-                                                alt={t('productDetails.thumbnailAlt', { number: index + 1 })}
-    className="w-full aspect-square object-contain"
-    onError={(e) => { e.target.src = '/placeholder-product.png' }}
-/>
-
                                         </motion.div>
                                     ))}
                                 </div>
                             )}
-                            
+
                             <div className={is480 ? "mt-0" : "mt-20"}>
                                 {is1420 ? (
                                     <div className={`${is480 ? "w-full" : is990 ? 'w-[400px]' : "w-[500px]"}`}>
@@ -285,19 +277,18 @@ export const ProductDetails = () => {
                                             slidesPerView={1}
                                             spaceBetween={0}
                                         >
-                                            {product?.images.map((image, index) => (
+                                            {product?.images?.map((image, index) => (
                                                 <SwiperSlide key={index}>
-                                                    {/* Main image */}
-<img 
-    src={product.images[selectedImageIndex]} 
+                                                    <img 
+                                                        src={image} 
                                                         alt={product?.title} 
-    className="w-full object-contain aspect-square"
-    onError={(e) => { e.target.src = '/placeholder-product.png' }}
-/>
+                                                        className="w-full object-contain aspect-square"
+                                                        onError={(e) => { e.target.src = '/placeholder-product.png' }}
+                                                    />
                                                 </SwiperSlide>
                                             ))}
                                         </Swiper>
-                                        
+
                                         <div className="flex items-center justify-between py-2 px-1">
                                             <button 
                                                 onClick={handleBack} 
@@ -329,13 +320,11 @@ export const ProductDetails = () => {
                                     <div className="w-full">
                                         {product?.images && (
                                             <img 
-    className="w-full object-contain overflow-hidden aspect-square" 
-    src={image} 
+                                                className="w-full object-contain overflow-hidden aspect-square" 
+                                                src={product.images[selectedImageIndex]} 
                                                 alt={product?.title}
-    onError={(e) => { e.target.src = '/placeholder-product.png' }}
-                                                
+                                                onError={(e) => { e.target.src = '/placeholder-product.png' }}
                                             />
-                                            
                                         )}
                                     </div>
                                 )}
@@ -348,7 +337,6 @@ export const ProductDetails = () => {
                                 <div className="p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
                                     <h2 className="text-lg font-semibold mb-4">{t('productDetails.selectWholesaleOptions')}</h2>
 
-                                    {/* If product exists but has no pricing data yet, show mini-loader */}
                                     {product && !product.tiers?.length && !product.price ? (
                                         <div className="py-4 text-sm text-gray-500">
                                             Loading pricing information...
@@ -424,7 +412,7 @@ export const ProductDetails = () => {
                                         >
                                             {t('productDetails.addWholesaleToCart')}
                                         </button>
-                                        
+
                                         <div className="border border-gray-300 rounded-lg p-1 flex items-center justify-center">
                                             <HeartCheckbox 
                                                 checked={isProductAlreadyinWishlist} 

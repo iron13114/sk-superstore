@@ -299,7 +299,7 @@ export const AddProduct = () => {
                 {/* Product Images */}
                 <div className="space-y-3">
                     <label className={labelCls}>{t('productForm.productImages')}</label>
-                    
+
                     <Controller
                         name="image0"
                         control={control}
@@ -309,7 +309,7 @@ export const AddProduct = () => {
                         )}
                     />
                     {errors.image0 && <p className="mt-1 text-xs text-[#E31837]">{errors.image0.message}</p>}
-                    
+
                     <Controller name="image1" control={control} render={({ field }) => (
                         <ImageUploader value={field.value} onChange={field.onChange} placeholder={t('productForm.image2')} />
                     )} />

@@ -33,12 +33,12 @@ export const Homepage = () => {
     const [searchParams] = useSearchParams()
     const { t } = useTranslation()
     
-    // ✅ Safe selectors (now memoized in slices)
     const categories = useSelector(selectCategories)
     const products = useSelector(selectProducts)
     const wishlistItems = useSelector(selectWishlistItems)
     const loggedInUser = useSelector(selectLoggedInUser)
     const productListRef = useRef(null)
+    const getCatKey = (name) => name?.replace(/\s+/g, '_')?.replace(/[^a-zA-Z0-9_]/g, '') || 'unknown'
 
     useEffect(() => {
         dispatch(fetchAllCategoriesAsync())
@@ -175,9 +175,11 @@ export const Homepage = () => {
                                 onClick={() => handleCategoryClick(cat._id || cat.id)}
                                 className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
                             >
-                                <span className="text-2xl sm:text-3xl">{cat.icon || '📦'}</span>                            
+                                <span className="text-2xl sm:text-3xl">
+                                    {t(`categories.${getCatKey(cat.name)}_icon`, cat.icon || '📦')}
+                                </span>                            
                                 <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                    {cat.name}
+                                    {t(`categories.${getCatKey(cat.name)}`, cat.name)}
                                 </span>
                             </motion.button>
                         ))

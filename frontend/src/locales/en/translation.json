@@ -115,11 +115,43 @@
       "Dabur": "Dabur",
       "Colgate": "Colgate"
     },
+  "categories": {
+    "Ketchup": "Ketchup",
+    "Ketchup_icon": "🍅",
+    "Dry_Fruits": "Dry Fruits",
+    "Dry_Fruits_icon": "🥜",
+    "Shampoo": "Shampoo",
+    "Shampoo_icon": "🧴",
+    "Kurkure": "Kurkure",
+    "Kurkure_icon": "📦",
+    "Modi": "Modi",
+    "Modi_icon": "🏪",
+    "Chocolate_and_Candy": "Chocolate and Candy",
+    "Chocolate_and_Candy_icon": "🍫",
+    "Lays": "Lays",
+    "Lays_icon": "🥔",
+    "Agarbatti": "Agarbatti",
+    "Agarbatti_icon": "🪔",
+    "Biscuits": "Biscuits",
+    "Biscuits_icon": "🍪",
+    "Detergent": "Detergent",
+    "Detergent_icon": "📦",
+    "Boss": "Boss",
+    "Boss_icon": "📦",
+    "Soap": "Soap",
+    "Soap_icon": "🧼",
+    "Cigarette": "Cigarette",
+    "Cigarette_icon": "📦"
+  },
     "productCard": {
-      "addToCart": "Add To Cart",
       "addedToCart": "Added to cart",
-      "onlyOneLeft": "Only 1 stock is left",
-      "onlyFewLeft": "Only few are left",
+      "addToCart": "Add to cart",
+      "onlyOneLeft": "Only 1 left",
+      "onlyFewLeft": "Only a few left",
+      "inStock": "{{count}} in stock",
+      "outOfStock": "Out of stock",
+      "added": "Added",
+      "add": "Add",
       "altText": "{{title}} photo unavailable"
     }, 
     "productBanner": {
@@ -297,5 +329,36 @@
     "delete": "Delete",
     "update": "Update",
     "filters": "Product List"
+  },
+  "search": {
+    "placeholder": "Search products, brands, categories...",
+    "filters": "Filters",
+    "category": "Category",
+    "brand": "Brand",
+    "packaging": "Packaging",
+    "availability": "Availability",
+    "inStockOnly": "In Stock Only",
+    "clearAllFilters": "Clear All Filters",
+    "clearFilters": "Clear Filters",
+    "resultsFor": "Results for \"{{query}}\"",
+    "allProducts": "All Products",
+    "productsFound": "{{count}} products found",
+    "noProductsFound": "No products found",
+    "noProductsDescription": "Try adjusting your filters or search query. Wholesale buyers often search by brand name.",
+    "previous": "Previous",
+    "next": "Next",
+    "all": "All",
+    "packagingTitle": "Packaging",
+    "sort": {
+      "relevance": "Sort: Relevance",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "stock": "Stock: High to Low"
+    },
+    "packaging": {
+      "single": "Single Unit",
+      "pack": "Pack of 10",
+      "carton": "Carton of 50"
+    }
   }
 }

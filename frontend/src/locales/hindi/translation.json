@@ -114,12 +114,44 @@
     "Dabur": "डाबर",
     "Colgate": "कोलगेट"
   },
+  "categories": {
+    "Ketchup": "केचप/सॉस",
+    "Ketchup_icon": "🍅",
+    "Dry_Fruits": "सूखे मेवे/ड्राई फ्रूट्स",
+    "Dry_Fruits_icon": "🥜",
+    "Shampoo": "शैंपू",
+    "Shampoo_icon": "🧴",
+    "Kurkure": "कुरकुरे और नमकीन",
+    "Kurkure_icon": "📦",
+    "Modi": "मोदी",
+    "Modi_icon": "🏪",
+    "Chocolate_and_Candy": "चॉकलेट और टोफ़ी",
+    "Chocolate_and_Candy_icon": "🍫",
+    "Lays": "लेज़",
+    "Lays_icon": "🥔",
+    "Agarbatti": "अगरबत्ती",
+    "Agarbatti_icon": "🪔",
+    "Biscuits": "बिस्कुट",
+    "Biscuits_icon": "🍪",
+    "Detergent": "सर्फ",
+    "Detergent_icon": "📦",
+    "Boss": "बॉस",
+    "Boss_icon": "📦",
+    "Soap": "साबुन",
+    "Soap_icon": "🧼",
+    "Cigarette": "सिगरेट",
+    "Cigarette_icon": "📦"
+  },
   "productCard": {
     "addToCart": "कार्ट में जोड़ें",
     "addedToCart": "कार्ट में जोड़ा गया",
     "onlyOneLeft": "केवल 1 स्टॉक बचा है",
     "onlyFewLeft": "केवल कुछ ही बचे हैं",
-    "altText": "{{title}} का फोटो उपलब्ध नहीं"
+    "altText": "{{title}} का फोटो उपलब्ध नहीं",
+    "inStock": "{{count}} स्टॉक में",
+    "outOfStock": "स्टॉक में नहीं",
+    "added": "जोड़ा गया",
+    "add": "जोड़ें"
   },
   "productBanner": {
     "imageAlt": "बैनर छवि {{number}}",
@@ -254,5 +286,36 @@
     "whatsappTitle": "व्हाट्सएप पर ऑर्डर करें",
     "whatsappSubtitle": "थोक ऑर्डर और त्वरित रीस्टॉकिंग के लिए सीधे चैट करें",
     "whatsappCta": "अभी चैट करें"
+  },
+  "search": {
+    "placeholder": "उत्पाद, ब्रांड, श्रेणियाँ खोजें...",
+    "filters": "फिल्टर",
+    "category": "श्रेणी",
+    "brand": "ब्रांड",
+    "packaging": "पैकेजिंग",
+    "availability": "उपलब्धता",
+    "inStockOnly": "सिर्फ स्टॉक में",
+    "clearAllFilters": "सभी फिल्टर हटाएं",
+    "clearFilters": "फिल्टर हटाएं",
+    "resultsFor": "\"{{query}}\" के लिए परिणाम",
+    "allProducts": "सभी उत्पाद",
+    "productsFound": "{{count}} उत्पाद मिले",
+    "packagingTitle": "पैकेजिंग",
+    "noProductsFound": "कोई उत्पाद नहीं मिला",
+    "noProductsDescription": "अपने फिल्टर या खोज क्वेरी को समायोजित करने का प्रयास करें। थोक खरीदार अक्सर ब्रांड नाम से खोजते हैं।",
+    "previous": "पिछला",
+    "next": "अगला",
+    "all": "सभी",
+    "sort": {
+      "relevance": "सॉर्ट: प्रासंगिकता",
+      "priceLow": "कीमत: कम से ज़्यादा",
+      "priceHigh": "कीमत: ज़्यादा से कम",
+      "stock": "स्टॉक: ज़्यादा से कम"
+    },
+    "packaging": {
+      "single": "एकल इकाई",
+      "pack": "10 का पैक",
+      "carton": "50 का कार्टन"
+    }
   }
 }

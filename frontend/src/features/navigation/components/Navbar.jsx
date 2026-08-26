@@ -83,12 +83,12 @@ export const Navbar = ({ isProductList = false }) => {
     dispatch(toggleFilters());
   };
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = (e) => {
+    e.preventDefault()
     if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
-      setMobileSearchOpen(false);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
     }
-  }, [searchQuery, navigate]);
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSearch();

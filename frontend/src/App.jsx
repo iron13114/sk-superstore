@@ -22,6 +22,7 @@ import { Homepage } from './features/homepage/components/Homepage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfUsePage } from './pages/TermsOfUsePage';
 import { FaqPage } from './pages/FaqPage';
+import { SearchPage } from './features/search/components/SearchPage'
 
 function App() {
   const isAuthChecked = useSelector(selectIsAuthChecked);
@@ -62,6 +63,7 @@ function App() {
             <Route path='/' element={<HomePage />} />
             <Route path="/" element={<Homepage />} />
             <Route path='/product-details/:id' element={<ProductDetailsPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path='/cart' element={<CartPage />} />
             <Route path='/checkout' element={<CheckoutPage />} />
             <Route path='/wishlist' element={<WishlistPage />} />

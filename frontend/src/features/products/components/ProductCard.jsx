@@ -74,27 +74,30 @@ export const ProductCard = ({
     stockQuantity, 
     reviews,
     handleAddRemoveFromWishlist, 
-    isWishlistCard, 
+    isWishlistCard,
+    viewMode,
+    packagingTier,
+    variantPrice, 
     isAdminCard
 }) => {
+
     const navigate = useNavigate()
     const wishlistItems = useSelector(selectWishlistItems)
     const cartItems = useSelector(selectCartItems)
     const dispatch = useDispatch()
-    const { t } = useTranslation();
+    const { t } = useTranslation()
 
     const isInWishlist = wishlistItems.some((item) => item.product?._id === id)
     const isProductAlreadyInCart = cartItems.some((item) => item.product?._id === id)
 
-    // Derive rating from reviews array if provided
-    const reviewList = Array.isArray(reviews) ? reviews : [];
-    const reviewCount = reviewList.length;
+    const reviewList = Array.isArray(reviews) ? reviews : []
+    const reviewCount = reviewList.length
     const avgRating = reviewCount > 0 
         ? reviewList.reduce((sum, r) => sum + (r.rating || 0), 0) / reviewCount 
-        : 0;
+        : 0
 
     const handleAddToCart = async (e) => {
-        e.stopPropagation();
+        e.stopPropagation()
         const data = {
             product: {
                 _id: id,
@@ -106,11 +109,73 @@ export const ProductCard = ({
             },
             quantity: 1
         }
-        dispatch(addToCartAsync(data));
+        dispatch(addToCartAsync(data))
     }
 
-    const brandName = typeof brand === 'string' ? brand : brand?.name || '';
+    const brandName = typeof brand === 'string' ? brand : brand?.name || ''
 
+    // ─── LIST VIEW LAYOUT ───
+    if (viewMode === 'list') {
+        return (
+            <div 
+                className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-white border border-gray-200 hover:border-[#E31837] transition-colors cursor-pointer"
+                onClick={() => navigate(`/product-details/${id}`)}
+            >
+                {/* Thumbnail */}
+                <div className="w-20 h-20 sm:w-28 sm:h-28 bg-gray-50 flex-shrink-0 rounded overflow-hidden">
+                    <img src={thumbnail} alt={title} className="w-full h-full object-contain" />
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                                <p className="text-[10px] sm:text-xs text-[#0055A4] font-semibold uppercase tracking-wide">{brandName}</p>
+                                <h3 className="text-sm sm:text-base font-medium text-gray-900 mt-0.5 line-clamp-2">{title}</h3>
+                            </div>
+                            {packagingTier && (
+                                <span className="flex-shrink-0 px-2 py-0.5 bg-red-50 text-[#E31837] text-[10px] font-bold uppercase rounded">
+                                    {packagingTier}
+                                </span>
+                            )}
+                        </div>
+                        
+                        <StarRating rating={avgRating} count={reviewCount} />
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-base sm:text-lg font-bold text-gray-900">₹{variantPrice || price}</span>
+                            {variantPrice && <span className="text-xs text-gray-400 line-through">₹{price}</span>}
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                            <span className={`text-xs ${stockQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                {stockQuantity > 0 
+                                    ? t('productCard.inStock', { count: stockQuantity }) 
+                                    : t('productCard.outOfStock')}
+                            </span>
+                            {!isAdminCard && !isWishlistCard && (
+                                isProductAlreadyInCart ? (
+                                    <span className="text-xs text-green-600 font-medium">{t('productCard.added')}</span>
+                                ) : (
+                                    <button
+                                        onClick={(e) => handleAddToCart(e)}
+                                        className="px-3 py-1.5 bg-[#E31837] text-white text-xs font-medium hover:bg-red-700 transition-colors"
+                                    >
+                                        {t('productCard.add')}
+                                    </button>
+                                )
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+  
+    // ─── GRID VIEW ───
     return (
         <div 
             className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-2 sm:p-3 lg:p-4`}

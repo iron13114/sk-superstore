@@ -43,7 +43,8 @@ To connect `sksuperstore.com` to Vercel, configure the following DNS records wit
 
 ### Clone & Install
 ```bash
-git clone [https://github.com/your-username/sk-superstore.git](https://github.com/your-username/sk-superstore.git)
+git clone [https://github.com/iron13114/sk-superstore.git]
+(https://github.com/iron13114/sk-superstore.git)
 cd sk-superstore
 
 # Install Frontend

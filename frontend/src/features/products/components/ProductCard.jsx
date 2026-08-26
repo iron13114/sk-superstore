@@ -11,7 +11,7 @@ const HeartCheckbox = ({ checked, onChange }) => (
     <label className="cursor-pointer relative inline-flex">
         <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
         <svg 
-            className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${checked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${checked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
             viewBox="0 0 24 24" 
             stroke="currentColor" 
             strokeWidth="2"
@@ -29,15 +29,15 @@ const StarRating = ({ rating, count }) => {
     const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
 
     return (
-        <div className="flex items-center gap-1 mt-0.5">
+        <div className="flex items-center gap-0.5 mt-0.5">
             <div className="flex items-center">
                 {Array.from({ length: fullStars }).map((_, i) => (
-                    <svg key={`f${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                    <svg key={`f${i}`} className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                 ))}
                 {hasHalf && (
-                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" viewBox="0 0 24 24">
+                    <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" viewBox="0 0 24 24">
                         <defs>
                             <linearGradient id="half">
                                 <stop offset="50%" stopColor="currentColor" />
@@ -48,30 +48,30 @@ const StarRating = ({ rating, count }) => {
                     </svg>
                 )}
                 {Array.from({ length: emptyStars }).map((_, i) => (
-                    <svg key={`e${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                    <svg key={`e${i}`} className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                 ))}
             </div>
             {count > 0 && (
-                <span className="text-[10px] sm:text-xs text-gray-400">({count})</span>
+                <span className="text-[9px] sm:text-[10px] text-gray-400">({count})</span>
             )}
         </div>
     );
 };
 
-// Amazon-style price display
+// Price display
 const PriceDisplay = ({ price, basePrice, discountPercentage }) => {
     const hasDiscount = discountPercentage > 0 && basePrice > price;
 
     return (
-        <div className="flex items-baseline gap-1.5 flex-wrap">
+        <div className="flex items-baseline gap-1 flex-wrap leading-none">
             {hasDiscount && (
-                <span className="text-xs sm:text-sm text-gray-400 line-through">₹{basePrice}</span>
+                <span className="text-[10px] sm:text-xs text-gray-400 line-through">₹{basePrice}</span>
             )}
-            <span className="font-medium text-sm sm:text-base text-[#111827]">₹{price}</span>
+            <span className="font-medium text-xs sm:text-sm text-[#111827]">₹{price}</span>
             {hasDiscount && (
-                <span className="text-[10px] sm:text-xs text-green-600 font-medium">({discountPercentage}% off)</span>
+                <span className="text-[9px] sm:text-[10px] text-green-600 font-medium">({discountPercentage}% off)</span>
             )}
         </div>
     );
@@ -193,11 +193,11 @@ export const ProductCard = ({
     // ─── GRID VIEW ───
     return (
         <div 
-            className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-2 sm:p-3 lg:p-4`}
+            className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-1.5 sm:p-2 lg:p-3`}
             onClick={() => navigate(`/product-details/${id}`)}
         >
-            {/* image display */}
-            <div className="w-full h-32 sm:h-36 md:h-40 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-3">
+            {/* image display — smaller on mobile */}
+            <div className="w-full h-24 sm:h-32 md:h-36 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-1.5 sm:p-2">
                 <img 
                     className="max-w-full max-h-full w-auto h-auto object-contain" 
                     src={thumbnail} 
@@ -206,18 +206,19 @@ export const ProductCard = ({
             </div>
 
             {/* lower section */}
-            <div className="flex-1 flex flex-col justify-end gap-1 sm:gap-1.5 mt-1.5 sm:mt-2">
+            <div className="flex-1 flex flex-col justify-end gap-0.5 sm:gap-1 mt-1 sm:mt-1.5">
 
                 {/* title + wishlist */}
                 <div>
-                    <div className="flex items-center justify-between gap-1 sm:gap-2">
-                        <h6 className="text-sm sm:text-base font-normal leading-tight line-clamp-2">{title}</h6>
+                    <div className="flex items-start justify-between gap-1">
+                        <h6 className="text-[11px] sm:text-sm font-normal leading-tight line-clamp-2 flex-1 min-w-0">{title}</h6>
                         {!isAdminCard && (
                             <motion.div 
                                 whileHover={{ scale: 1.2 }} 
                                 whileTap={{ scale: 1 }} 
                                 transition={{ duration: .2, type: "spring" }}
                                 onClick={(e) => e.stopPropagation()}
+                                className="flex-shrink-0 mt-0.5"
                             >
                                 <HeartCheckbox 
                                     checked={isInWishlist} 
@@ -226,14 +227,14 @@ export const ProductCard = ({
                             </motion.div>
                         )}
                     </div>
-                    <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
+                    <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5 truncate">
                         {t(`brands.${brandName}`, brandName)}
                     </p>
                     <StarRating rating={avgRating} count={reviewCount} />
                 </div>
 
                 {/* price + cart */}
-                <div className="flex flex-row justify-between items-center gap-1 sm:gap-2">
+                <div className="flex flex-row justify-between items-center gap-1">
                     <PriceDisplay 
                         price={price} 
                         basePrice={basePrice} 
@@ -242,7 +243,7 @@ export const ProductCard = ({
 
                     {!isWishlistCard && (
                         isProductAlreadyInCart ? (
-                            <span className="text-xs sm:text-sm text-green-600 font-medium whitespace-nowrap">
+                            <span className="text-[10px] sm:text-xs text-green-600 font-medium whitespace-nowrap">
                                 {t('productCard.addedToCart')}
                             </span>
                         ) : (
@@ -251,7 +252,7 @@ export const ProductCard = ({
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 1 }}
                                     onClick={(e) => handleAddToCart(e)}
-                                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded bg-black text-white text-xs sm:text-sm font-medium whitespace-nowrap"
+                                    className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded bg-black text-white text-[10px] sm:text-xs font-medium whitespace-nowrap"
                                 >
                                     {t('productCard.addToCart')}
                                 </motion.button>
@@ -262,7 +263,7 @@ export const ProductCard = ({
 
                 {/* stock warning */}
                 {stockQuantity <= 20 && (
-                    <p className="text-xs sm:text-sm text-red-600 font-medium">
+                    <p className="text-[10px] sm:text-xs text-red-600 font-medium leading-tight">
                         {stockQuantity === 1 
                             ? t('productCard.onlyOneLeft') 
                             : t('productCard.onlyFewLeft')

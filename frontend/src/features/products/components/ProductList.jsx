@@ -268,12 +268,28 @@ export const ProductList = () => {
                         animate={isProductFilterOpen === true ? "show" : "hide"}
                     >
                         <div className="relative h-full w-full">
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
+                                <div className="flex items-center gap-2">
+                                    {/* SKSuperStore Logo */}
+                                    <span className="font-bold text-[#E31837] text-sm tracking-tight">SKSuperStore</span>
+                                </div>
+                                <button
+                                    onClick={handleFilterClose}
+                                    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                                    aria-label="Close menu"
+                                >
+                                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
                             <motion.div
-                                className="absolute inset-0 p-4 overflow-y-auto"
+                                className="absolute inset-x-0 bottom-0 top-[57px] overflow-y-auto"
                                 animate={{ x: activePanel ? '-100%' : 0 }}
                                 transition={panelTransition}
                             >
-                                <div className="border-t border-gray-200 pt-4 space-y-2">
+                                <div className="border-t border-gray-200 pt-4 space-y-2 px-4">
                                     <button
                                         onClick={() => setActivePanel('brands')}
                                         className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors min-h-[56px]"
@@ -310,7 +326,7 @@ export const ProductList = () => {
                             </motion.div>
 
                             <motion.div
-                                className="absolute inset-0 bg-white p-4 overflow-y-auto"
+                                className="absolute inset-0 bg-white p-4 overflow-y-auto pt-16"
                                 initial={{ x: '100%' }}
                                 animate={{ x: activePanel === 'brands' ? 0 : '100%' }}
                                 transition={panelTransition}
@@ -351,7 +367,7 @@ export const ProductList = () => {
                             </motion.div>
 
                             <motion.div
-                                className="absolute inset-0 bg-white p-4 overflow-y-auto"
+                                className="absolute inset-0 bg-white p-4 overflow-y-auto pt-16"
                                 initial={{ x: '100%' }}
                                 animate={{ x: activePanel === 'category' ? 0 : '100%' }}
                                 transition={panelTransition}
@@ -414,7 +430,7 @@ export const ProductList = () => {
                             </div>
 
                             {products && products.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 px-1 sm:px-2 lg:px-4">
+                                <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 sm:gap-3 px-1 sm:px-2 lg:px-4">
                                     {Array.isArray(products) && products.map((product) => (
                                         <ProductCard
                                             key={product._id}
@@ -424,6 +440,8 @@ export const ProductList = () => {
                                             brand={product.brand?.name || product.brand || 'Unknown Brand'}
                                             stockQuantity={product.stockQuantity}
                                             price={product.price}
+                                            basePrice={product.basePrice}
+                                            discountPercentage={product.discountPercentage}
                                             reviews={product.reviews} 
                                             handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}
                                         />

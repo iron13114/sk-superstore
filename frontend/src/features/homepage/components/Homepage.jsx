@@ -165,7 +165,7 @@ export const Homepage = () => {
                         {t('homepage.categoriesTitle') || 'Shop by Category'}
                     </h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+                <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
                     {safeCategories.length > 0 ? (
                         safeCategories.map((cat) => (
                             <motion.button
@@ -173,9 +173,9 @@ export const Homepage = () => {
                                 whileHover={{ y: -2 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => handleCategoryClick(cat._id || cat.id)}
-                                className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
+                                className="flex flex-col items-center gap-1.5 sm:gap-3 p-2 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
                             >
-                                <span className="text-2xl sm:text-3xl">
+                                <span className="text-xl sm:text-3xl">
                                     {t(`categories.${getCatKey(cat.name)}_icon`, cat.icon || '📦')}
                                 </span>                            
                                 <span className="text-xs sm:text-sm font-medium text-gray-900">
@@ -204,7 +204,7 @@ export const Homepage = () => {
                                 {t('homepage.viewAll')} →
                             </button>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                        <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-4">
                             {featuredProducts.map((product) => (
                                 <ProductCard
                                     key={product._id}

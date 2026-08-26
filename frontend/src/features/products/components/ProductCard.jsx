@@ -121,9 +121,9 @@ export const ProductCard = ({
                 className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-white border border-gray-200 hover:border-[#E31837] transition-colors cursor-pointer"
                 onClick={() => navigate(`/product-details/${id}`)}
             >
-                {/* Thumbnail */}
-                <div className="w-20 h-20 sm:w-28 sm:h-28 bg-gray-50 flex-shrink-0 rounded overflow-hidden">
-                    <img src={thumbnail} alt={title} className="w-full h-full object-contain" />
+                {/* Thumbnail - fixed smaller size */}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 flex-shrink-0 rounded overflow-hidden flex items-center justify-center">
+                    <img src={thumbnail} alt={title} className="w-full h-full object-contain p-1" />
                 </div>
                 
                 {/* Content */}
@@ -181,10 +181,10 @@ export const ProductCard = ({
             className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-2 sm:p-3 lg:p-4`}
             onClick={() => navigate(`/product-details/${id}`)}
         >
-            {/* image display */}
-            <div className="w-full">
+            {/* image display - FIXED: smaller container with padding and max-height */}
+            <div className="w-full h-32 sm:h-36 md:h-40 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-3">
                 <img 
-                    className="w-full aspect-square object-contain" 
+                    className="max-w-full max-h-full w-auto h-auto object-contain" 
                     src={thumbnail} 
                     alt={t('productCard.altText', { title })} 
                 />

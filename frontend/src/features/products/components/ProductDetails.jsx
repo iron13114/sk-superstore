@@ -258,6 +258,14 @@ export const ProductDetails = () => {
                                                 alt={t('productDetails.thumbnailAlt', { number: index + 1 })}
                                                 className="w-full aspect-square object-contain"
                                             />
+                                            {/* Thumbnail list */}
+<img 
+    src={image} 
+                                                alt={t('productDetails.thumbnailAlt', { number: index + 1 })}
+    className="w-full aspect-square object-contain"
+    onError={(e) => { e.target.src = '/placeholder-product.png' }}
+/>
+
                                         </motion.div>
                                     ))}
                                 </div>
@@ -279,11 +287,13 @@ export const ProductDetails = () => {
                                         >
                                             {product?.images.map((image, index) => (
                                                 <SwiperSlide key={index}>
-                                                    <img 
-                                                        className="w-full object-contain overflow-hidden aspect-square" 
-                                                        src={image} 
+                                                    {/* Main image */}
+<img 
+    src={product.images[selectedImageIndex]} 
                                                         alt={product?.title} 
-                                                    />
+    className="w-full object-contain aspect-square"
+    onError={(e) => { e.target.src = '/placeholder-product.png' }}
+/>
                                                 </SwiperSlide>
                                             ))}
                                         </Swiper>
@@ -319,10 +329,13 @@ export const ProductDetails = () => {
                                     <div className="w-full">
                                         {product?.images && (
                                             <img 
-                                                src={product.images[selectedImageIndex]} 
+    className="w-full object-contain overflow-hidden aspect-square" 
+    src={image} 
                                                 alt={product?.title}
-                                                className="w-full object-contain aspect-square"
+    onError={(e) => { e.target.src = '/placeholder-product.png' }}
+                                                
                                             />
+                                            
                                         )}
                                     </div>
                                 )}

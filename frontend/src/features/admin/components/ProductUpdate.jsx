@@ -13,6 +13,7 @@ import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
 import { showToast } from '../../../utils/toast';
 import { useTranslation } from 'react-i18next'
+import { ImageUploader } from '../../../components/ImageUploader'
 
 export const ProductUpdate = () => {
     const { id } = useParams()
@@ -326,26 +327,44 @@ export const ProductUpdate = () => {
 
                 {/* Thumbnail */}
                 <div>
-                    <label className={labelCls}>{t('productForm.thumbnail')}</label>
-                    <input
-                        {...register("thumbnail", { required: t('productForm.thumbnailRequired') })}
-                        className={errors.thumbnail ? inputError : inputBase}
+                    <Controller
+                        name="thumbnail"
+                        control={control}
+                        rules={{ required: t('productForm.thumbnailRequired') }}
+                        render={({ field }) => (
+                            <ImageUploader
+                                label={t('productForm.thumbnail')}
+                                value={field.value}
+                                onChange={field.onChange}
+                            />
+                        )}
                     />
                     {errors.thumbnail && <p className="mt-1 text-xs text-[#E31837]">{errors.thumbnail.message}</p>}
                 </div>
 
-                {/* Images */}
+                {/* Product Images */}
                 <div className="space-y-3">
                     <label className={labelCls}>{t('productForm.productImages')}</label>
-                    <input
-                        placeholder={t('productForm.image1')}
-                        {...register("image0", { required: t('productForm.image1Required') })}
-                        className={errors.image0 ? inputError : inputBase}
+                    
+                    <Controller
+                        name="image0"
+                        control={control}
+                        rules={{ required: t('productForm.image1Required') }}
+                        render={({ field }) => (
+                            <ImageUploader value={field.value} onChange={field.onChange} placeholder={t('productForm.image1')} />
+                        )}
                     />
                     {errors.image0 && <p className="mt-1 text-xs text-[#E31837]">{errors.image0.message}</p>}
-                    <input placeholder={t('productForm.image2')} {...register("image1")} className={inputBase} />
-                    <input placeholder={t('productForm.image3')} {...register("image2")} className={inputBase} />
-                    <input placeholder={t('productForm.image4')} {...register("image3")} className={inputBase} />
+                    
+                    <Controller name="image1" control={control} render={({ field }) => (
+                        <ImageUploader value={field.value} onChange={field.onChange} placeholder={t('productForm.image2')} />
+                    )} />
+                    <Controller name="image2" control={control} render={({ field }) => (
+                        <ImageUploader value={field.value} onChange={field.onChange} placeholder={t('productForm.image3')} />
+                    )} />
+                    <Controller name="image3" control={control} render={({ field }) => (
+                        <ImageUploader value={field.value} onChange={field.onChange} placeholder={t('productForm.image4')} />
+                    )} />
                 </div>
 
                 {/* Actions */}
@@ -367,3 +386,4 @@ export const ProductUpdate = () => {
         </div>
     )
 }
+

@@ -6,6 +6,7 @@ const tierSchema = new mongoose.Schema({
   label: { type: String, required: true },
   quantity: { type: Number, required: true },  
   price: { type: Number, required: true },
+  basePrice: { type: Number, default: 0 },
   discountPercentage: { type: Number, default: 0 },
   stockQuantity: { type: Number, required: true }
 })

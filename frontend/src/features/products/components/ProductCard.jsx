@@ -31,13 +31,11 @@ const StarRating = ({ rating, count }) => {
     return (
         <div className="flex items-center gap-1 mt-0.5">
             <div className="flex items-center">
-                {/* Full stars */}
                 {Array.from({ length: fullStars }).map((_, i) => (
                     <svg key={`f${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                 ))}
-                {/* Half star */}
                 {hasHalf && (
                     <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" viewBox="0 0 24 24">
                         <defs>
@@ -49,7 +47,6 @@ const StarRating = ({ rating, count }) => {
                         <path fill="url(#half)" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                 )}
-                {/* Empty stars */}
                 {Array.from({ length: emptyStars }).map((_, i) => (
                     <svg key={`e${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
@@ -57,9 +54,24 @@ const StarRating = ({ rating, count }) => {
                 ))}
             </div>
             {count > 0 && (
-                <span className="text-[10px] sm:text-xs text-gray-400">
-                    ({count})
-                </span>
+                <span className="text-[10px] sm:text-xs text-gray-400">({count})</span>
+            )}
+        </div>
+    );
+};
+
+// Amazon-style price display
+const PriceDisplay = ({ price, basePrice, discountPercentage }) => {
+    const hasDiscount = discountPercentage > 0 && basePrice > price;
+
+    return (
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+            {hasDiscount && (
+                <span className="text-xs sm:text-sm text-gray-400 line-through">₹{basePrice}</span>
+            )}
+            <span className="font-medium text-sm sm:text-base text-[#111827]">₹{price}</span>
+            {hasDiscount && (
+                <span className="text-[10px] sm:text-xs text-green-600 font-medium">({discountPercentage}% off)</span>
             )}
         </div>
     );
@@ -78,7 +90,9 @@ export const ProductCard = ({
     viewMode,
     packagingTier,
     variantPrice, 
-    isAdminCard
+    isAdminCard,
+    basePrice,
+    discountPercentage
 }) => {
 
     const navigate = useNavigate()
@@ -121,7 +135,7 @@ export const ProductCard = ({
                 className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-white border border-gray-200 hover:border-[#E31837] transition-colors cursor-pointer"
                 onClick={() => navigate(`/product-details/${id}`)}
             >
-                {/* Thumbnail - fixed smaller size */}
+                {/* Thumbnail */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 flex-shrink-0 rounded overflow-hidden flex items-center justify-center">
                     <img src={thumbnail} alt={title} className="w-full h-full object-contain p-1" />
                 </div>
@@ -145,10 +159,11 @@ export const ProductCard = ({
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-base sm:text-lg font-bold text-gray-900">₹{variantPrice || price}</span>
-                            {variantPrice && <span className="text-xs text-gray-400 line-through">₹{price}</span>}
-                        </div>
+                        <PriceDisplay 
+                            price={variantPrice || price} 
+                            basePrice={basePrice} 
+                            discountPercentage={discountPercentage} 
+                        />
 
                         <div className="flex items-center gap-3">
                             <span className={`text-xs ${stockQuantity > 0 ? 'text-green-600' : 'text-red-500'}`}>
@@ -181,7 +196,7 @@ export const ProductCard = ({
             className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-2 sm:p-3 lg:p-4`}
             onClick={() => navigate(`/product-details/${id}`)}
         >
-            {/* image display - FIXED: smaller container with padding and max-height */}
+            {/* image display */}
             <div className="w-full h-32 sm:h-36 md:h-40 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-3">
                 <img 
                     className="max-w-full max-h-full w-auto h-auto object-contain" 
@@ -214,13 +229,16 @@ export const ProductCard = ({
                     <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
                         {t(`brands.${brandName}`, brandName)}
                     </p>
-                    {/* Reviews */}
                     <StarRating rating={avgRating} count={reviewCount} />
                 </div>
 
                 {/* price + cart */}
                 <div className="flex flex-row justify-between items-center gap-1 sm:gap-2">
-                    <p className="font-medium text-sm sm:text-base">₹{price}</p>
+                    <PriceDisplay 
+                        price={price} 
+                        basePrice={basePrice} 
+                        discountPercentage={discountPercentage} 
+                    />
 
                     {!isWishlistCard && (
                         isProductAlreadyInCart ? (

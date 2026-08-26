@@ -8,12 +8,34 @@ import {
     updateProductByIdAsync,
     fetchProductByIdAsync
 } from '../../products/ProductSlice'
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, useWatch } from "react-hook-form"
 import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
 import { showToast } from '../../../utils/toast';
 import { useTranslation } from 'react-i18next'
 import { ImageUploader } from '../../../components/ImageUploader'
+
+const SalePricePreview = ({ basePrice, discount }) => {
+    const bp = Number(basePrice) || 0
+    const disc = Number(discount) || 0
+    const salePrice = Math.round(bp * (1 - disc / 100))
+
+    if (bp <= 0) return null
+
+    return (
+        <div className="mt-2 text-sm">
+            {disc > 0 ? (
+                <span>
+                    <span className="text-gray-400 line-through mr-1">₹{bp}</span>
+                    <span className="text-[#E31837] font-bold">₹{salePrice}</span>
+                    <span className="text-xs text-green-600 ml-1">({disc}% off)</span>
+                </span>
+            ) : (
+                <span className="text-[#111827] font-medium">₹{bp}</span>
+            )}
+        </div>
+    )
+}
 
 export const ProductUpdate = () => {
     const { id } = useParams()
@@ -26,7 +48,15 @@ export const ProductUpdate = () => {
     const productUpdateStatus = useSelector(selectProductUpdateStatus)
     const selectedProduct = useSelector(selectSelectedProduct)
 
-    const { register, handleSubmit, control, reset, formState: { errors } } = useForm()
+    const { register, handleSubmit, control, reset, formState: { errors }, watch } = useForm()
+
+    // Watch all tier fields for live preview
+    const watchedSinglePrice = watch('singlePrice')
+    const watchedSingleDiscount = watch('singleDiscount')
+    const watchedPackPrice = watch('packPrice')
+    const watchedPackDiscount = watch('packDiscount')
+    const watchedCartonPrice = watch('cartonPrice')
+    const watchedCartonDiscount = watch('cartonDiscount')
 
     // Fetch product on mount
     useEffect(() => {
@@ -56,20 +86,20 @@ export const ProductUpdate = () => {
                 image1: images[1] || '',
                 image2: images[2] || '',
                 image3: images[3] || '',
-                // Single tier
-                singlePrice: singleTier.price ?? '',
-                singleDiscount: singleTier.discount ?? singleTier.discountPercentage ?? '',
-                singleStock: singleTier.stock ?? singleTier.stockQuantity ?? '',
+                // Single tier — use basePrice if available, fallback to price
+                singlePrice: singleTier.basePrice ?? singleTier.price ?? '',
+                singleDiscount: singleTier.discountPercentage ?? '',
+                singleStock: singleTier.stockQuantity ?? '',
                 // Pack tier
                 packQuantity: packTier.quantity ?? 10,
-                packPrice: packTier.price ?? '',
-                packDiscount: packTier.discount ?? packTier.discountPercentage ?? '',
-                packStock: packTier.stock ?? packTier.stockQuantity ?? '',
+                packPrice: packTier.basePrice ?? packTier.price ?? '',
+                packDiscount: packTier.discountPercentage ?? '',
+                packStock: packTier.stockQuantity ?? '',
                 // Carton tier
                 cartonQuantity: cartonTier.quantity ?? 50,
-                cartonPrice: cartonTier.price ?? '',
-                cartonDiscount: cartonTier.discount ?? cartonTier.discountPercentage ?? '',
-                cartonStock: cartonTier.stock ?? cartonTier.stockQuantity ?? '',
+                cartonPrice: cartonTier.basePrice ?? cartonTier.price ?? '',
+                cartonDiscount: cartonTier.discountPercentage ?? '',
+                cartonStock: cartonTier.stockQuantity ?? '',
             })
         }
     }, [selectedProduct, reset])
@@ -89,6 +119,12 @@ export const ProductUpdate = () => {
         }
     }, [dispatch])
 
+    const computeSalePrice = (basePrice, discount) => {
+        const bp = Number(basePrice) || 0
+        const disc = Number(discount) || 0
+        return Math.round(bp * (1 - disc / 100))
+    }
+
     const handleProductUpdate = (data) => {
         const rawImages = [data?.image0, data?.image1, data?.image2, data?.image3]
         const validImages = rawImages.filter((img) => img && img.trim() !== "")
@@ -97,7 +133,9 @@ export const ProductUpdate = () => {
         const packQty = Number(data.packQuantity) || 10
         const cartonQty = Number(data.cartonQuantity) || 50
 
-        const singlePrice = Number(data.singlePrice) || 0
+        const singleBasePrice = Number(data.singlePrice) || 0
+        const singleDiscount = Number(data.singleDiscount) || 0
+        const singleSalePrice = computeSalePrice(singleBasePrice, singleDiscount)
         const singleStock = Number(data.singleStock) || 0
 
         const updatedProduct = {
@@ -110,37 +148,34 @@ export const ProductUpdate = () => {
             thumbnail: data.thumbnail,
             images: validImages.length > 0 ? validImages : [data.thumbnail],
             // Root-level fields for backward compatibility
-            price: singlePrice,
+            price: singleSalePrice,
             stockQuantity: singleStock,
             tiers: [
                 { 
                     type: 'single', 
                     label: t('productDetails.singleUnit'), 
                     quantity: singleQty, 
-                    price: singlePrice, 
-                    discount: Number(data.singleDiscount) || 0,
-                    discountPercentage: Number(data.singleDiscount) || 0,
-                    stock: singleStock,
+                    basePrice: singleBasePrice,
+                    price: singleSalePrice, 
+                    discountPercentage: singleDiscount,
                     stockQuantity: singleStock
                 },
                 { 
                     type: 'pack', 
                     label: t('productDetails.packOf', { qty: packQty }), 
-                    quantity: packQty, 
-                    price: Number(data.packPrice) || 0, 
-                    discount: Number(data.packDiscount) || 0,
+                    quantity: packQty,
+                    basePrice: Number(data.packPrice) || 0,
+                    price: computeSalePrice(data.packPrice, data.packDiscount), 
                     discountPercentage: Number(data.packDiscount) || 0,
-                    stock: Number(data.packStock) || 0,
                     stockQuantity: Number(data.packStock) || 0
                 },
                 { 
                     type: 'carton', 
                     label: t('productDetails.cartonOf', { qty: cartonQty }), 
-                    quantity: cartonQty, 
-                    price: Number(data.cartonPrice) || 0, 
-                    discount: Number(data.cartonDiscount) || 0,
+                    quantity: cartonQty,
+                    basePrice: Number(data.cartonPrice) || 0,
+                    price: computeSalePrice(data.cartonPrice, data.cartonDiscount), 
                     discountPercentage: Number(data.cartonDiscount) || 0,
-                    stock: Number(data.cartonStock) || 0,
                     stockQuantity: Number(data.cartonStock) || 0
                 }
             ]
@@ -180,6 +215,12 @@ export const ProductUpdate = () => {
             color: 'bg-[#111827] text-white' 
         },
     ]
+
+    const tierWatchMap = {
+        single: { price: watchedSinglePrice, discount: watchedSingleDiscount },
+        pack: { price: watchedPackPrice, discount: watchedPackDiscount },
+        carton: { price: watchedCartonPrice, discount: watchedCartonDiscount },
+    }
 
     return (
         <div className="px-4 py-8 flex justify-center bg-white min-h-screen">
@@ -297,7 +338,7 @@ export const ProductUpdate = () => {
                                     </div>
                                 )}
                                 <div>
-                                    <label className={labelCls}>{t('productForm.price')} (₹)</label>
+                                    <label className={labelCls}>Base Price / MRP (₹)</label>
                                     <input
                                         type="number"
                                         {...register(`${tier.key}Price`, { required: t('productForm.priceRequired') })}
@@ -308,6 +349,8 @@ export const ProductUpdate = () => {
                                     <label className={labelCls}>{t('productForm.discount')} (%)</label>
                                     <input
                                         type="number"
+                                        min={0}
+                                        max={100}
                                         {...register(`${tier.key}Discount`, { required: t('productForm.discountRequired') })}
                                         className={errors[`${tier.key}Discount`] ? inputError : inputBase}
                                     />
@@ -321,6 +364,12 @@ export const ProductUpdate = () => {
                                     />
                                 </div>
                             </div>
+
+                            {/* Live Sale Price Preview */}
+                            <SalePricePreview 
+                                basePrice={tierWatchMap[tier.key].price} 
+                                discount={tierWatchMap[tier.key].discount} 
+                            />
                         </div>
                     ))}
                 </div>

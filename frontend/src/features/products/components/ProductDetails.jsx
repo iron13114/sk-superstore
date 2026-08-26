@@ -57,6 +57,23 @@ const ReadOnlyRating = ({ value }) => (
     </div>
 )
 
+// Amazon-style tier price display
+const TierPriceDisplay = ({ basePrice, price, discount }) => {
+    const hasDiscount = discount > 0 && basePrice > price;
+
+    return (
+        <div className="flex items-baseline gap-1.5 flex-wrap mt-0.5">
+            {hasDiscount && (
+                <span className="text-xs text-gray-400 line-through">₹{basePrice}</span>
+            )}
+            <span className="text-sm font-semibold text-[#0055A4]">₹{price}</span>
+            {hasDiscount && (
+                <span className="text-[10px] text-green-600 font-medium">({discount}% off)</span>
+            )}
+        </div>
+    );
+};
+
 export const ProductDetails = () => {
     const { id } = useParams()
     const product = useSelector(selectSelectedProduct)
@@ -193,8 +210,9 @@ export const ProductDetails = () => {
                 return {
                     label: tier.label,
                     price: tier.price,
+                    basePrice: tier.basePrice || tier.price,
                     stock: tier.stockQuantity,
-                    discount: tier.discountPercentage,
+                    discount: tier.discountPercentage || 0,
                     qty: tier.quantity
                 }
             }
@@ -202,14 +220,16 @@ export const ProductDetails = () => {
         const basePrice = product?.price || 0
         if (tierType === 'pack') return { 
             label: t('productDetails.packOf', { qty: 10 }), 
-            price: (basePrice * 10 * 0.95).toFixed(2),
+            price: Math.round(basePrice * 10 * 0.95),
+            basePrice: basePrice * 10,
             stock: product?.stockQuantity || 0,
             discount: 5,
             qty: 10
         }
         if (tierType === 'carton') return { 
             label: t('productDetails.cartonOf', { qty: 50 }), 
-            price: (basePrice * 50 * 0.90).toFixed(2),
+            price: Math.round(basePrice * 50 * 0.90),
+            basePrice: basePrice * 50,
             stock: product?.stockQuantity || 0,
             discount: 10,
             qty: 50
@@ -217,6 +237,7 @@ export const ProductDetails = () => {
         return { 
             label: t('productDetails.singleUnit'), 
             price: basePrice,
+            basePrice: basePrice,
             stock: product?.stockQuantity || 0,
             discount: 0,
             qty: 1
@@ -360,14 +381,14 @@ export const ProductDetails = () => {
                                                                     {display.label}
                                                                 </p>
                                                             </div>
-                                                            <p className="text-sm font-semibold text-blue-600 mt-0.5">
-                                                                ₹{display.price}
-                                                                {display.discount > 0 && (
-                                                                    <span className="ml-2 text-xs text-[#E31837]">
-                                                                        {display.discount}% off
-                                                                    </span>
-                                                                )}
-                                                            </p>
+
+                                                            {/* Amazon-style price display */}
+                                                            <TierPriceDisplay 
+                                                                basePrice={display.basePrice} 
+                                                                price={display.price} 
+                                                                discount={display.discount} 
+                                                            />
+
                                                             <p className={`text-xs mt-0.5 ${
                                                                 display.stock > 10 ? 'text-green-600' : display.stock === 0 ? 'text-red-500' : 'text-orange-600'
                                                             }`}>

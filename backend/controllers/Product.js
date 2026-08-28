@@ -39,10 +39,10 @@ exports.getAll = async (req, res) => {
             filter.category = { $in: categories };
         }
 
-        // PACKAGING TIER — accept 'pack' (URL param) OR 'packagingTier'
+        // PACKAGING TIER — query inside the tiers array
         const tierParam = req.query.pack || req.query.packagingTier;
         if (tierParam && tierParam !== "undefined") {
-            filter.packagingTier = tierParam;
+            filter['tiers.type'] = tierParam;   
         }
 
         // IN STOCK ONLY

@@ -368,11 +368,15 @@ export const SearchPage = () => {
                   : "flex flex-col gap-3"
                 }>
                   {products.map(product => {
-                    // Compute tier price: if a pack is selected and the product has that tier price, use it
-                    const effectivePrice = activePack && product.prices?.[activePack]
-                      ? product.prices[activePack]
-                      : product.price
-                    
+                    const selectedTier = activePack
+                      ? product.tiers?.find(t => t.type === activePack)
+                      : null
+
+                    const effectivePrice = selectedTier ? selectedTier.price : product.price
+                    const effectiveStock = selectedTier ? selectedTier.stockQuantity : product.stockQuantity
+                    const effectiveDiscount = selectedTier ? selectedTier.discountPercentage : product.discountPercentage
+                    const tierLabel = selectedTier?.label || ''
+
                     return (
                       <ProductCard 
                         key={product._id}
@@ -381,9 +385,11 @@ export const SearchPage = () => {
                         thumbnail={product.thumbnail}
                         brand={product.brand?.name || product.brand}
                         price={effectivePrice}
-                        stockQuantity={product.stockQuantity}
+                        basePrice={product.price}           
+                        stockQuantity={effectiveStock}
+                        discountPercentage={effectiveDiscount}
                         reviews={product.reviews}
-                        packagingTier={product.packagingTier}
+                        packagingTier={tierLabel}
                         viewMode={viewMode}
                       />
                     )

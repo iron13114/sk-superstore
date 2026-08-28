@@ -84,14 +84,14 @@ export const Navbar = ({ isProductList = false }) => {
   };
 
   const handleSearch = (e) => {
-    e.preventDefault()
+    e?.preventDefault?.();          
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleSearch();
+    if (e.key === 'Enter') handleSearch(e);  
   };
 
   const settings = [

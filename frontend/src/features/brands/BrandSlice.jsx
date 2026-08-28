@@ -34,8 +34,8 @@ const brandSlice = createSlice({
 
 export const selectBrandStatus = createSelector( [(state) => state.BrandSlice?.status], (status) => status || 'idle' )
 export const selectBrands = createSelector(
-    [(state) => state.BrandSlice?.brands],
-    (brands) => Array.isArray(brands) ? [...brands] : []
+  [(state) => state.BrandSlice?.brands],
+  (brands) => Array.isArray(brands) ? [...brands] : []
 )
 export const selectBrandErrors = createSelector( [(state) => state.BrandSlice?.errors], (errors) => errors || null )
 

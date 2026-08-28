@@ -92,8 +92,8 @@ export const ProductList = () => {
     const { t } = useTranslation()
 
     const sortOptions = [
-        { name: t('productList.priceLowToHigh'), sort: "price", order: "asc" },
-        { name: t('productList.priceHighToLow'), sort: "price", order: "desc" },
+        { name: t('productList.priceLowToHigh'), value: "price-asc", sort: "price", order: "asc" },
+        { name: t('productList.priceHighToLow'), value: "price-desc", sort: "price", order: "desc" },
     ]
 
     const handleBrandFilters = (e) => {
@@ -149,7 +149,16 @@ export const ProductList = () => {
     useEffect(() => {
         const finalFilters = { ...filters }
         finalFilters['pagination'] = { page: page, limit: ITEMS_PER_PAGE }
-        finalFilters['sort'] = sort
+
+        // Only send sort/order when a real option is selected
+        if (sort) {
+            const selectedSort = sortOptions.find(o => o.value === sort)
+            if (selectedSort) {
+                finalFilters['sort'] = selectedSort.sort
+                finalFilters['order'] = selectedSort.order
+            }
+        }
+
         if (searchQuery) { finalFilters['search'] = searchQuery }
         if (!loggedInUser?.isAdmin) { finalFilters['user'] = true }
         dispatch(fetchProductsAsync(finalFilters))
@@ -270,7 +279,6 @@ export const ProductList = () => {
                         <div className="relative h-full w-full">
                             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
                                 <div className="flex items-center gap-2">
-                                    {/* SKSuperStore Logo */}
                                     <span className="font-bold text-[#E31837] text-sm tracking-tight">SKSuperStore</span>
                                 </div>
                                 <button
@@ -309,7 +317,6 @@ export const ProductList = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
                                     </button>
-                                    {/* My Orders Navigation */}
                                     <button
                                         onClick={() => {
                                             dispatch(toggleFilters());
@@ -415,15 +422,19 @@ export const ProductList = () => {
 
                             <div className="flex flex-row px-2 sm:px-4 lg:px-8 justify-center sm:justify-end items-center gap-3 sm:gap-5">
                                 <div className="w-full sm:w-48">
-                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">{t('productList.sort')}</label>
+                                    <label htmlFor="product-sort" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                        {t('productList.sort')}
+                                    </label>
                                     <select
+                                        id="product-sort"
+                                        name="product-sort"
                                         value={sort}
                                         onChange={(e) => setSort(e.target.value)}
                                         className="w-full border-b border-gray-300 bg-transparent py-1.5 sm:py-2 pr-8 text-xs sm:text-sm focus:outline-none focus:border-black transition-colors cursor-pointer"
                                     >
                                         <option value="">{t('productList.reset')}</option>
                                         {sortOptions.map((option) => (
-                                            <option key={option.name} value={option.name}>{option.name}</option>
+                                            <option key={option.value} value={option.value}>{option.name}</option>
                                         ))}
                                     </select>
                                 </div>

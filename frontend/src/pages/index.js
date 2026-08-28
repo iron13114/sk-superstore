@@ -10,6 +10,7 @@ import { OtpVerificationPage } from "./OtpVerificationPage";
 import { ProductDetailsPage } from "./ProductDetailsPage";
 import { ProductUpdatePage } from "./ProductUpdatePage";
 import { ResetPasswordPage } from "./ResetPasswordPage";
+import { SearchPage } from "./SearchPage";
 import { SignupPage } from "./SignupPage";
 import { UserOrdersPage } from "./UserOrdersPage";
 import { UserProfilePage } from "./UserProfilePage";
@@ -31,5 +32,6 @@ export {
     AddProductPage,
     AdminOrdersPage,
     WishlistPage,
-    OtpVerificationPage
+    OtpVerificationPage,
+    SearchPage
 }

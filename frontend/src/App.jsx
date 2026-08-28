@@ -11,7 +11,7 @@ import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUse
 import {
   AddProductPage, AdminOrdersPage, CartPage, CheckoutPage, ForgotPasswordPage,
   HomePage, LoginPage, OrderSuccessPage, OtpVerificationPage, ProductDetailsPage,
-  ProductUpdatePage, ResetPasswordPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage
+  ProductUpdatePage, ResetPasswordPage, SearchPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage
 } from './pages';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { VerifyEmail } from './features/auth/components/VerifyEmail';
@@ -22,7 +22,6 @@ import { Homepage } from './features/homepage/components/Homepage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfUsePage } from './pages/TermsOfUsePage';
 import { FaqPage } from './pages/FaqPage';
-import { SearchPage } from './features/search/components/SearchPage'
 
 function App() {
   const isAuthChecked = useSelector(selectIsAuthChecked);

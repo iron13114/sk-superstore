@@ -1,60 +1,18 @@
-const mongoose=require("mongoose")
-const {Schema}=mongoose
+const mongoose = require('mongoose');
 
-const tierSchema = new mongoose.Schema({
-  type: { type: String, enum: ['single', 'pack', 'carton'], required: true },
-  label: { type: String, required: true },
-  quantity: { type: Number, required: true },  
-  price: { type: Number, required: true },
-  basePrice: { type: Number, default: 0 },
-  discountPercentage: { type: Number, default: 0 },
-  stockQuantity: { type: Number, required: true }
-})
+const productSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  price: { type: Number, required: true },                 
+  brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+  stockQuantity: { type: Number, default: 0 },
+  packagingTier: { type: String },                         
+  prices: {                                                
+    single: Number,
+    pack: Number,
+    carton: Number
+  },
+  isDeleted: { type: Boolean, default: false }
+}, { timestamps: true });
 
-const productSchema= new Schema({
-    title:{
-        type:String,
-        required:true
-    },
-    description:{
-        type:String,
-        required:true
-    },
-    price:{
-        type:Number,
-        required:true
-    },
-    discountPercentage: {
-        type: Number,
-        default: 0,
-    },
-    category:{
-        type:Schema.Types.ObjectId,
-        ref:"Category",
-        required:true
-    },
-    brand:{
-        type:Schema.Types.ObjectId,
-        ref:"Brand",
-        required:true
-    },
-    stockQuantity:{
-        type:Number,
-        required:true
-    },
-    thumbnail:{
-        type:String,
-        required:true
-    },
-    images:{
-        type:[String],
-        required:true
-    },
-    isDeleted:{
-        type:Boolean,
-        default:false
-    },
-     tiers: [tierSchema]
-},{timestamps:true,versionKey:false})
-
-module.exports=mongoose.model('Product',productSchema)
+module.exports = mongoose.model('Product', productSchema);

@@ -110,10 +110,14 @@ export const SearchPage = () => {
   const activeStock = searchParams.get('stock') || ''
   const page = parseInt(searchParams.get('page') || '1', 10)
   
-  // Packaging tier IDs only — labels come from i18n
+  const [searchInput, setSearchInput] = useState(query)
+  
+  useEffect(() => {
+    setSearchInput(query)
+  }, [query])
+  
   const packagingTiers = ['single', 'pack', 'carton']
   
-  // Sort options mapped to translation keys
   const sortOptions = [
     { value: 'relevance', labelKey: 'search.sort.relevance' },
     { value: 'price-low', labelKey: 'search.sort.priceLow' },
@@ -122,15 +126,19 @@ export const SearchPage = () => {
   ]
   
   useEffect(() => {
-    const filters = {
-      q: query,
-      category: activeCategory,
-      brand: activeBrand,
-      packagingTier: activePack,
-      inStock: activeStock === 'true',
-      pagination: { page, limit: 12 },
-      sort: sortBy
-    }
+    const filters = {}
+    
+    // Send 'search' because most existing API wrappers expect it
+    if (query) filters.search = query
+    if (activeCategory) filters.category = activeCategory
+    if (activeBrand) filters.brand = activeBrand
+    // Send 'pack' because the URL uses 'pack' and the API layer usually forwards it blindly
+    if (activePack) filters.pack = activePack
+    if (activeStock === 'true') filters.inStock = true
+    
+    filters.pagination = { page, limit: 12 }
+    filters.sort = sortBy
+    
     dispatch(fetchProductsAsync(filters))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [dispatch, query, activeCategory, activeBrand, activePack, activeStock, sortBy, page])
@@ -144,6 +152,10 @@ export const SearchPage = () => {
     }
     params.set('page', '1') 
     setSearchParams(params)
+  }
+  
+  const handleSearch = () => {
+    updateFilter('q', searchInput.trim())
   }
   
   const clearFilters = () => {
@@ -214,7 +226,6 @@ export const SearchPage = () => {
   
   return (
     <div className="min-h-screen bg-white">
-      {/* Top Search Bar */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-3">
@@ -222,12 +233,30 @@ export const SearchPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                value={query}
-                onChange={(e) => updateFilter('q', e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder={t('search.placeholder')}
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0055A4] focus:ring-1 focus:ring-[#0055A4]"
               />
             </div>
+            
+            <button 
+              onClick={handleSearch}
+              className="hidden sm:flex px-4 py-2.5 bg-[#0055A4] text-white text-sm font-medium rounded-lg hover:bg-[#004080] transition-colors items-center gap-2"
+            >
+              <Search size={16} />
+              {t('search.searchBtn', 'Search')}
+            </button>
+            
+            <button 
+              onClick={handleSearch}
+              className="sm:hidden p-2.5 bg-[#0055A4] text-white rounded-lg"
+              aria-label={t('search.searchBtn', 'Search')}
+            >
+              <Search size={18} />
+            </button>
+            
             <button 
               onClick={() => setMobileFiltersOpen(true)}
               className="md:hidden p-2.5 border border-gray-200 rounded-lg"
@@ -237,7 +266,6 @@ export const SearchPage = () => {
             </button>
           </div>
           
-          {/* Quick filter chips */}
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
             <QuickFilterChip 
               label={t('search.all')} 
@@ -257,7 +285,6 @@ export const SearchPage = () => {
       </div>
       
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
-        {/* Results Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-lg font-bold text-gray-900">
@@ -302,7 +329,6 @@ export const SearchPage = () => {
         </div>
         
         <div className="flex gap-8">
-          {/* Desktop Sidebar */}
           <aside className="hidden md:block w-64 flex-shrink-0">
             <div className="sticky top-28">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -312,12 +338,10 @@ export const SearchPage = () => {
             </div>
           </aside>
           
-          {/* Mobile Filter Drawer */}
           <MobileFilterDrawer open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)}>
             <FilterContent />
           </MobileFilterDrawer>
           
-          {/* Product Grid */}
           <main className="flex-1 min-w-0">
             {products.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -343,21 +367,27 @@ export const SearchPage = () => {
                   ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4" 
                   : "flex flex-col gap-3"
                 }>
-                  {products.map(product => (
-                    <ProductCard 
-                      key={product._id}
-                      id={product._id}
-                      title={product.title}
-                      thumbnail={product.thumbnail}
-                      brand={product.brand?.name || product.brand}
-                      price={product.price}
-                      stockQuantity={product.stockQuantity}
-                      reviews={product.reviews}
-                      packagingTier={product.packagingTier}
-                      variantPrice={product.variantPrice}
-                      viewMode={viewMode}
-                    />
-                  ))}
+                  {products.map(product => {
+                    // Compute tier price: if a pack is selected and the product has that tier price, use it
+                    const effectivePrice = activePack && product.prices?.[activePack]
+                      ? product.prices[activePack]
+                      : product.price
+                    
+                    return (
+                      <ProductCard 
+                        key={product._id}
+                        id={product._id}
+                        title={product.title}
+                        thumbnail={product.thumbnail}
+                        brand={product.brand?.name || product.brand}
+                        price={effectivePrice}
+                        stockQuantity={product.stockQuantity}
+                        reviews={product.reviews}
+                        packagingTier={product.packagingTier}
+                        viewMode={viewMode}
+                      />
+                    )
+                  })}
                 </div>
                 
                 {totalResults > 12 && (

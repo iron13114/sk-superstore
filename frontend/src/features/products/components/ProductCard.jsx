@@ -235,8 +235,9 @@ export const ProductCard = ({
 
                 {/* price + cart */}
                 <div className="flex flex-row justify-between items-center gap-1">
+                    {/* Changed: use variantPrice when available, same as list view */}
                     <PriceDisplay 
-                        price={price} 
+                        price={variantPrice || price} 
                         basePrice={basePrice} 
                         discountPercentage={discountPercentage} 
                     />

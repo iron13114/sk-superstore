@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, createSelector } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { addProduct, deleteProductById, fetchProductById, fetchProducts, undeleteProductById, updateProductById } from "./ProductApi";
 
 const initialState = {
@@ -20,15 +20,22 @@ export const addProductAsync = createAsyncThunk("products/addProductAsync", asyn
 })
 
 export const fetchProductsAsync = createAsyncThunk("products/fetchProductsAsync", async (filters) => {
-    const res = await fetchProducts(filters)
+    const clean = {};
+    Object.entries(filters || {}).forEach(([key, val]) => {
+        if (val === undefined || val === null || val === '' || val === 'undefined') return;
+        if (Array.isArray(val) && val.length === 0) return;
+        clean[key] = val;
+    });
+
+    const res = await fetchProducts(clean);
     if (Array.isArray(res)) {
-        return { data: res, totalResults: res.length }
+        return { data: res, totalResults: res.length };
     }
     return {
         data: res?.data || [],
         totalResults: res?.totalResults || res?.data?.length || 0
-    }
-})
+    };
+});
 
 export const fetchProductByIdAsync = createAsyncThunk("products/fetchProductByIdAsync", async (id) => {
     const selectedProduct = await fetchProductById(id)
@@ -51,7 +58,7 @@ export const deleteProductByIdAsync = createAsyncThunk("products/deleteProductBy
 })
 
 const productSlice = createSlice({
-    name: "ProductSlice",  
+    name: "ProductSlice",
     initialState,
     reducers: {
         clearProductErrors: (state) => { state.errors = null },
@@ -143,7 +150,8 @@ const productSlice = createSlice({
     }
 })
 
-export const selectProducts = createSelector( [(state) => state.ProductSlice?.products], (products) => Array.isArray(products) ? [...products] : [] )
+export const selectProducts = (state) => state.ProductSlice?.products || []
+
 export const selectProductStatus = (state) => state.ProductSlice?.status || 'idle'
 export const selectProductTotalResults = (state) => state.ProductSlice?.totalResults || 0
 export const selectSelectedProduct = (state) => state.ProductSlice?.selectedProduct || null

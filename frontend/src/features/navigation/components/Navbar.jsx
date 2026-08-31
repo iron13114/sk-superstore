@@ -197,13 +197,17 @@ export const Navbar = ({ isProductList = false }) => {
 
   const getSearchBtnStyles = () => ({
     height: isMobile ? '32px' : '36px',
-    width: isMobile ? '36px' : '44px',
+    width: isMobile ? '32px' : '36px',
+    minWidth: isMobile ? '32px' : '36px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#febd69',
+    padding: 0,
+    margin: 0,
+    boxSizing: 'border-box',
+    backgroundColor: '#0055A4',
     border: 'none',
-    borderRadius: '0 4px 4px 0',
+    borderRadius: '6px',
     cursor: 'pointer',
     flexShrink: 0,
   });
@@ -472,7 +476,7 @@ export const Navbar = ({ isProductList = false }) => {
               />
 
               <button onClick={handleSearch} style={getSearchBtnStyles()}>
-                <svg style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px', color: '#131921' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px', color: '#ffffff' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>

@@ -4,6 +4,7 @@ import { Navbar } from '../features/navigation/components/Navbar'
 import { Footer } from '../features/footer/Footer'
 import { Homepage } from '../features/homepage/components/Homepage'
 import { resetAddressStatus, selectAddressStatus } from '../features/address/AddressSlice'
+import { PageTransition } from '../components/PageTransition';
 
 export const HomePage = () => {
     const dispatch = useDispatch()
@@ -16,10 +17,10 @@ export const HomePage = () => {
     }, [addressStatus, dispatch])
 
     return (
-        <>
+        <PageTransition>
             <Navbar isProductList={true} />
             <Homepage />
             <Footer />
-        </>
+        </PageTransition>
     )
 }

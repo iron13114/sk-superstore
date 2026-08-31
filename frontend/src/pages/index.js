@@ -16,22 +16,25 @@ import { UserOrdersPage } from "./UserOrdersPage";
 import { UserProfilePage } from "./UserProfilePage";
 import { WishlistPage } from "./WishlistPage";
 
-export {
-    SignupPage,
-    LoginPage,
-    ForgotPasswordPage,
-    ResetPasswordPage,
-    HomePage,
-    ProductDetailsPage,
-    CartPage,
-    UserProfilePage,
-    CheckoutPage,
-    OrderSuccessPage,
-    UserOrdersPage,
-    ProductUpdatePage,
-    AddProductPage,
-    AdminOrdersPage,
-    WishlistPage,
-    OtpVerificationPage,
-    SearchPage
-}
+export * from "./AddProductPage";
+export * from "./AdminDashboardPage";
+export * from "./AdminOrdersPage";
+export * from "./CartPage";
+export * from "./CheckoutPage";
+export * from "./FaqPage";
+export * from "./ForgotPasswordPage";
+export * from "./HomePage";
+export * from "./LoginPage";
+export * from "./NotFoundPage";
+export * from "./OrderSuccessPage";
+export * from "./OtpVerificationPage";
+export * from "./PrivacyPolicyPage";
+export * from "./ProductDetailsPage";
+export * from "./ProductUpdatePage";
+export * from "./ResetPasswordPage";
+export * from "./SearchPage";
+export * from "./SignupPage";
+export * from "./TermsOfUsePage";
+export * from "./UserOrdersPage";
+export * from "./UserProfilePage";
+export * from "./WishlistPage";

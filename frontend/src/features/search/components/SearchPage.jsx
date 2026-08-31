@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { SlidersHorizontal, Grid3X3, List, ChevronDown, X, Search, AlertCircle } from 'lucide-react'
+import { SlidersHorizontal, Grid3X3, List, ChevronDown, X, Search, AlertCircle, Home } from 'lucide-react'
 import { selectProducts, selectProductTotalResults, fetchProductsAsync } from '../../products/ProductSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
 import { selectBrands } from '../../brands/BrandSlice'
@@ -93,56 +93,54 @@ export const SearchPage = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { t } = useTranslation()
-  
+
   const products = useSelector(selectProducts)
   const totalResults = useSelector(selectProductTotalResults)
   const categories = useSelector(selectCategories)
   const brands = useSelector(selectBrands)
-  
+
   const [viewMode, setViewMode] = useState('grid') 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'relevance')
-  
+
   const query = searchParams.get('q') || ''
   const activeCategory = searchParams.get('category') || ''
   const activeBrand = searchParams.get('brand') || ''
   const activePack = searchParams.get('pack') || ''
   const activeStock = searchParams.get('stock') || ''
   const page = parseInt(searchParams.get('page') || '1', 10)
-  
+
   const [searchInput, setSearchInput] = useState(query)
-  
+
   useEffect(() => {
     setSearchInput(query)
   }, [query])
-  
+
   const packagingTiers = ['single', 'pack', 'carton']
-  
+
   const sortOptions = [
     { value: 'relevance', labelKey: 'search.sort.relevance' },
     { value: 'price-low', labelKey: 'search.sort.priceLow' },
     { value: 'price-high', labelKey: 'search.sort.priceHigh' },
     { value: 'stock', labelKey: 'search.sort.stock' }
   ]
-  
+
   useEffect(() => {
     const filters = {}
-    
-    // Send 'search' because most existing API wrappers expect it
+
     if (query) filters.search = query
     if (activeCategory) filters.category = activeCategory
     if (activeBrand) filters.brand = activeBrand
-    // Send 'pack' because the URL uses 'pack' and the API layer usually forwards it blindly
     if (activePack) filters.pack = activePack
     if (activeStock === 'true') filters.inStock = true
-    
+
     filters.pagination = { page, limit: 12 }
     filters.sort = sortBy
-    
+
     dispatch(fetchProductsAsync(filters))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [dispatch, query, activeCategory, activeBrand, activePack, activeStock, sortBy, page])
-  
+
   const updateFilter = (key, value) => {
     const params = new URLSearchParams(searchParams)
     if (value) {
@@ -153,19 +151,19 @@ export const SearchPage = () => {
     params.set('page', '1') 
     setSearchParams(params)
   }
-  
+
   const handleSearch = () => {
     updateFilter('q', searchInput.trim())
   }
-  
+
   const clearFilters = () => {
     const params = new URLSearchParams()
     if (query) params.set('q', query)
     setSearchParams(params)
   }
-  
+
   const hasActiveFilters = activeCategory || activeBrand || activePack || activeStock
-  
+
   const FilterContent = () => (
     <div className="space-y-1">
       <FilterSection title={t('search.category')}>
@@ -180,7 +178,7 @@ export const SearchPage = () => {
           ))}
         </div>
       </FilterSection>
-      
+
       <FilterSection title={t('search.brand')}>
         <div className="space-y-0.5 max-h-48 overflow-y-auto">
           {brands.map(b => (
@@ -193,7 +191,7 @@ export const SearchPage = () => {
           ))}
         </div>
       </FilterSection>
-      
+
       <FilterSection title={t('search.packagingTitle')}>
         {packagingTiers.map(tier => (
           <FilterCheckbox
@@ -204,7 +202,7 @@ export const SearchPage = () => {
           />
         ))}
       </FilterSection>
-      
+
       <FilterSection title={t('search.availability')}>
         <FilterCheckbox
           label={t('search.inStockOnly')}
@@ -212,7 +210,7 @@ export const SearchPage = () => {
           onChange={() => updateFilter('stock', activeStock === 'true' ? '' : 'true')}
         />
       </FilterSection>
-      
+
       {hasActiveFilters && (
         <button 
           onClick={clearFilters}
@@ -223,12 +221,22 @@ export const SearchPage = () => {
       )}
     </div>
   )
-  
+
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-3">
+            {/* Home Button */}
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center justify-center p-2.5 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
+              title={t('nav.home', 'Home')}
+              aria-label={t('nav.home', 'Home')}
+            >
+              <Home className="w-5 h-5 text-gray-700" />
+            </button>
+
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
@@ -240,15 +248,17 @@ export const SearchPage = () => {
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0055A4] focus:ring-1 focus:ring-[#0055A4]"
               />
             </div>
-            
+
+            {/* Desktop Search Button — icon only */}
             <button 
               onClick={handleSearch}
-              className="hidden sm:flex px-4 py-2.5 bg-[#0055A4] text-white text-sm font-medium rounded-lg hover:bg-[#004080] transition-colors items-center gap-2"
+              className="hidden sm:flex p-2.5 bg-[#0055A4] text-white rounded-lg hover:bg-[#004080] transition-colors items-center justify-center"
+              aria-label={t('search.searchBtn', 'Search')}
             >
-              <Search size={16} />
-              {t('search.searchBtn', 'Search')}
+              <Search size={18} />
             </button>
-            
+
+            {/* Mobile Search Button — icon only */}
             <button 
               onClick={handleSearch}
               className="sm:hidden p-2.5 bg-[#0055A4] text-white rounded-lg"
@@ -256,7 +266,7 @@ export const SearchPage = () => {
             >
               <Search size={18} />
             </button>
-            
+
             <button 
               onClick={() => setMobileFiltersOpen(true)}
               className="md:hidden p-2.5 border border-gray-200 rounded-lg"
@@ -265,7 +275,7 @@ export const SearchPage = () => {
               <SlidersHorizontal size={18} />
             </button>
           </div>
-          
+
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
             <QuickFilterChip 
               label={t('search.all')} 
@@ -283,7 +293,7 @@ export const SearchPage = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
@@ -294,7 +304,7 @@ export const SearchPage = () => {
               {t('search.productsFound', { count: totalResults })}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="relative">
               <select
@@ -308,7 +318,7 @@ export const SearchPage = () => {
               </select>
               <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
             </div>
-            
+
             <div className="hidden sm:flex border border-gray-200 rounded-lg overflow-hidden">
               <button 
                 onClick={() => setViewMode('grid')}
@@ -327,7 +337,7 @@ export const SearchPage = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="flex gap-8">
           <aside className="hidden md:block w-64 flex-shrink-0">
             <div className="sticky top-28">
@@ -337,11 +347,11 @@ export const SearchPage = () => {
               <FilterContent />
             </div>
           </aside>
-          
+
           <MobileFilterDrawer open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)}>
             <FilterContent />
           </MobileFilterDrawer>
-          
+
           <main className="flex-1 min-w-0">
             {products.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -363,11 +373,19 @@ export const SearchPage = () => {
               </div>
             ) : (
               <>
-                <div className={viewMode === 'grid' 
-                  ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4" 
-                  : "flex flex-col gap-3"
-                }>
-                  {products.map(product => {
+                <motion.div 
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: { opacity: 1, transition: { staggerChildren: 0.06 } }
+                  }}
+                  className={viewMode === 'grid' 
+                    ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4" 
+                    : "flex flex-col gap-3"
+                  }
+                >
+                  {products.map((product) => {
                     const selectedTier = activePack
                       ? product.tiers?.find(t => t.type === activePack)
                       : null
@@ -378,24 +396,30 @@ export const SearchPage = () => {
                     const tierLabel = selectedTier?.label || ''
 
                     return (
-                      <ProductCard 
+                      <motion.div
                         key={product._id}
-                        id={product._id}
-                        title={product.title}
-                        thumbnail={product.thumbnail}
-                        brand={product.brand?.name || product.brand}
-                        price={effectivePrice}
-                        basePrice={product.price}           
-                        stockQuantity={effectiveStock}
-                        discountPercentage={effectiveDiscount}
-                        reviews={product.reviews}
-                        packagingTier={tierLabel}
-                        viewMode={viewMode}
-                      />
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          visible: { opacity: 1, y: 0 }
+                        }}
+                      >
+                        <ProductCard 
+                          id={product._id}
+                          title={product.title}
+                          thumbnail={product.thumbnail}
+                          brand={product.brand?.name || product.brand}
+                          price={effectivePrice}
+                          basePrice={product.price}           
+                          stockQuantity={effectiveStock}
+                          discountPercentage={effectiveDiscount}
+                          reviews={product.reviews}
+                          packagingTier={tierLabel}
+                          viewMode={viewMode}
+                        />
+                      </motion.div>
                     )
                   })}
-                </div>
-                
+                </motion.div>
                 {totalResults > 12 && (
                   <div className="flex items-center justify-center gap-2 mt-10">
                     <button

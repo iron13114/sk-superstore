@@ -1,29 +1,66 @@
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Navigate, Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+  useLocation,
+  useOutlet
+} from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
+
 import { selectIsAuthChecked, selectLoggedInUser } from './features/auth/AuthSlice';
 import { Logout } from './features/auth/components/Logout';
 import { Protected } from './features/auth/components/Protected';
-import { useAuthCheck } from "./hooks/useAuth/useAuthCheck";
-import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUserDetails";
-import {
-  AddProductPage, AdminOrdersPage, CartPage, CheckoutPage, ForgotPasswordPage,
-  HomePage, LoginPage, OrderSuccessPage, OtpVerificationPage, ProductDetailsPage,
-  ProductUpdatePage, ResetPasswordPage, SearchPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage
-} from './pages';
-import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { VerifyEmail } from './features/auth/components/VerifyEmail';
-import { NotFoundPage } from './pages/NotFoundPage';
 import { TrackOrder } from './features/order/components/TrackOrder';
-import { useEffect, useState } from 'react';
-import { Homepage } from './features/homepage/components/Homepage';
-import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
-import { TermsOfUsePage } from './pages/TermsOfUsePage';
-import { FaqPage } from './pages/FaqPage';
+import { useAuthCheck } from './hooks/useAuth/useAuthCheck';
+import { useFetchLoggedInUserDetails } from './hooks/useAuth/useFetchLoggedInUserDetails';
+import { PageTransition } from './components/PageTransition';
+import { ScrollToTop } from './components/ScrollToTop';
 
-function App() {
+import {
+  AddProductPage,
+  AdminDashboardPage,
+  AdminOrdersPage,
+  CartPage,
+  CheckoutPage,
+  FaqPage,
+  ForgotPasswordPage,
+  HomePage,
+  LoginPage,
+  NotFoundPage,
+  OrderSuccessPage,
+  OtpVerificationPage,
+  PrivacyPolicyPage,
+  ProductDetailsPage,
+  ProductUpdatePage,
+  ResetPasswordPage,
+  SearchPage,
+  SignupPage,
+  TermsOfUsePage,
+  UserOrdersPage,
+  UserProfilePage,
+  WishlistPage,
+} from './pages';
+
+function AnimatedLayout() {
+  const location = useLocation();
+  const outlet = useOutlet();
+return (
+    <AnimatePresence mode="wait" initial={false}>
+      {outlet && React.cloneElement(outlet, { key: location.pathname })}
+    </AnimatePresence>
+  );
+}
+
+export default function App() {
   const isAuthChecked = useSelector(selectIsAuthChecked);
   const loggedInUser = useSelector(selectLoggedInUser);
 
@@ -39,62 +76,66 @@ function App() {
 
   const ready = isAuthChecked || authTimeout;
 
-  const routes = createBrowserRouter(
-    createRoutesFromElements(
-      <>
-        {loggedInUser?.isAdmin ? (
-          <>
-            <Route path='/signup' element={<SignupPage />} />
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/verify-otp' element={<OtpVerificationPage />} />
-            <Route path='/forgot-password' element={<ForgotPasswordPage />} />
-            <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage />} />
-            <Route exact path='/logout' element={<Protected><Logout /></Protected>} />
-            <Route exact path='/product-details/:id' element={<Protected><ProductDetailsPage /></Protected>} />
-            <Route path='/admin/dashboard' element={<Protected><AdminDashboardPage /></Protected>} />
-            <Route path='/admin/product-update/:id' element={<Protected><ProductUpdatePage /></Protected>} />
-            <Route path='/admin/add-product' element={<Protected><AddProductPage /></Protected>} />
-            <Route path='/admin/orders' element={<Protected><AdminOrdersPage /></Protected>} />
-            <Route path='*' element={<Navigate to={'/admin/dashboard'} />} />
-          </>
-        ) : (
-          <>
-            <Route path='/' element={<HomePage />} />
-            <Route path="/" element={<Homepage />} />
-            <Route path='/product-details/:id' element={<ProductDetailsPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path='/cart' element={<CartPage />} />
-            <Route path='/checkout' element={<CheckoutPage />} />
-            <Route path='/wishlist' element={<WishlistPage />} />
-            <Route path='/track-order/:id?' element={<TrackOrder />} />
-            <Route path='/signup' element={<SignupPage />} />
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/verify-otp' element={<OtpVerificationPage />} />
-            <Route path='/forgot-password' element={<ForgotPasswordPage />} />
-            <Route path='/reset-password/:userId/:passwordResetToken' element={<ResetPasswordPage />} />
-            <Route exact path='/logout' element={<Protected><Logout /></Protected>} />
-            <Route path="/verify-email/:token" element={<VerifyEmail />} />
-            <Route path='/profile' element={<Protected><UserProfilePage /></Protected>} />
-            <Route path='/order-success/:id' element={<Protected><OrderSuccessPage /></Protected>} />
-            <Route path='/orders' element={<Protected><UserOrdersPage /></Protected>} />
-            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-            <Route path="/terms-of-use" element={<TermsOfUsePage />} />
-            <Route path="/faq" element={<FaqPage />} />
-          </>
-        )}
-        <Route path='*' element={<NotFoundPage />} />
-      </>
-    )
-  );
+  const router = useMemo(() => {
+    return createBrowserRouter(
+      createRoutesFromElements(
+        <Route element={<AnimatedLayout />}>
+          {loggedInUser?.isAdmin ? (
+            <>
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/verify-otp" element={<OtpVerificationPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password/:userId/:passwordResetToken" element={<ResetPasswordPage />} />
+              <Route exact path="/logout" element={<Protected><Logout /></Protected>} />
+              <Route exact path="/product-details/:id" element={<Protected><ProductDetailsPage /></Protected>} />
+              <Route path="/admin/dashboard" element={<Protected><AdminDashboardPage /></Protected>} />
+              <Route path="/admin/product-update/:id" element={<Protected><ProductUpdatePage /></Protected>} />
+              <Route path="/admin/add-product" element={<Protected><AddProductPage /></Protected>} />
+              <Route path="/admin/orders" element={<Protected><AdminOrdersPage /></Protected>} />
+              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/product-details/:id" element={<ProductDetailsPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/track-order/:id?" element={<TrackOrder />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/verify-otp" element={<OtpVerificationPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password/:userId/:passwordResetToken" element={<ResetPasswordPage />} />
+              <Route exact path="/logout" element={<Protected><Logout /></Protected>} />
+              <Route path="/verify-email/:token" element={<VerifyEmail />} />
+              <Route path="/profile" element={<Protected><UserProfilePage /></Protected>} />
+              <Route path="/order-success/:id" element={<Protected><OrderSuccessPage /></Protected>} />
+              <Route path="/orders" element={<Protected><UserOrdersPage /></Protected>} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </>
+          )}
+        </Route>
+      )
+    );
+  }, [loggedInUser?.isAdmin]);
 
   return (
     <>
-      {ready ? <RouterProvider router={routes} /> : (
+      {ready ? (
+        <RouterProvider router={router} />
+      ) : (
         <div className="h-screen w-full flex flex-col items-center justify-center bg-white">
           <div className="w-10 h-10 border-4 border-gray-200 border-t-[#E31837] rounded-full animate-spin mb-4" />
           <p className="text-sm text-gray-500">Waking up server...</p>
         </div>
       )}
+
       <ToastContainer
         position="top-center"
         autoClose={4000}
@@ -104,7 +145,7 @@ function App() {
         rtl={false}
         pauseOnFocusLoss
         draggable
-        limit={1}  
+        limit={1}
         pauseOnHover
         theme="light"
         toastClassName={() =>
@@ -116,5 +157,3 @@ function App() {
     </>
   );
 }
-
-export default App;

@@ -74,3 +74,27 @@ Thumbs.db
 
 # Vite
 *.local
+# ==========================================
+# Seed & Database Data (REAL BUSINESS)
+# ==========================================
+backend/seed/
+*.seed.json
+*.dump.sql
+*.dump.gz
+dump/
+
+# ==========================================
+# User Uploads & Generated Files
+# ==========================================
+backend/public/uploads/
+backend/public/images/
+uploads/
+temp/
+tmp/
+
+# ==========================================
+# Docker Local Data
+# ==========================================
+mongo-data/
+*.local.yml
+docker-compose.override.yml

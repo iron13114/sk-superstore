@@ -17,9 +17,10 @@ import 'swiper/css'
 import { useTranslation } from 'react-i18next';
 
 const useMediaQuery = (query) => {
-    const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+    const [matches, setMatches] = useState(false);
     useEffect(() => {
         const media = window.matchMedia(query);
+        setMatches(media.matches);
         const listener = (e) => setMatches(e.matches);
         media.addEventListener('change', listener);
         return () => media.removeEventListener('change', listener);
@@ -57,10 +58,8 @@ const ReadOnlyRating = ({ value }) => (
     </div>
 )
 
-// Amazon-style tier price display
 const TierPriceDisplay = ({ basePrice, price, discount }) => {
     const hasDiscount = discount > 0 && basePrice > price;
-
     return (
         <div className="flex items-baseline gap-1.5 flex-wrap mt-0.5">
             {hasDiscount && (
@@ -193,7 +192,7 @@ export const ProductDetails = () => {
 
     const [activeStep, setActiveStep] = useState(0);
     const swiperRef = useRef(null);
-    const maxSteps = product?.images ? product.images.length : 0;
+    const maxSteps = product?.images?.length || 0;
 
     const handleNext = () => {
         if (swiperRef.current) swiperRef.current.slideNext();
@@ -248,24 +247,51 @@ export const ProductDetails = () => {
         ? product.tiers.map(t => t.type) 
         : ['single', 'pack', 'carton']
 
+    if (productFetchStatus === 'rejected' && reviewFetchStatus === 'rejected') {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('productDetails.errorLoading')}</h2>
+                <p className="text-sm text-gray-500 mb-4">{t('productDetails.tryAgainLater')}</p>
+                <button 
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-[#0055A4] text-white text-sm rounded-lg hover:bg-[#004080]"
+                >
+                    {t('productDetails.retry')}
+                </button>
+            </div>
+        )
+    }
+
+    const isLoading = productFetchStatus === 'pending' || reviewFetchStatus === 'pending'
+
     return (
-        <>
-        {!(productFetchStatus === 'rejected' && reviewFetchStatus === 'rejected') && (
-            <div className="flex flex-col justify-center items-center mb-8 gap-8">
-            {
-                (productFetchStatus === 'pending' || reviewFetchStatus === 'pending') ?
-                <div className={`flex justify-center items-center ${is500 ? "w-[35vh]" : 'w-96'} h-[calc(100vh-4rem)]`}>
-                    <Lottie animationData={loadingAnimation} />
+        <div className="min-h-screen bg-white">
+            {isLoading ? (
+                <div className="min-h-[60vh] flex justify-center items-center">
+                    <div className={`${is500 ? "w-64" : 'w-96'} h-96`}>
+                        <Lottie animationData={loadingAnimation} />
+                    </div>
                 </div>
-                :
+            ) : (
                 <div className="flex flex-col">
-                    <div className={`flex ${is840 ? "flex-col h-auto" : "flex-row h-[50rem]"} ${is480 ? "p-2" : "p-0"} ${is840 ? "mt-0" : "mt-20"} justify-center mb-20 gap-y-20 ${is990 ? "gap-x-8" : "gap-x-20"} ${is1420 || is480 ? "w-auto" : 'w-[88rem]'}`}>
+                    <div className={`
+                        flex 
+                        ${is840 ? "flex-col" : "flex-row"} 
+                        ${is480 ? "p-3" : "p-0"} 
+                        ${is840 ? "mt-0" : "mt-20"} 
+                        justify-center 
+                        mb-10 
+                        ${is480 ? "gap-y-6" : "gap-y-20"} 
+                        ${is990 ? "gap-x-8" : "gap-x-20"} 
+                        ${is1420 || is480 ? "w-full max-w-full" : 'w-[88rem]'}
+                        mx-auto
+                    `}>
 
                         {/* Left Side: Images */}
-                        <div className="flex flex-row gap-x-10 self-start h-full">
-                            {!is1420 && (
+                        <div className={`flex flex-row gap-x-6 self-start ${is480 ? "w-full" : ""}`}>
+                            {!is1420 && product?.images?.length > 0 && (
                                 <div className="flex flex-col gap-y-6 h-full overflow-y-auto">
-                                    {product && product.images.map((image, index) => (
+                                    {product.images.map((image, index) => (
                                         <motion.div 
                                             key={index} 
                                             whileHover={{ scale: 1.1 }} 
@@ -284,68 +310,82 @@ export const ProductDetails = () => {
                                 </div>
                             )}
 
-                            <div className={is480 ? "mt-0" : "mt-20"}>
+                            <div className={`${is480 ? "mt-0 w-full" : "mt-20"}`}>
                                 {is1420 ? (
                                     <div className={`${is480 ? "w-full" : is990 ? 'w-[400px]' : "w-[500px]"}`}>
-                                        <Swiper
-                                            modules={[Autoplay]}
-                                            autoplay={{
-                                                delay: 3000,
-                                                disableOnInteraction: false,
-                                            }}
-                                            onSwiper={(swiper) => (swiperRef.current = swiper)}
-                                            onSlideChange={(swiper) => setActiveStep(swiper.activeIndex)}
-                                            slidesPerView={1}
-                                            spaceBetween={0}
-                                        >
-                                            {product?.images?.map((image, index) => (
-                                                <SwiperSlide key={index}>
-                                                    <img 
-                                                        src={image} 
-                                                        alt={product?.title} 
-                                                        className="w-full object-contain aspect-square"
-                                                        onError={(e) => { e.target.src = '/placeholder-product.png' }}
-                                                    />
-                                                </SwiperSlide>
-                                            ))}
-                                        </Swiper>
+                                        {product?.images && product.images.length > 0 ? (
+                                            <>
+                                                <Swiper
+                                                    modules={[Autoplay]}
+                                                    autoplay={{
+                                                        delay: 3000,
+                                                        disableOnInteraction: false,
+                                                    }}
+                                                    onSwiper={(swiper) => (swiperRef.current = swiper)}
+                                                    onSlideChange={(swiper) => setActiveStep(swiper.activeIndex)}
+                                                    slidesPerView={1}
+                                                    spaceBetween={0}
+                                                >
+                                                    {product.images.map((image, index) => (
+                                                        <SwiperSlide key={index}>
+                                                            <img 
+                                                                src={image} 
+                                                                alt={product?.title} 
+                                                                className="w-full object-contain aspect-square"
+                                                                onError={(e) => { e.target.src = '/placeholder-product.png' }}
+                                                            />
+                                                        </SwiperSlide>
+                                                    ))}
+                                                </Swiper>
 
-                                        <div className="flex items-center justify-between py-2 px-1">
-                                            <button 
-                                                onClick={handleBack} 
-                                                disabled={activeStep === 0}
-                                                className="text-sm text-gray-700 hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                {t('productDetails.back')}
-                                            </button>
-                                            <div className="flex items-center gap-1.5">
-                                                {Array.from({ length: maxSteps }, (_, i) => (
-                                                    <div
-                                                        key={i}
-                                                        className={`rounded-full transition-all duration-300 ${
-                                                            i === activeStep ? 'w-5 h-2 bg-black' : 'w-2 h-2 bg-gray-300'
-                                                        }`}
-                                                    />
-                                                ))}
+                                                {maxSteps > 1 && (
+                                                    <div className="flex items-center justify-between py-2 px-1">
+                                                        <button 
+                                                            onClick={handleBack} 
+                                                            disabled={activeStep === 0}
+                                                            className="text-sm text-gray-700 hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                        >
+                                                            {t('productDetails.back')}
+                                                        </button>
+                                                        <div className="flex items-center gap-1.5">
+                                                            {Array.from({ length: maxSteps }, (_, i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className={`rounded-full transition-all duration-300 ${
+                                                                        i === activeStep ? 'w-5 h-2 bg-black' : 'w-2 h-2 bg-gray-300'
+                                                                    }`}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <button 
+                                                            onClick={handleNext} 
+                                                            disabled={activeStep === maxSteps - 1}
+                                                            className="text-sm text-gray-700 hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                        >
+                                                            {t('productDetails.next')}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="w-full aspect-square bg-gray-100 flex items-center justify-center rounded-lg">
+                                                <span className="text-gray-400 text-sm">{t('productDetails.noImage')}</span>
                                             </div>
-                                            <button 
-                                                onClick={handleNext} 
-                                                disabled={activeStep === maxSteps - 1}
-                                                className="text-sm text-gray-700 hover:bg-gray-100 px-2 py-1 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                {t('productDetails.next')}
-                                            </button>
-                                        </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="w-full">
-                                        {product?.images && (
+                                        {product?.images && product.images.length > 0 ? (
                                             <img 
                                                 className="w-full object-contain overflow-hidden aspect-square" 
                                                 src={product.images[selectedImageIndex]} 
                                                 alt={product?.title}
                                                 onError={(e) => { e.target.src = '/placeholder-product.png' }}
                                             />
+                                        ) : (
+                                            <div className="w-full aspect-square bg-gray-100 flex items-center justify-center rounded-lg">
+                                                <span className="text-gray-400 text-sm">{t('productDetails.noImage')}</span>
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -353,9 +393,9 @@ export const ProductDetails = () => {
                         </div>
 
                         {/* Right Side: Product Details & Wholesale Purchase Card */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 w-full">
                             {!loggedInUser?.isAdmin && (
-                                <div className="p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
+                                <div className="p-4 sm:p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
                                     <h2 className="text-lg font-semibold mb-4">{t('productDetails.selectWholesaleOptions')}</h2>
 
                                     {product && !product.tiers?.length && !product.price ? (
@@ -367,22 +407,21 @@ export const ProductDetails = () => {
                                             {tierTypes.map((tierType) => {
                                                 const display = getTierDisplay(tierType)
                                                 return (
-                                                    <div key={tierType} className="flex flex-row justify-between items-center">
-                                                        <div>
+                                                    <div key={tierType} className="flex flex-row justify-between items-center gap-2">
+                                                        <div className="min-w-0">
                                                             <div className="flex items-center gap-2">
-                                                                <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                                                                <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase shrink-0 ${
                                                                     tierType === 'single' ? 'bg-gray-100 text-gray-800' :
                                                                     tierType === 'pack' ? 'bg-[#0055A4] text-white' :
                                                                     'bg-[#111827] text-white'
                                                                 }`}>
                                                                     QTY {display.qty}
                                                                 </span>
-                                                                <p className="text-base font-medium">
+                                                                <p className="text-base font-medium truncate">
                                                                     {display.label}
                                                                 </p>
                                                             </div>
 
-                                                            {/* Amazon-style price display */}
                                                             <TierPriceDisplay 
                                                                 basePrice={display.basePrice} 
                                                                 price={display.price} 
@@ -401,7 +440,7 @@ export const ProductDetails = () => {
                                                             </p>
                                                         </div>
 
-                                                        <div className="flex flex-row items-center">
+                                                        <div className="flex flex-row items-center shrink-0">
                                                             <button 
                                                                 onClick={() => handleUpdateTierQty(tierType, 'dec')}
                                                                 className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
@@ -446,13 +485,11 @@ export const ProductDetails = () => {
                         </div>
                     </div>
 
-                    <div className={`${is1420 ? "w-auto" : 'w-[88rem]'} ${is480 ? "p-2" : "p-0"}`}>
+                    <div className={`${is1420 ? "w-full px-3" : 'w-[88rem]'} ${is480 ? "p-2" : "p-0"} mx-auto`}>
                         <Reviews productId={id} averageRating={averageRating} />
                     </div>
                 </div>
-            }
-            </div>
-        )}
-        </>
+            )}
+        </div>
     )
 }

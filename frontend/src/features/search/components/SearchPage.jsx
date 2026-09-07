@@ -24,22 +24,33 @@ const QuickFilterChip = ({ label, active, onClick, count }) => (
   </button>
 )
 
-const FilterSection = ({ title, children, defaultOpen = true }) => {
-  const [open, setOpen] = useState(defaultOpen)
+const FilterSection = ({
+  title,
+  children,
+  open,
+  onToggle,
+}) => {
   return (
     <div className="border-b border-gray-100 last:border-0">
-      <button 
-        onClick={() => setOpen(!open)}
+      <button
+        onClick={onToggle}
         className="w-full flex items-center justify-between py-3 text-sm font-semibold text-gray-900"
       >
         {title}
-        <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${
+            open ? 'rotate-180' : ''
+          }`}
+        />
       </button>
-      <AnimatePresence>
+
+      <AnimatePresence initial={false}>
         {open && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }} 
-            animate={{ height: 'auto', opacity: 1 }} 
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden pb-3"
           >
@@ -88,6 +99,120 @@ const MobileFilterDrawer = ({ open, onClose, children }) => (
   </AnimatePresence>
 )
 
+const FilterContent = ({
+  t,
+  categories,
+  brands,
+  activeCategory,
+  activeBrand,
+  activePack,
+  activeStock,
+  packagingTiers,
+  updateFilter,
+  clearFilters,
+  hasActiveFilters,
+  openSections,
+  toggleSection,
+}) => (
+  <div className="space-y-1">
+
+    <FilterSection
+      title={t('search.category')}
+      open={openSections.category}
+      onToggle={() => toggleSection('category')}
+    >
+      <div className="space-y-0.5 max-h-48 overflow-y-auto">
+        {categories.map(cat => (
+          <FilterCheckbox
+            key={cat._id}
+            label={t(`categories.${getCatKey(cat.name)}`, cat.name)}
+            checked={activeCategory === cat._id}
+            onChange={() =>
+              updateFilter(
+                'category',
+                activeCategory === cat._id ? '' : cat._id
+              )
+            }
+          />
+        ))}
+      </div>
+    </FilterSection>
+
+
+    <FilterSection
+      title={t('search.brand')}
+      open={openSections.brand}
+      onToggle={() => toggleSection('brand')}
+    >
+      <div className="space-y-0.5 max-h-48 overflow-y-auto">
+        {brands.map(b => (
+          <FilterCheckbox
+            key={b._id}
+            label={b.name}
+            checked={activeBrand === b._id}
+            onChange={() =>
+              updateFilter(
+                'brand',
+                activeBrand === b._id ? '' : b._id
+              )
+            }
+          />
+        ))}
+      </div>
+    </FilterSection>
+
+
+    <FilterSection
+      title={t('search.packagingTitle')}
+      open={openSections.packaging}
+      onToggle={() => toggleSection('packaging')}
+    >
+      {packagingTiers.map(tier => (
+        <FilterCheckbox
+          key={tier}
+          label={t(`search.packaging.${tier}`)}
+          checked={activePack === tier}
+          onChange={() =>
+            updateFilter(
+              'pack',
+              activePack === tier ? '' : tier
+            )
+          }
+        />
+      ))}
+    </FilterSection>
+
+
+    <FilterSection
+      title={t('search.availability')}
+      open={openSections.availability}
+      onToggle={() => toggleSection('availability')}
+    >
+      <FilterCheckbox
+        label={t('search.inStockOnly')}
+        checked={activeStock === 'true'}
+        onChange={() =>
+          updateFilter(
+            'stock',
+            activeStock === 'true' ? '' : 'true'
+          )
+        }
+      />
+    </FilterSection>
+
+
+    {hasActiveFilters && (
+      <button
+        onClick={clearFilters}
+        className="w-full mt-4 py-2 text-sm text-[#E31837] font-medium border border-[#E31837]"
+      >
+        {t('search.clearAllFilters')}
+      </button>
+    )}
+
+  </div>
+)
+
 export const SearchPage = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -111,10 +236,22 @@ export const SearchPage = () => {
   const page = parseInt(searchParams.get('page') || '1', 10)
 
   const [searchInput, setSearchInput] = useState(query)
+  const [openSections, setOpenSections] = useState({
+    category: true,
+    brand: true,
+    packaging: true,
+    availability: true,
+  })
 
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
   useEffect(() => {
     setSearchInput(query)
-  }, [query])
+  }, [])
 
   const packagingTiers = ['single', 'pack', 'carton']
 
@@ -163,64 +300,6 @@ export const SearchPage = () => {
   }
 
   const hasActiveFilters = activeCategory || activeBrand || activePack || activeStock
-
-  const FilterContent = () => (
-    <div className="space-y-1">
-      <FilterSection title={t('search.category')}>
-        <div className="space-y-0.5 max-h-48 overflow-y-auto">
-          {categories.map(cat => (
-            <FilterCheckbox
-              key={cat._id}
-              label={t(`categories.${getCatKey(cat.name)}`, cat.name)}
-              checked={activeCategory === cat._id}
-              onChange={() => updateFilter('category', activeCategory === cat._id ? '' : cat._id)}
-            />
-          ))}
-        </div>
-      </FilterSection>
-
-      <FilterSection title={t('search.brand')}>
-        <div className="space-y-0.5 max-h-48 overflow-y-auto">
-          {brands.map(b => (
-            <FilterCheckbox
-              key={b._id}
-              label={b.name}
-              checked={activeBrand === b._id}
-              onChange={() => updateFilter('brand', activeBrand === b._id ? '' : b._id)}
-            />
-          ))}
-        </div>
-      </FilterSection>
-
-      <FilterSection title={t('search.packagingTitle')}>
-        {packagingTiers.map(tier => (
-          <FilterCheckbox
-            key={tier}
-            label={t(`search.packaging.${tier}`)}
-            checked={activePack === tier}
-            onChange={() => updateFilter('pack', activePack === tier ? '' : tier)}
-          />
-        ))}
-      </FilterSection>
-
-      <FilterSection title={t('search.availability')}>
-        <FilterCheckbox
-          label={t('search.inStockOnly')}
-          checked={activeStock === 'true'}
-          onChange={() => updateFilter('stock', activeStock === 'true' ? '' : 'true')}
-        />
-      </FilterSection>
-
-      {hasActiveFilters && (
-        <button 
-          onClick={clearFilters}
-          className="w-full mt-4 py-2 text-sm text-[#E31837] font-medium border border-[#E31837] hover:bg-red-50 transition-colors"
-        >
-          {t('search.clearAllFilters')}
-        </button>
-      )}
-    </div>
-  )
 
   return (
     <div className="min-h-screen bg-white">
@@ -344,12 +423,40 @@ export const SearchPage = () => {
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <SlidersHorizontal size={16} /> {t('search.filters')}
               </h3>
-              <FilterContent />
+            <FilterContent
+              t={t}
+              categories={categories}
+              brands={brands}
+              activeCategory={activeCategory}
+              activeBrand={activeBrand}
+              activePack={activePack}
+              activeStock={activeStock}
+              packagingTiers={packagingTiers}
+              updateFilter={updateFilter}
+              clearFilters={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+              openSections={openSections}
+              toggleSection={toggleSection}
+            />            
             </div>
           </aside>
 
           <MobileFilterDrawer open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)}>
-            <FilterContent />
+            <FilterContent
+              t={t}
+              categories={categories}
+              brands={brands}
+              activeCategory={activeCategory}
+              activeBrand={activeBrand}
+              activePack={activePack}
+              activeStock={activeStock}
+              packagingTiers={packagingTiers}
+              updateFilter={updateFilter}
+              clearFilters={clearFilters}
+              hasActiveFilters={hasActiveFilters}
+              openSections={openSections}
+              toggleSection={toggleSection}
+            />
           </MobileFilterDrawer>
 
           <main className="flex-1 min-w-0">

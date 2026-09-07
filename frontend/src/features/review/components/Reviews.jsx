@@ -125,14 +125,14 @@ export const Reviews = ({ productId, averageRating }) => {
             
             {/* Header + Rating Summary */}
             <div className="flex flex-col gap-4">
-                <h4 className="text-3xl font-normal text-gray-900 mb-2">{t('reviews.title')}</h4>
+                <h4 className="text-xl font-normal text-gray-900 mb-2">{t('reviews.title')}</h4>
                 
                 {reviews?.length > 0 ? (
                     <div className="flex flex-col gap-6">
                         <div className="flex flex-col gap-2">
                             <p className="text-5xl font-extrabold text-gray-900">{averageRating}.0</p>
                             <StarRating value={averageRating} readOnly />
-                            <p className="text-xl text-gray-500">
+                            <p className="text-base text-gray-500">
                                 {reviews.length === 1 
                                     ? t('reviews.basedOnOne', { count: reviews.length }) 
                                     : t('reviews.basedOnMany', { count: reviews.length })
@@ -160,7 +160,7 @@ export const Reviews = ({ productId, averageRating }) => {
                         </div>
                     </div>
                 ) : (
-                    <p className="text-xl text-gray-500 font-normal">
+                    <p className="text-base text-gray-500 font-normal">
                         {loggedInUser?.isAdmin ? t('reviews.noReviewsAdmin') : t('reviews.beFirstToReview')}
                     </p>
                 )}
@@ -233,7 +233,7 @@ export const Reviews = ({ productId, averageRating }) => {
                         whileTap={{ scale: 1 }}
                         className="w-fit cursor-pointer"
                     >
-                        <button className={`flex items-center gap-2 bg-black text-white rounded-md font-normal hover:bg-gray-800 transition-colors ${is480 ? 'px-4 py-2 text-base' : 'px-6 py-3 text-lg'}`}>
+                        <button className={`flex items-center gap-2 bg-black text-white rounded-md font-normal hover:bg-gray-800 transition-colors ${is480 ? 'px-4 py-2 text-base' : 'px-6 py-3 text-base'}`}>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>

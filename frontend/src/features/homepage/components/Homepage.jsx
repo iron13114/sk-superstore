@@ -9,6 +9,8 @@ import { ProductCard } from '../../products/components/ProductCard'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems, loadGuestWishlist, addGuestItem, removeGuestItem } from '../../wishlist/WishlistSlice'
 import { ProductList } from '../../products/components/ProductList'
+import { FaWhatsapp } from "react-icons/fa";
+import { MdStorefront } from "react-icons/md";
 
 const TrustBadge = ({ number, label }) => (
     <div className="text-center px-2 sm:px-4">
@@ -110,16 +112,18 @@ export const Homepage = () => {
                                 <div className="flex flex-wrap gap-2 sm:gap-3">
                                     <button
                                         onClick={() => productListRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                                        className="px-4 sm:px-6 py-2 sm:py-3 bg-[#E31837] hover:bg-red-700 text-white font-semibold text-xs sm:text-sm transition-colors"
+                                        className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-[#E31837] hover:bg-red-700 text-white font-semibold text-xs sm:text-sm transition-colors"
                                     >
+                                        <MdStorefront size={15} />
                                         {t('homepage.heroCtaPrimary')}
                                     </button>
                                     <a
                                         href="https://wa.me/919386042504"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-[#34a400] text-[#0b0b0b] hover:bg-[#00a403] hover:text-white font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
+                                        className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-[#34a400] text-[#080808] hover:bg-[#008e02] font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
                                     >
+                                        <FaWhatsapp className="whatsapp-icon" />
                                         <span></span> {t('homepage.heroCtaSecondary')}
                                     </a>
                                 </div>

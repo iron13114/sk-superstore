@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { verifyEmail } from '../AuthApi';
 import { showToast } from '../../../utils/toast';
+import TruckLoader from '../../../components/TruckLoader';
 
 export const VerifyEmail = () => {
     const { token } = useParams();
@@ -28,10 +29,9 @@ export const VerifyEmail = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
             <div className="w-full max-w-md text-center">
                 {status === 'loading' && (
-                    <>
-                        <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
-                        <h2 className="text-2xl font-medium text-gray-900">Verifying your email...</h2>
-                    </>
+                <div className="flex justify-center items-center py-8">
+                    <TruckLoader />
+                </div>
                 )}
                 
                 {status === 'success' && (

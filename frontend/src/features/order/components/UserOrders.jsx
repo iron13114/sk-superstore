@@ -5,7 +5,8 @@ import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { Link } from 'react-router-dom'
 import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
 import Lottie from 'lottie-react'
-import { loadingAnimation, noOrdersAnimation } from '../../../assets'
+import { noOrdersAnimation } from '../../../assets'
+import TruckLoader from '../../../components/TruckLoader'
 import { showToast } from '../../../utils/toast'
 import { motion } from 'framer-motion'
 
@@ -60,7 +61,12 @@ export const UserOrders = () => {
         <div className="flex justify-center items-center w-full min-h-screen bg-gray-50 py-6">
             {orderFetchStatus === 'pending' ? (
                 <div className="w-full max-w-[25rem] h-[calc(100vh-4rem)] flex justify-center items-center">
-                    <Lottie animationData={loadingAnimation} />
+                    <div className="flex flex-col justify-center items-center py-20 w-full">
+                        <TruckLoader />
+                        <p className="mt-4 text-xs sm:text-sm text-gray-500 font-medium animate-pulse">
+                            Loading your orders...
+                        </p>
+                    </div>
                 </div>
             ) : (
                 <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 mb-20">

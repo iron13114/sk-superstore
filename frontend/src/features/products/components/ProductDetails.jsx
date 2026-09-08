@@ -7,14 +7,11 @@ import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { fetchReviewsByProductIdAsync, selectReviewFetchStatus, selectReviews } from '../../review/ReviewSlice'
 import { Reviews } from '../../review/components/Reviews'
 import { showToast } from '../../../utils/toast';
-import { motion } from 'framer-motion'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems } from '../../wishlist/WishlistSlice'
-import Lottie from 'lottie-react'
-import { loadingAnimation } from '../../../assets'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Autoplay } from 'swiper/modules'
 import 'swiper/css'
 import { useTranslation } from 'react-i18next';
+import TruckLoader from '../../../components/TruckLoader';
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(false);
@@ -267,10 +264,8 @@ export const ProductDetails = () => {
     return (
         <div className="min-h-screen bg-white">
             {isLoading ? (
-                <div className="min-h-[60vh] flex justify-center items-center">
-                    <div className={`${is500 ? "w-64" : 'w-96'} h-96`}>
-                        <Lottie animationData={loadingAnimation} />
-                    </div>
+                <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+                    <TruckLoader />
                 </div>
             ) : (
                 <div className="flex flex-col">
@@ -292,11 +287,9 @@ export const ProductDetails = () => {
                             {!is1420 && product?.images?.length > 0 && (
                                 <div className="flex flex-col gap-y-6 h-full overflow-y-auto">
                                     {product.images.map((image, index) => (
-                                        <motion.div 
+                                        <div 
                                             key={index} 
-                                            whileHover={{ scale: 1.1 }} 
-                                            whileTap={{ scale: 1 }} 
-                                            className={`w-[200px] cursor-pointer border-2 rounded-lg overflow-hidden ${selectedImageIndex === index ? 'border-black' : 'border-transparent'}`}
+                                            className={`w-[200px] cursor-pointer border-2 rounded-lg overflow-hidden transition-transform duration-200 hover:scale-110 active:scale-100 ${selectedImageIndex === index ? 'border-black' : 'border-transparent'}`}
                                             onClick={() => setSelectedImageIndex(index)}
                                         >
                                             <img 
@@ -305,7 +298,7 @@ export const ProductDetails = () => {
                                                 className="w-full aspect-square object-contain p-2"
                                                 onError={(e) => { e.target.src = '/placeholder-product.png' }}
                                             />
-                                        </motion.div>
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -316,11 +309,6 @@ export const ProductDetails = () => {
                                         {product?.images && product.images.length > 0 ? (
                                             <>
                                                 <Swiper
-                                                    modules={[Autoplay]}
-                                                    autoplay={{
-                                                        delay: 3000,
-                                                        disableOnInteraction: false,
-                                                    }}
                                                     onSwiper={(swiper) => (swiperRef.current = swiper)}
                                                     onSlideChange={(swiper) => setActiveStep(swiper.activeIndex)}
                                                     slidesPerView={1}

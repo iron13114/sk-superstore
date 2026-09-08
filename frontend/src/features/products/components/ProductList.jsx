@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import Lottie from 'lottie-react'
 import { showToast } from '../../../utils/toast';
 import { fetchProductsAsync, resetProductFetchStatus, selectProductFetchStatus, selectProductIsFilterOpen, selectProductTotalResults, selectProducts, toggleFilters } from '../ProductSlice'
 import { ProductCard } from './ProductCard'
@@ -11,11 +10,11 @@ import { selectCategories } from '../../categories/CategoriesSlice'
 import { ITEMS_PER_PAGE } from '../../../constants'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItems, loadGuestWishlist, addGuestItem, removeGuestItem } from '../../wishlist/WishlistSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import { loadingAnimation } from '../../../assets'
 import { resetCartItemAddStatus, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { fetchAllBrandsAsync } from '../../brands/BrandSlice'
 import { fetchAllCategoriesAsync } from '../../categories/CategoriesSlice'
 import { useTranslation } from 'react-i18next'
+import TruckLoader from '../../../components/TruckLoader'
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
@@ -256,11 +255,14 @@ export const ProductList = () => {
 
     return (
         <>
-            {productFetchStatus === 'pending' ? (
-                <div className={`flex justify-center mx-auto h-[calc(100vh-4rem)] ${is500 ? 'w-full' : 'w-[25rem]'}`}>
-                    <Lottie animationData={loadingAnimation} />
-                </div>
-            ) : (
+                {productFetchStatus === 'pending' ? (
+                    <div className="flex flex-col justify-center items-center py-24 w-full">
+                        <TruckLoader />
+                        <p className="mt-4 text-xs sm:text-sm text-gray-500 font-medium animate-pulse">
+                            Loading products...
+                        </p>
+                    </div>
+                ) : (
                 <>
                     {isProductFilterOpen && (
                         <div

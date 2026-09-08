@@ -9,8 +9,9 @@ import { useTranslation } from 'react-i18next';
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistFetchStatus, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, resetWishlistItemUpdateStatus, selectWishlistFetchStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItemUpdateStatus, selectWishlistItems, updateWishlistItemByIdAsync, loadGuestWishlist, removeGuestItem, updateGuestItem } from '../WishlistSlice'
 import { ProductCard } from '../../products/components/ProductCard'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import { emptyWishlistAnimation, loadingAnimation } from '../../../assets'
+import { emptyWishlistAnimation } from '../../../assets'
 import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
+import TruckLoader from '../../../components/TruckLoader'
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
@@ -148,7 +149,12 @@ export const Wishlist = () => {
         <div className={`flex flex-col items-center ${is480 ? 'mt-3' : 'mt-5'} mb-56`}>
             {wishlistFetchStatus === 'pending' ? (
                 <div className={`flex justify-center items-center h-[calc(100vh-4rem)] ${is480 ? 'w-auto' : 'w-96'}`}>
-                    <Lottie animationData={loadingAnimation} />
+                    <div className="flex flex-col justify-center items-center py-20 w-full">
+                        <TruckLoader />
+                        <p className="mt-4 text-xs sm:text-sm text-gray-500 font-medium animate-pulse">
+                            Loading your wishlist...
+                        </p>
+                    </div>
                 </div>
             ) : (
                 <div className={`flex flex-col ${is1130 ? 'w-auto' : 'w-[70rem]'} ${is480 ? 'gap-2' : 'gap-4'}`}>

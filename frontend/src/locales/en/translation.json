@@ -355,7 +355,7 @@
       "priceHigh": "Price: High to Low",
       "stock": "Stock: High to Low"
     },
-    "packaging": {
+    "packagings": {
       "single": "Single Unit",
       "pack": "Pack of 10",
       "carton": "Carton of 50"

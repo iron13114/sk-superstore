@@ -422,7 +422,7 @@ export const Navbar = ({ isProductList = false }) => {
           </div>
         </nav>
         <nav>
-          <div style={getLeftSectionStyles()}>
+          <div style={getContainerStyles()}>
             
             {isProductList && (
               <button 

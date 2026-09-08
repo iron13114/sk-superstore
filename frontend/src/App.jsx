@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   createBrowserRouter,
@@ -7,10 +7,8 @@ import {
   Outlet,
   Route,
   RouterProvider,
-  useLocation,
-  useOutlet
+  useLocation
 } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
@@ -22,8 +20,7 @@ import { VerifyEmail } from './features/auth/components/VerifyEmail';
 import { TrackOrder } from './features/order/components/TrackOrder';
 import { useAuthCheck } from './hooks/useAuth/useAuthCheck';
 import { useFetchLoggedInUserDetails } from './hooks/useAuth/useFetchLoggedInUserDetails';
-import { PageTransition } from './components/PageTransition';
-import { ScrollToTop } from './components/ScrollToTop';
+import TruckLoader from './components/TruckLoader';
 
 import {
   AddProductPage,
@@ -50,13 +47,22 @@ import {
   WishlistPage,
 } from './pages';
 
-function AnimatedLayout() {
-  const location = useLocation();
-  const outlet = useOutlet();
-return (
-    <AnimatePresence mode="wait" initial={false}>
-      {outlet && React.cloneElement(outlet, { key: location.pathname })}
-    </AnimatePresence>
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+function Layout() {
+  return (
+    <>
+      <ScrollToTop />
+      <Outlet />
+    </>
   );
 }
 
@@ -79,7 +85,7 @@ export default function App() {
   const router = useMemo(() => {
     return createBrowserRouter(
       createRoutesFromElements(
-        <Route element={<AnimatedLayout />}>
+        <Route element={<Layout />}>
           {loggedInUser?.isAdmin ? (
             <>
               <Route path="/signup" element={<SignupPage />} />
@@ -130,8 +136,8 @@ export default function App() {
       {ready ? (
         <RouterProvider router={router} />
       ) : (
-        <div className="h-screen w-full flex flex-col items-center justify-center bg-white">
-          <div className="w-10 h-10 border-4 border-gray-200 border-t-[#E31837] rounded-full animate-spin mb-4" />
+        <div className="h-screen w-full flex flex-col items-center justify-center bg-white gap-6">
+          <TruckLoader />
           <p className="text-sm text-gray-500">Waking up server...</p>
         </div>
       )}

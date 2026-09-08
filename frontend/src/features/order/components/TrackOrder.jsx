@@ -13,6 +13,7 @@ import {
     getOrderByUserIdAsync
 } from '../OrderSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
+import TruckLoader from '../../../components/TruckLoader';
 
 export const TrackOrder = () => {
     const { id } = useParams()
@@ -130,9 +131,9 @@ export const TrackOrder = () => {
 
             {/* Loading */}
             {isLoading && (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#111827]"></div>
-                </div>
+            <div className="flex justify-center items-center py-12">
+                <TruckLoader />
+            </div>
             )}
 
             {/* Orders List */}

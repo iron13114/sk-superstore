@@ -1,11 +1,11 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux';
-import { selectWishlistItems } from '../../wishlist/WishlistSlice';
-import { addToCartAsync, selectCartItems } from '../../cart/CartSlice';
+import { useDispatch, useSelector } from 'react-redux'
+import { selectWishlistItems } from '../../wishlist/WishlistSlice'
+import { addToCartAsync, selectCartItems } from '../../cart/CartSlice'
 import { motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next';
-import { selectReviewsByProductId } from '../../review/ReviewSlice';
+import { useTranslation } from 'react-i18next'
+import { selectReviewsByProductId } from '../../review/ReviewSlice'
 
 const HeartCheckbox = ({ checked, onChange }) => (
     <label className="cursor-pointer relative inline-flex">
@@ -22,14 +22,15 @@ const HeartCheckbox = ({ checked, onChange }) => (
     </label>
 );
 
-const StarRating = ({ rating, count }) => {
-    if (!rating && !count) return null;
-    const fullStars = Math.floor(rating || 0);
-    const hasHalf = (rating || 0) - fullStars >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+const StarRating = ({ rating = 0, count = 0 }) => {
+    const numRating = Number(rating) || 0;
+    const numCount = Number(count) || 0;
+    const fullStars = Math.floor(numRating);
+    const hasHalf = numRating - fullStars >= 0.5;
+    const emptyStars = Math.max(0, 5 - fullStars - (hasHalf ? 1 : 0));
 
     return (
-        <div className="flex items-center gap-0.5 mt-0.5">
+        <div className="flex items-center gap-1 mt-0.5">
             <div className="flex items-center">
                 {Array.from({ length: fullStars }).map((_, i) => (
                     <svg key={`f${i}`} className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
@@ -53,14 +54,11 @@ const StarRating = ({ rating, count }) => {
                     </svg>
                 ))}
             </div>
-            {count > 0 && (
-                <span className="text-[9px] sm:text-[10px] text-gray-400">({count})</span>
-            )}
+            <span className="text-[9px] sm:text-[10px] text-gray-400">({numCount})</span>
         </div>
     );
 };
 
-// Price display
 const PriceDisplay = ({ price, basePrice, discountPercentage }) => {
     const hasDiscount = discountPercentage > 0 && basePrice > price;
 
@@ -69,7 +67,7 @@ const PriceDisplay = ({ price, basePrice, discountPercentage }) => {
             {hasDiscount && (
                 <span className="text-[10px] sm:text-xs text-gray-400 line-through">₹{basePrice}</span>
             )}
-            <span className="font-medium text-xs sm:text-sm text-[#111827]">₹{price}</span>
+            <span className="font-semibold text-xs sm:text-sm text-[#111827]">₹{price}</span>
             {hasDiscount && (
                 <span className="text-[9px] sm:text-[10px] text-green-600 font-medium">({discountPercentage}% off)</span>
             )}
@@ -85,6 +83,7 @@ export const ProductCard = ({
     brand, 
     stockQuantity, 
     reviews,
+    rating,
     handleAddRemoveFromWishlist, 
     isWishlistCard,
     viewMode,
@@ -94,21 +93,36 @@ export const ProductCard = ({
     basePrice,
     discountPercentage
 }) => {
-
     const navigate = useNavigate()
     const wishlistItems = useSelector(selectWishlistItems)
     const cartItems = useSelector(selectCartItems)
     const dispatch = useDispatch()
     const { t } = useTranslation()
 
+    // 1. Check Redux store for product reviews if not passed directly in props
+    const reduxReviews = useSelector((state) => {
+        try {
+            return selectReviewsByProductId ? selectReviewsByProductId(state, id) : null
+        } catch {
+            return null
+        }
+    })
+
+    const effectiveReviews = Array.isArray(reviews) && reviews.length > 0 
+        ? reviews 
+        : Array.isArray(reduxReviews) && reduxReviews.length > 0 
+            ? reduxReviews 
+            : []
+
+    const reviewCount = effectiveReviews.length || (typeof reviews === 'number' ? reviews : 0)
+    
+    // Average rating calculated from reviews, or fallback to product-level rating prop
+    const avgRating = effectiveReviews.length > 0 
+        ? effectiveReviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / effectiveReviews.length 
+        : Number(rating) || 0
+
     const isInWishlist = wishlistItems.some((item) => item.product?._id === id)
     const isProductAlreadyInCart = cartItems.some((item) => item.product?._id === id)
-
-    const reviewList = Array.isArray(reviews) ? reviews : []
-    const reviewCount = reviewList.length
-    const avgRating = reviewCount > 0 
-        ? reviewList.reduce((sum, r) => sum + (r.rating || 0), 0) / reviewCount 
-        : 0
 
     const handleAddToCart = async (e) => {
         e.stopPropagation()
@@ -132,12 +146,12 @@ export const ProductCard = ({
     if (viewMode === 'list') {
         return (
             <div 
-                className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-white border border-gray-200 hover:border-[#E31837] transition-colors cursor-pointer"
+                className="flex items-center gap-4 p-3 bg-white rounded-xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
                 onClick={() => navigate(`/product-details/${id}`)}
-            >
+            >     
                 {/* Thumbnail */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 flex-shrink-0 rounded overflow-hidden flex items-center justify-center">
-                    <img src={thumbnail} alt={title} className="w-full h-full object-contain p-1" />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center p-1">
+                    <img src={thumbnail} alt={title} className="w-full h-full object-contain" />
                 </div>
 
                 {/* Content */}
@@ -177,7 +191,7 @@ export const ProductCard = ({
                                 ) : (
                                     <button
                                         onClick={(e) => handleAddToCart(e)}
-                                        className="px-3 py-1.5 bg-[#E31837] text-white text-xs font-medium hover:bg-red-700 transition-colors"
+                                        className="px-3 py-1.5 bg-[#E31837] text-white text-xs font-medium hover:bg-red-700 transition-colors rounded"
                                     >
                                         {t('productCard.add')}
                                     </button>
@@ -193,11 +207,15 @@ export const ProductCard = ({
     // ─── GRID VIEW ───
     return (
         <div 
-            className={`flex flex-col cursor-pointer w-full ${isAdminCard || isWishlistCard ? '' : 'bg-white shadow-sm rounded-lg'} p-1.5 sm:p-2 lg:p-3`}
+            className={`flex flex-col justify-between cursor-pointer w-full ${
+                isAdminCard || isWishlistCard 
+                    ? '' 
+                    : 'bg-white rounded-xl border border-gray-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200'
+            } p-2 sm:p-2.5 lg:p-3`}
             onClick={() => navigate(`/product-details/${id}`)}
         >
-            {/* image display — smaller on mobile */}
-            <div className="w-full h-24 sm:h-32 md:h-36 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-1.5 sm:p-2">
+            {/* Image display */}
+            <div className="w-full h-28 sm:h-36 md:h-40 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-2">
                 <img 
                     className="max-w-full max-h-full w-auto h-auto object-contain" 
                     src={thumbnail} 
@@ -205,18 +223,18 @@ export const ProductCard = ({
                 />
             </div>
 
-            {/* lower section */}
-            <div className="flex-1 flex flex-col justify-end gap-0.5 sm:gap-1 mt-1 sm:mt-1.5">
+            {/* Lower section */}
+            <div className="flex-1 flex flex-col justify-between gap-1.5 mt-2">
 
-                {/* title + wishlist */}
+                {/* Title + Wishlist + Rating */}
                 <div>
                     <div className="flex items-start justify-between gap-1">
-                        <h6 className="text-[11px] sm:text-sm font-normal leading-tight line-clamp-2 flex-1 min-w-0">{title}</h6>
+                        <h6 className="text-xs sm:text-sm font-medium text-gray-900 leading-snug line-clamp-2 flex-1 min-w-0">{title}</h6>
                         {!isAdminCard && (
                             <motion.div 
-                                whileHover={{ scale: 1.2 }} 
-                                whileTap={{ scale: 1 }} 
-                                transition={{ duration: .2, type: "spring" }}
+                                whileHover={{ scale: 1.15 }} 
+                                whileTap={{ scale: 0.95 }} 
+                                transition={{ duration: .2 }}
                                 onClick={(e) => e.stopPropagation()}
                                 className="flex-shrink-0 mt-0.5"
                             >
@@ -230,12 +248,13 @@ export const ProductCard = ({
                     <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5 truncate">
                         {t(`brands.${brandName}`, brandName)}
                     </p>
+                    
+                    {/* Star rating will always render cleanly */}
                     <StarRating rating={avgRating} count={reviewCount} />
                 </div>
 
-                {/* price + cart */}
-                <div className="flex flex-row justify-between items-center gap-1">
-                    {/* Changed: use variantPrice when available, same as list view */}
+                {/* Price + Cart */}
+                <div className="flex flex-row justify-between items-center gap-1 pt-1">
                     <PriceDisplay 
                         price={variantPrice || price} 
                         basePrice={basePrice} 
@@ -251,9 +270,9 @@ export const ProductCard = ({
                             !isAdminCard && (
                                 <motion.button
                                     whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 1 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={(e) => handleAddToCart(e)}
-                                    className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded bg-black text-white text-[10px] sm:text-xs font-medium whitespace-nowrap"
+                                    className="px-2.5 py-1.5 rounded-md bg-black hover:bg-gray-800 text-white text-[10px] sm:text-xs font-medium whitespace-nowrap transition-colors"
                                 >
                                     {t('productCard.addToCart')}
                                 </motion.button>
@@ -262,7 +281,7 @@ export const ProductCard = ({
                     )}
                 </div>
 
-                {/* stock warning */}
+                {/* Stock warning */}
                 {stockQuantity <= 20 && (
                     <p className="text-[10px] sm:text-xs text-red-600 font-medium leading-tight">
                         {stockQuantity === 1 

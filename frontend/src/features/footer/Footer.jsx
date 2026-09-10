@@ -52,10 +52,19 @@ export const Footer = () => {
             </div>
 
             {/* lower */}
-            <div className="self-center">
-                <p className="text-gray-500 text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 text-xs text-gray-500 text-center">
+                <span>
                     &copy; SKSuperStore {new Date().getFullYear()}. {t('footer.allRightsReserved')}
-                </p>
+                </span>
+                <span aria-hidden="true" className="text-gray-600">•</span>
+                <a 
+                    href="https://storyset.com/people" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-500 hover:text-gray-300 hover:underline transition-colors"
+                >
+                    Illustrations by Storyset
+                </a>
             </div>
         </div>
     )

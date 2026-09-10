@@ -140,7 +140,12 @@
     "Soap": "साबुन",
     "Soap_icon": "🧼",
     "Cigarette": "सिगरेट",
-    "Cigarette_icon": "📦"
+    "Cigarette_icon": "📦",
+    "chips": "चिप्स",
+    "namkeen": "नमकीन",
+    "biscuits": "बिस्कुट",
+    "grocery": "किराना",
+    "snacks": "स्नैक्स"
   },
   "productCard": {
     "addToCart": "कार्ट में जोड़ें",
@@ -285,7 +290,11 @@
     "savingsCarton": "50 का कार्टन",
     "whatsappTitle": "व्हाट्सएप पर ऑर्डर करें",
     "whatsappSubtitle": "थोक ऑर्डर और त्वरित रीस्टॉकिंग के लिए सीधे चैट करें",
-    "whatsappCta": "अभी चैट करें"
+    "whatsappCta": "अभी चैट करें",
+    "wholesaleAdvantage": "थोक लाभ",
+    "off": "छूट",
+    "bestMargin": "सबसे ज़्यादा मुनाफ़ा",
+    "savingsMarginNote": "जितनी ज़्यादा मात्रा = दुकान के लिए उतना बड़ा मुनाफ़ा"
   },
   "search": {
     "placeholder": "उत्पाद, ब्रांड, श्रेणियाँ खोजें...",
@@ -312,7 +321,7 @@
       "priceHigh": "कीमत: ज़्यादा से कम",
       "stock": "स्टॉक: ज़्यादा से कम"
     },
-    "packaging": {
+    "packagings": {
       "single": "एकल इकाई",
       "pack": "10 का पैक",
       "carton": "50 का कार्टन"

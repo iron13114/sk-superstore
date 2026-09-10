@@ -141,7 +141,12 @@
     "Soap": "Soap",
     "Soap_icon": "🧼",
     "Cigarette": "Cigarette",
-    "Cigarette_icon": "📦"
+    "Cigarette_icon": "📦",
+    "chips": "Chips",
+    "namkeen": "Namkeen",
+    "biscuits": "Biscuits",
+    "grocery": "Grocery",
+    "snacks": "Snacks"
   },
     "productCard": {
       "addedToCart": "Added to cart",
@@ -286,7 +291,9 @@
     "savingsCarton": "Carton of 50",
     "whatsappTitle": "Order via WhatsApp",
     "whatsappSubtitle": "Chat directly for bulk orders & quick restocking",
-    "whatsappCta": "Chat Now"
+    "whatsappCta": "Chat Now",
+    "wholesaleAdvantage": "Wholesale Advantage",
+    "off": "OFF"
   },
   "productForm": {
     "title": "Title",

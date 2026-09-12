@@ -1,10 +1,19 @@
 import { axiosi } from "../../config/axios"
 
-export const fetchAllCategories=async()=>{
+export const fetchAllCategories = async () => {
     try {
-        const res=await axiosi.get("/categories")
+        const res = await axiosi.get('/categories')
         return res.data
     } catch (error) {
-        throw error.response.data
+        throw error.response?.data || error.message
+    }
+}
+
+export const fetchCategoryTree = async () => {
+    try {
+        const res = await axiosi.get('/categories/tree')
+        return res.data
+    } catch (error) {
+        throw error.response?.data || error.message
     }
 }

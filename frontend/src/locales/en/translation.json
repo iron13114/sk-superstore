@@ -293,7 +293,10 @@
     "whatsappSubtitle": "Chat directly for bulk orders & quick restocking",
     "whatsappCta": "Chat Now",
     "wholesaleAdvantage": "Wholesale Advantage",
-    "off": "OFF"
+    "off": "OFF",
+    "heroTitleLine1": "Wholesale Prices.",
+    "heroTitleLine2": "Retailer Margins.",
+    "bulkSavingsBadge": "10–50% Bulk Savings"
   },
   "productForm": {
     "title": "Title",

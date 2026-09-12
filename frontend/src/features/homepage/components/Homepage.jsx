@@ -1,9 +1,8 @@
 import React, { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { fetchAllCategoriesAsync, selectCategories } from '../../categories/CategoriesSlice'
+import { fetchCategoryTreeAsync, selectCategoryTree } from '../../categories/CategoriesSlice'
 import { fetchProductsAsync, selectProducts } from '../../products/ProductSlice'
 import { ProductCard } from '../../products/components/ProductCard'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
@@ -60,15 +59,20 @@ export const Homepage = () => {
     const [searchParams] = useSearchParams()
     const { t } = useTranslation()
     
-    const categories = useSelector(selectCategories)
+    const categoryTree = useSelector(selectCategoryTree)
     const products = useSelector(selectProducts)
     const wishlistItems = useSelector(selectWishlistItems)
     const loggedInUser = useSelector(selectLoggedInUser)
     const productListRef = useRef(null)
-    const getCatKey = (name) => name?.replace(/\s+/g, '_')?.replace(/[^a-zA-Z0-9_]/g, '') || 'unknown'
+    const getCatKey = (name) =>
+        name
+            ?.toLowerCase()
+            .replace(/&/g, 'and')
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_+|_+$/g, '') || 'unknown'
 
     useEffect(() => {
-        dispatch(fetchAllCategoriesAsync())
+        dispatch(fetchCategoryTreeAsync())
         dispatch(fetchProductsAsync({ pagination: { page: 1, limit: 8 } }))
         if (!loggedInUser) dispatch(loadGuestWishlist())
     }, [dispatch, loggedInUser])
@@ -110,114 +114,179 @@ export const Homepage = () => {
     const productList = Array.isArray(products) ? products : []
     const featuredProducts = productList.slice(0, 4)
 
-    const safeCategories = Array.isArray(categories) ? categories : []
+    const safeTree = Array.isArray(categoryTree) ? categoryTree : []
 
     return (
         <div className="flex flex-col w-full bg-white">
 
             {/* ===== HERO SECTION ===== */}
-            <section className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20">
-                    <div className="max-w-2xl">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <span className="inline-block px-2 sm:px-3 py-1 bg-[#E31837] text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-3 sm:mb-4">
-                                {t('homepage.heroBadge')}
+            <section className="bg-white border-b border-gray-200 w-full overflow-hidden">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center min-h-[420px] lg:min-h-[460px]">                        
+                        <div className="lg:col-span-7 flex flex-col items-start justify-center">
+                            
+                            {/* Wholesale Badge */}
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-[#E31837] text-[11px] font-extrabold uppercase tracking-widest rounded-md mb-3 sm:mb-4 border border-red-100">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#E31837]" />
+                                {t('homepage.heroBadge', 'Wholesale Only')}
                             </span>
-                            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold leading-tight mb-3 sm:mb-4 text-gray-900">
-                                {t('homepage.heroTitle')}
+
+                            {/* Headline tailored to shop owners */}
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-black leading-[1.1] text-gray-900 tracking-tight mb-3 sm:mb-4">
+                                <span>{t('homepage.heroTitleLine1', 'Wholesale Prices.')}</span>
+                                <br />
+                                <span className="text-[#0055A4]">{t('homepage.heroTitleLine2', 'Retailer Margins.')}</span>
                             </h1>
-                            <p className="text-gray-600 text-sm sm:text-base md:text-lg mb-5 sm:mb-8 max-w-lg">
-                                {t('homepage.heroSubtitle')}
+
+                            <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-lg mb-6 leading-relaxed">
+                                {t('homepage.heroSubtitle', 'Stock up on groceries, snacks & household essentials at direct distributor rates.')}
                             </p>
-                            <div className="flex flex-col gap-2 sm:gap-3">
-                                <div className="flex flex-wrap gap-2 sm:gap-3">
-                                    <button
-                                        onClick={() => productListRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                                        className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-[#E31837] hover:bg-red-700 text-white font-semibold text-xs sm:text-sm transition-colors"
-                                    >
-                                        <MdStorefront size={15} />
-                                        {t('homepage.heroCtaPrimary')}
-                                    </button>
-                                    <a
-                                        href="https://wa.me/919386042504"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-[#34a400] text-[#080808] hover:bg-[#008e02] font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2"
-                                    >
-                                        <FaWhatsapp className="whatsapp-icon" />
-                                        <span></span> {t('homepage.heroCtaSecondary')}
-                                    </a>
-                                </div>
-                                <div className="flex flex-wrap gap-2 sm:gap-3">
-                                    <a
-                                        href="https://www.google.com/maps/place/SK+General+Stores+Station+Road+Sakri/@26.2097846,86.079415,17z/data=!4m6!3m5!1s0x39edcf8ac7311eb7:0x6a769e37c40868b1!8m2!3d26.2096491!4d86.0784015!16s%2Fg%2F11h04fglsj?entry=ttu&g_ep=EgoyMDI2MDgxMi4wIKXMDSoASAFQAw%3D%3D"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-gray-300 text-gray-700 hover:border-[#0055A4] hover:text-[#0055A4] font-medium text-xs sm:text-sm transition-colors flex items-center gap-2"
-                                     >
-                                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        {t('homepage.shopLocation')}
-                                    </a>
-                                </div>
+
+                            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => productListRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E31837] hover:bg-red-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-lg shadow-sm transition-all duration-200 cursor-pointer"
+                                >
+                                    <MdStorefront size={16} />
+                                    <span>{t('homepage.heroCtaPrimary', 'Shop Now')}</span>
+                                </button>
+
+                                <a
+                                    href="https://wa.me/919386042504"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 px-5 py-3 border border-gray-300 hover:border-gray-900 bg-white text-gray-800 font-semibold text-xs sm:text-sm rounded-lg transition-colors cursor-pointer"
+                                >
+                                    <FaWhatsapp className="text-[#25D366] text-base" />
+                                    <span>{t('homepage.heroCtaSecondary', 'Order on WhatsApp')}</span>
+                                </a>
+
+                                <a
+                                    href="https://www.google.com/maps/place/SK+General+Stores+Station+Road+Sakri/@26.2097846,86.079415,17z/data=!4m6!3m5!1s0x39edcf8ac7311eb7:0x6a769e37c40868b1!8m2!3d26.2096491!4d86.0784015!16s%2Fg%2F11h04fglsj?entry=ttu"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-1.5 px-4 py-3 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#0055A4] transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>{t('homepage.shopLocation', 'Shop Location')}</span>
+                                </a>
                             </div>
-                        </motion.div>
+
+                        </div>
+
+                        <div className="lg:col-span-5 relative flex items-center justify-center py-4 lg:py-0">
+                            <div className="absolute w-72 h-72 bg-blue-100/60 rounded-full blur-3xl -z-10" />
+
+                            <div className="relative w-full max-w-[340px] sm:max-w-[380px] h-[300px] sm:h-[340px] flex items-center justify-center">
+                                <div className="absolute left-2 sm:left-4 bottom-10 w-36 sm:w-44 bg-white p-3 rounded-2xl border border-gray-200/80 shadow-md -rotate-6 transform hover:rotate-0 transition-transform duration-300">
+                                    <div className="w-full h-32 sm:h-40 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden p-2">
+                                        <img
+                                            src={featuredProducts[1]?.thumbnail || '/kurkure-1000x1000.jpg'}
+                                            alt="Bulk Snack Pack"
+                                            className="max-h-full max-w-full object-contain"
+                                        />
+                                    </div>
+                                    <div className="mt-2 text-center">
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Pack of 12</span>
+                                    </div>
+                                </div>
+
+                                <div className="absolute right-2 sm:right-4 top-4 w-32 sm:w-36 bg-amber-50/90 border border-amber-200/80 p-2.5 rounded-xl shadow-xs rotate-6 transform hover:rotate-0 transition-transform duration-300">
+                                    <div className="text-center">
+                                        <span className="text-xl">📦</span>
+                                        <p className="text-[10px] font-black text-amber-900 uppercase tracking-wider mt-1">Master Carton</p>
+                                        <p className="text-[9px] text-amber-700 font-semibold">50 Units / Box</p>
+                                    </div>
+                                </div>
+
+                                <div className="relative z-10 w-44 sm:w-52 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-xl scale-105">
+                                    <div className="w-full h-40 sm:h-48 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden p-2">
+                                        <img
+                                            src={featuredProducts[0]?.thumbnail || '/kurkure-1000x1000.jpg'}
+                                            alt="Hero Wholesale Product"
+                                            className="max-h-full max-w-full object-contain"
+                                        />
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[10px] text-gray-400 font-medium">Bestseller</p>
+                                            <p className="text-xs font-bold text-gray-900">Direct Distributor</p>
+                                        </div>
+                                        <span className="text-xs font-black text-[#0055A4]">Wholesale</span>
+                                    </div>
+                                </div>
+
+                                <div className="absolute -bottom-3 right-0 sm:right-2 z-20 bg-[#E31837] text-white px-3.5 py-1.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1.5">
+                                    <span className="text-xs font-black tracking-wide uppercase">
+                                        {t('homepage.bulkSavingsBadge', '10–50% Bulk Savings')}
+                                    </span>
+                                </div>
+
+                            </div>
+                        </div>
+
                     </div>
+                    <div className="border-t border-gray-100 mt-8 sm:mt-10 pt-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+                            <TrustBadge number="500+" label={t('homepage.trustRetailers', 'Retailers Supplied')} />
+                            <TrustBadge number="50+" label={t('homepage.trustBrands', 'FMCG Brands')} />
+                            <TrustBadge number={t('homepage.trustDeliveryValue', 'Same Day')} label={t('homepage.trustDelivery', 'Fast Delivery')} />
+                            <TrustBadge number="10–50%" label={t('homepage.trustSavings', 'Bulk Margin')} />
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
-            {/* ===== TRUST BAR ===== */}
-            <section className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-                    <div className="flex flex-wrap justify-center md:justify-between items-center gap-3 sm:gap-6">
-                        <TrustBadge number="500+" label={t('homepage.trustRetailers')} />
-                        <div className="hidden md:block w-px h-10 bg-gray-300" />
-                        <TrustBadge number="50+" label={t('homepage.trustBrands')} />
-                        <div className="hidden md:block w-px h-10 bg-gray-300" />
-                        <TrustBadge number={t('homepage.trustDeliveryValue')} label={t('homepage.trustDelivery')} />
-                        <div className="hidden md:block w-px h-10 bg-gray-300" />
-                        <TrustBadge number="10-50%" label={t('homepage.trustSavings')} />
-                    </div>
-                </div>
-            </section>
-
-            {/* ===== CATEGORY GRID ===== */}
+            {/* ===== CATEGORY GROUPS ===== */}
             <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 w-full">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
-                        {t('homepage.categoriesTitle') || 'Shop by Category'}
-                    </h2>
-                </div>
-                <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
-                    {safeCategories.length > 0 ? (
-                        safeCategories.map((cat) => (
-                            <motion.button
-                                key={cat._id || cat.id || `cat-${Math.random()}`}
-                                whileHover={{ y: -2 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleCategoryClick(cat._id || cat.id)}
-                                className="flex flex-col items-center gap-1.5 sm:gap-3 p-2 sm:p-6 bg-white border border-gray-200 hover:border-[#E31837] hover:shadow-sm transition-all"
-                            >
-                                <span className="text-xl sm:text-3xl">
-                                    {t(`categories.${getCatKey(cat.name)}_icon`, cat.icon || '📦')}
-                                </span>                            
-                                <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                    {t(`categories.${getCatKey(cat.name)}`, cat.name)}
-                                </span>
-                            </motion.button>
-                        ))
-                    ) : (
-                        <p className="col-span-full text-center text-gray-400 text-sm py-8">
-                            No categories found
-                        </p>
-                    )}
-                </div>
+                {safeTree.length > 0 ? (
+                    safeTree.map((parent) => (
+                        <div key={parent._id} className="mb-8 sm:mb-10">
+                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-5">
+                                {t(`categories.${getCatKey(parent.name)}`, parent.name)}
+                            </h2>
+
+                            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3 md:gap-4">
+                                {(parent.children || []).map((child) => (
+                                    <button
+                                        key={child._id}
+                                        onClick={() => handleCategoryClick(child._id)}
+                                        className="flex flex-col items-center gap-1.5 sm:gap-2 group cursor-pointer"
+                                    >
+                                        {/* Icon/image tile */}
+                                        <div className="w-full aspect-square rounded-xl bg-[#f4f6f8] overflow-hidden flex items-center justify-center p-2 sm:p-3 transition-shadow duration-200 group-hover:shadow-md">
+                                            {child.image ? (
+                                                <img
+                                                    src={child.image}
+                                                    alt={t(`categories.${getCatKey(child.name)}`, child.name)}
+                                                    className="w-full h-full object-contain"
+                                                    loading="lazy"
+                                                />
+                                            ) : (
+                                                <span className="text-2xl sm:text-3xl md:text-4xl select-none">
+                                                    {t(`categories.${getCatKey(child.name)}_icon`, child.icon || '📦')}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <span className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-900 text-center leading-tight line-clamp-2">
+                                            {t(`categories.${getCatKey(child.name)}`, child.name)}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-center text-gray-400 text-sm py-8">
+                        {t('categories.noCategoriesFound', 'No categories found')}
+                    </p>
+                )}
             </section>
 
             {/* ===== FEATURED PRODUCTS ===== */}
@@ -252,7 +321,7 @@ export const Homepage = () => {
                 </section>
             )}
 
-                    {/* ===== HOW WHOLESALE WORKS ===== */}
+            {/* ===== HOW WHOLESALE WORKS ===== */}
             <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-10 sm:py-16 w-full border-t border-gray-200">
                 <div className="text-center mb-8 sm:mb-12">
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
@@ -264,44 +333,35 @@ export const Homepage = () => {
                 </div>
 
                 <div className="relative max-w-4xl mx-auto">
-                    {/* Connecting Red-to-Blue Line (Centered directly behind the icon nodes) */}
+                    {/* Connecting gradient line */}
                     <div 
-                        className="hidden md:block absolute top-[60px] -translate-y-1/2 left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-[#E31837] via-[#0055A4] to-[#16a34a] z-0" 
+                        className="hidden md:block absolute top-[52%] -translate-y-1/2 left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-[#E31837] via-[#0055A4] to-[#16a34a] z-0" 
                         aria-hidden="true"
                     />
 
                     {/* Step Cards Grid */}
-                    <div className="relative max-w-4xl mx-auto">
-                        {/* Connecting gradient line behind cards */}
-                        <div 
-                            className="hidden md:block absolute top-[52%] -translate-y-1/2 left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-[#E31837] via-[#0055A4] to-[#16a34a] z-0" 
-                            aria-hidden="true"
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-6 relative z-10">
+                        <StepCard 
+                            step="01" 
+                            imageSrc="/undraw_add-to-cart_vx87.png" 
+                            title={t('homepage.step1Title') || 'BROWSE'} 
+                            desc={t('homepage.step1Desc') || '1000+ products across all major brands'} 
+                            isLast={false} 
                         />
-
-                        {/* Step Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-6 relative z-10">
-                            <StepCard 
-                                step="01" 
-                                imageSrc="/undraw_add-to-cart_vx87.png" 
-                                title={t('homepage.step1Title') || 'BROWSE'} 
-                                desc={t('homepage.step1Desc') || '1000+ products across all major brands'} 
-                                isLast={false} 
-                            />
-                            <StepCard 
-                                step="02" 
-                                imageSrc="/Checking boxes-amico.png" 
-                                title={t('homepage.step2Title') || 'BULK ORDER'} 
-                                desc={t('homepage.step2Desc') || 'Pack of 10 or Carton of 50'} 
-                                isLast={false} 
-                            />
-                            <StepCard 
-                                step="03" 
-                                imageSrc="/undraw_delivery-truck_mjui.png" 
-                                title={t('homepage.step3Title') || 'DELIVERED'} 
-                                desc={t('homepage.step3Desc') || 'Same-day delivery in Sakri & nearby areas'} 
-                                isLast={true} 
-                            />
-                        </div>
+                        <StepCard 
+                            step="02" 
+                            imageSrc="/Checking boxes-amico.png" 
+                            title={t('homepage.step2Title') || 'BULK ORDER'} 
+                            desc={t('homepage.step2Desc') || 'Pack of 10 or Carton of 50'} 
+                            isLast={false} 
+                        />
+                        <StepCard 
+                            step="03" 
+                            imageSrc="/undraw_delivery-truck_mjui.png" 
+                            title={t('homepage.step3Title') || 'DELIVERED'} 
+                            desc={t('homepage.step3Desc') || 'Same-day delivery in Sakri & nearby areas'} 
+                            isLast={true} 
+                        />
                     </div>
                 </div>
             </section>
@@ -358,18 +418,92 @@ export const Homepage = () => {
 
             {/* ===== CATEGORY RIBBON / DIVIDER ===== */}
             <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 w-full py-1">
-                <div className="border-y border-gray-200 py-3 flex items-center justify-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-gray-500 overflow-x-auto no-scrollbar whitespace-nowrap select-none">
-                    <span className="text-gray-400">←</span>
-                    <span>{t('categories.chips', 'Chips')}</span>
-                    <span className="text-gray-300">•</span>
-                    <span>{t('categories.namkeen', 'Namkeen')}</span>
-                    <span className="text-gray-300">•</span>
-                    <span>{t('categories.biscuits', 'Biscuits')}</span>
-                    <span className="text-gray-300">•</span>
-                    <span>{t('categories.grocery', 'Grocery')}</span>
-                    <span className="text-gray-300">•</span>
-                    <span>{t('categories.snacks', 'Snacks')}</span>
-                    <span className="text-gray-400">→</span>
+                <div className="relative border-y border-gray-200 py-3 overflow-hidden">
+
+                    {/* Left & Right Edge Fades (Mobile only) */}
+                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 sm:hidden" />
+                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 sm:hidden" />
+
+                    {/* 1. MOBILE ONLY: Continuous Auto-Scrolling Marquee */}
+                    <div className="flex sm:hidden overflow-hidden select-none">
+                        {/* Scoped CSS animation to guarantee smooth infinite scroll without tailwind.config changes */}
+                        <style>{`
+                            @keyframes ribbon-marquee {
+                                0% { transform: translateX(0%); }
+                                100% { transform: translateX(-100%); }
+                            }
+                            .animate-ribbon {
+                                display: flex;
+                                flex-shrink: 0;
+                                align-items: center;
+                                animation: ribbon-marquee 25s linear infinite;
+                            }
+                        `}</style>
+
+                        {/* Track 1 */}
+                        <div className="animate-ribbon gap-4 pr-4 text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                            <span>{t('categories.chips', 'Chips')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.namkeen', 'Namkeen')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.biscuits', 'Biscuits')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.grocery', 'Grocery')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.snacks', 'Snacks')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.chips', 'Chips')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.namkeen', 'Namkeen')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.biscuits', 'Biscuits')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.grocery', 'Grocery')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.snacks', 'Snacks')}</span>
+                            <span className="text-gray-300">•</span>
+                        </div>
+
+                        {/* Track 2 (Seamless loop clone) */}
+                        <div aria-hidden="true" className="animate-ribbon gap-4 pr-4 text-[11px] font-bold uppercase tracking-widest text-gray-500">
+                            <span>{t('categories.chips', 'Chips')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.namkeen', 'Namkeen')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.biscuits', 'Biscuits')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.grocery', 'Grocery')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.snacks', 'Snacks')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.chips', 'Chips')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.namkeen', 'Namkeen')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.biscuits', 'Biscuits')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.grocery', 'Grocery')}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>{t('categories.snacks', 'Snacks')}</span>
+                            <span className="text-gray-300">•</span>
+                        </div>
+                    </div>
+
+                    {/* 2. DESKTOP ONLY: Centered Static Strip */}
+                    <div className="hidden sm:flex items-center justify-center gap-6 text-xs font-bold uppercase tracking-widest text-gray-500 whitespace-nowrap select-none">
+                        <span className="text-gray-400">←</span>
+                        <span>{t('categories.chips', 'Chips')}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{t('categories.namkeen', 'Namkeen')}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{t('categories.biscuits', 'Biscuits')}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{t('categories.grocery', 'Grocery')}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{t('categories.snacks', 'Snacks')}</span>
+                        <span className="text-gray-400">→</span>
+                    </div>
+
                 </div>
             </div>
 

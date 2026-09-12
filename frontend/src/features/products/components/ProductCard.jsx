@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectWishlistItems } from '../../wishlist/WishlistSlice'
 import { addToCartAsync, selectCartItems } from '../../cart/CartSlice'
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { selectReviewsByProductId } from '../../review/ReviewSlice'
 
@@ -99,26 +98,10 @@ export const ProductCard = ({
     const dispatch = useDispatch()
     const { t } = useTranslation()
 
-    // 1. Check Redux store for product reviews if not passed directly in props
-    const reduxReviews = useSelector((state) => {
-        try {
-            return selectReviewsByProductId ? selectReviewsByProductId(state, id) : null
-        } catch {
-            return null
-        }
-    })
-
-    const effectiveReviews = Array.isArray(reviews) && reviews.length > 0 
-        ? reviews 
-        : Array.isArray(reduxReviews) && reduxReviews.length > 0 
-            ? reduxReviews 
-            : []
-
-    const reviewCount = effectiveReviews.length || (typeof reviews === 'number' ? reviews : 0)
-    
-    // Average rating calculated from reviews, or fallback to product-level rating prop
-    const avgRating = effectiveReviews.length > 0 
-        ? effectiveReviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / effectiveReviews.length 
+    const reviewList = Array.isArray(reviews) ? reviews : []
+    const reviewCount = reviewList.length
+    const avgRating = reviewCount > 0 
+        ? reviewList.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / reviewCount 
         : Number(rating) || 0
 
     const isInWishlist = wishlistItems.some((item) => item.product?._id === id)
@@ -231,18 +214,15 @@ export const ProductCard = ({
                     <div className="flex items-start justify-between gap-1">
                         <h6 className="text-xs sm:text-sm font-medium text-gray-900 leading-snug line-clamp-2 flex-1 min-w-0">{title}</h6>
                         {!isAdminCard && (
-                            <motion.div 
-                                whileHover={{ scale: 1.15 }} 
-                                whileTap={{ scale: 0.95 }} 
-                                transition={{ duration: .2 }}
+                            <div 
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex-shrink-0 mt-0.5"
+                                className="flex-shrink-0 mt-0.5 transition-transform duration-200 hover:scale-110 active:scale-95"
                             >
                                 <HeartCheckbox 
                                     checked={isInWishlist} 
                                     onChange={(e) => handleAddRemoveFromWishlist(e, id)} 
                                 />
-                            </motion.div>
+                            </div>
                         )}
                     </div>
                     <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5 truncate">
@@ -268,14 +248,12 @@ export const ProductCard = ({
                             </span>
                         ) : (
                             !isAdminCard && (
-                                <motion.button
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.98 }}
+                                <button
                                     onClick={(e) => handleAddToCart(e)}
-                                    className="px-2.5 py-1.5 rounded-md bg-black hover:bg-gray-800 text-white text-[10px] sm:text-xs font-medium whitespace-nowrap transition-colors"
+                                    className="px-2.5 py-1.5 rounded-md bg-black hover:bg-gray-800 text-white text-[10px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
                                 >
                                     {t('productCard.addToCart')}
-                                </motion.button>
+                                </button>
                             )
                         )
                     )}

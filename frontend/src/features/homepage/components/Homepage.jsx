@@ -124,12 +124,6 @@ export const Homepage = () => {
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-6">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center min-h-[420px] lg:min-h-[460px]">                        
                         <div className="lg:col-span-7 flex flex-col items-start justify-center">
-                            
-                            {/* Wholesale Badge */}
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-[#E31837] text-[11px] font-extrabold uppercase tracking-widest rounded-md mb-3 sm:mb-4 border border-red-100">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#E31837]" />
-                                {t('homepage.heroBadge', 'Wholesale Only')}
-                            </span>
 
                             {/* Headline tailored to shop owners */}
                             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-black leading-[1.1] text-gray-900 tracking-tight mb-3 sm:mb-4">
@@ -146,7 +140,7 @@ export const Homepage = () => {
                                 <button
                                     type="button"
                                     onClick={() => productListRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E31837] hover:bg-red-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-lg shadow-sm transition-all duration-200 cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E31837] hover:bg-red-700 text-white text-xs sm:text-sm uppercase tracking-wider shadow-sm transition-all duration-200 cursor-pointer"
                                 >
                                     <MdStorefront size={16} />
                                     <span>{t('homepage.heroCtaPrimary', 'Shop Now')}</span>
@@ -156,7 +150,7 @@ export const Homepage = () => {
                                     href="https://wa.me/919386042504"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 px-5 py-3 border border-gray-300 hover:border-gray-900 bg-white text-gray-800 font-semibold text-xs sm:text-sm rounded-lg transition-colors cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-5 py-3 border border-gray-300 hover:border-gray-900 bg-white text-gray-800 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
                                 >
                                     <FaWhatsapp className="text-[#25D366] text-base" />
                                     <span>{t('homepage.heroCtaSecondary', 'Order on WhatsApp')}</span>
@@ -166,7 +160,7 @@ export const Homepage = () => {
                                     href="https://www.google.com/maps/place/SK+General+Stores+Station+Road+Sakri/@26.2097846,86.079415,17z/data=!4m6!3m5!1s0x39edcf8ac7311eb7:0x6a769e37c40868b1!8m2!3d26.2096491!4d86.0784015!16s%2Fg%2F11h04fglsj?entry=ttu"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-1.5 px-4 py-3 text-xs sm:text-sm font-medium text-gray-500 hover:text-[#0055A4] transition-colors"
+                                    className="flex items-center justify-center gap-1.5 px-4 py-3 text-xs sm:text-sm font-medium border uppercase border-gray-300 text-white bg-blue-500 hover:bg-blue-700 transition-colors"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

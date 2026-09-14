@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUserInfo } from '../../user/UserSlice';
@@ -50,8 +50,6 @@ const useClickOutside = (ref, handler) => {
 export const Navbar = ({ isProductList = false }) => {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchCategory, setSearchCategory] = useState('all');
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const userInfo = useSelector(selectUserInfo);
   const cartItems = useSelector(selectCartItems);
@@ -67,7 +65,6 @@ export const Navbar = ({ isProductList = false }) => {
 
   const isMobile = breakpoint === 'xs' || breakpoint === 'sm';
   const isTablet = breakpoint === 'md';
-  const isDesktop = breakpoint === 'lg' || breakpoint === 'xl';
 
   useClickOutside(menuRef, () => setAnchorElUser(null));
 
@@ -86,12 +83,12 @@ export const Navbar = ({ isProductList = false }) => {
   const handleSearch = (e) => {
     e?.preventDefault?.();          
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleSearch(e);  
+  const handleResetSearch = () => {
+    setSearchQuery('');
   };
 
   const settings = [
@@ -122,101 +119,19 @@ export const Navbar = ({ isProductList = false }) => {
     gap: isMobile ? '6px' : '16px',
   });
 
-  const getLeftSectionStyles = () => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    flexShrink: 0,
-  });
-
   const getFilterBtnStyles = () => ({
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    height: isMobile ? '32px' : '36px',
-    padding: isMobile ? '0 8px' : '0 10px',
+    height: isMobile ? '34px' : '38px',
+    padding: isMobile ? '0 8px' : '0 12px',
     backgroundColor: 'transparent',
-    border: '1px solid #cdcdcd',
-    borderRadius: '4px',
+    border: '1px solid #d1d5db',
+    borderRadius: '6px',
     cursor: 'pointer',
     outline: 'none',
     whiteSpace: 'nowrap',
     transition: 'background-color 0.15s ease',
-  });
-
-  const getLogoStyles = () => ({
-    display: 'flex',
-    alignItems: 'center',
-    textDecoration: 'none',
-    flexShrink: 0,
-  });
-
-  const getSearchContainerStyles = () => ({
-    display: isMobile && !mobileSearchOpen ? 'none' : 'flex',
-    flex: 1,
-    maxWidth: isMobile ? '100%' : '600px',
-    minWidth: 0,
-    alignItems: 'center',
-    margin: isMobile ? '0' : '0 16px',
-    position: isMobile ? 'absolute' : 'relative',
-    top: isMobile ? '48px' : 'auto',
-    left: isMobile ? 0 : 'auto',
-    right: isMobile ? 0 : 'auto',
-    padding: isMobile ? '6px 8px' : '0',
-    backgroundColor: isMobile ? '#ffffff' : 'transparent',
-    borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
-    boxShadow: isMobile ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
-  });
-
-  const getSelectStyles = () => ({
-    height: isMobile ? '32px' : '36px',
-    width: isMobile ? '55px' : '70px',
-    padding: '0 4px',
-    fontSize: isMobile ? '12px' : '14px',
-    backgroundColor: '#f3f3f3',
-    border: '1px solid #cdcdcd',
-    borderRight: 'none',
-    borderRadius: '4px 0 0 4px',
-    cursor: 'pointer',
-    outline: 'none',
-    whiteSpace: 'nowrap',
-  });
-
-  const getInputStyles = () => ({
-    flex: 1,
-    height: isMobile ? '32px' : '36px',
-    padding: '0 8px',
-    fontSize: isMobile ? '12px' : '14px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #cdcdcd',
-    borderLeft: 'none',
-    borderRight: 'none',
-    outline: 'none',
-    minWidth: 0,
-  });
-
-  const getSearchBtnStyles = () => ({
-    height: isMobile ? '32px' : '36px',
-    width: isMobile ? '32px' : '36px',
-    minWidth: isMobile ? '32px' : '36px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 0,
-    margin: 0,
-    boxSizing: 'border-box',
-    backgroundColor: '#0055A4',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    flexShrink: 0,
-  });
-
-  const getRightSectionStyles = () => ({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: isMobile ? '4px' : '12px',
     flexShrink: 0,
   });
 
@@ -316,22 +231,107 @@ export const Navbar = ({ isProductList = false }) => {
 
   return (
     <>
+      {/* Inline Scoped Styles */}
+      <style>{`
+        .search-form {
+          --timing: 0.3s;
+          --height-of-input: 38px;
+          --border-height: 2px;
+          --input-bg: #f9fafb;
+          --border-color: #0055A4;
+          --border-radius: 30px;
+          --after-border-radius: 6px;
+          position: relative;
+          width: 100%;
+          height: var(--height-of-input);
+          display: flex;
+          align-items: center;
+          padding-inline: 0.9em;
+          border-radius: var(--border-radius);
+          transition: border-radius 0.4s ease, background-color 0.2s ease;
+          background: var(--input-bg, #fff);
+          border: 1px solid #e5e7eb;
+        }
+        .search-form button {
+          border: none;
+          background: none;
+          color: #6b7280;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+        }
+        .search-form button:hover {
+          color: #111827;
+        }
+        .search-input {
+          font-size: 0.875rem;
+          background-color: transparent;
+          width: 100%;
+          height: 100%;
+          padding-inline: 0.6em;
+          border: none;
+          color: #111827;
+        }
+        .search-input:focus {
+          outline: none;
+        }
+        .search-form:before {
+          content: "";
+          position: absolute;
+          background: var(--border-color);
+          transform: scaleX(0);
+          transform-origin: center;
+          width: 100%;
+          height: var(--border-height);
+          left: 0;
+          bottom: 0;
+          border-radius: 1px;
+          transition: transform var(--timing) ease;
+        }
+        .search-form:focus-within {
+          border-radius: var(--after-border-radius);
+          background-color: #ffffff;
+          border-color: #d1d5db;
+        }
+        .search-form:focus-within:before {
+          transform: scaleX(1);
+        }
+        .search-reset {
+          border: none;
+          background: none;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+        .search-input:not(:placeholder-shown) ~ .search-reset {
+          opacity: 1;
+          visibility: visible;
+        }
+        .search-form svg {
+          width: 17px;
+          height: 17px;
+        }
+      `}</style>
+
       <header style={getNavStyles()}>
+        {/* Top Navbar Row */}
         <nav style={getContainerStyles()}>
-
           {/* LEFT: Logo + Language Switcher */}
-          <div style = {getLeftSectionStyles()}>
-            <Link to="/" style={getLogoStyles()}>
-              <img src="/logo.jpeg" alt="SK Superstore" style={{ height: isMobile ? '32px' : '40px', width: 'auto', maxHeight: isMobile ? '32px' : '40px', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+              <img 
+                src="/logo.jpeg" 
+                alt="SK Superstore" 
+                style={{ height: isMobile ? '32px' : '40px', width: 'auto', objectFit: 'contain' }} 
+              />
             </Link>
-
             <LanguageSwitcher />
           </div>
 
-          {/* RIGHT: Profile, Greetings, Cart, Wishlist */}
-          <div style={getRightSectionStyles()}>
-
-            {/* Mobile search toggle */}
+          {/* RIGHT: User, Cart, Wishlist */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: isMobile ? '6px' : '12px', flexShrink: 0 }}>
             {loggedInUser ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '8px' }}>
                 <div style={{ position: 'relative' }} ref={menuRef}>
@@ -388,7 +388,7 @@ export const Navbar = ({ isProductList = false }) => {
               </button>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '12px' }}>
               {cartItems?.length > 0 && (
                 <button 
                   onClick={() => navigate("/cart")}
@@ -421,9 +421,12 @@ export const Navbar = ({ isProductList = false }) => {
             </div>
           </div>
         </nav>
-        <nav>
-          <div style={getContainerStyles()}>
+
+        {/* Second Row: Shop Filter Toggle + Animated Search Bar */}
+        <nav style={{ borderTop: '1px solid #f3f4f6', padding: '6px 0 8px 0' }}>
+          <div style={{ ...getContainerStyles(), height: 'auto', gap: '8px' }}>
             
+            {/* Optional Shop Filter Button */}
             {isProductList && (
               <button 
                 onClick={handleToggleFilters}
@@ -433,8 +436,8 @@ export const Navbar = ({ isProductList = false }) => {
               >
                 <svg 
                   style={{ 
-                    width: isMobile ? '18px' : '20px', 
-                    height: isMobile ? '18px' : '20px', 
+                    width: isMobile ? '16px' : '18px', 
+                    height: isMobile ? '16px' : '18px', 
                     color: isProductFilterOpen ? '#000000' : '#4b5563' 
                   }} 
                   fill="none" 
@@ -446,7 +449,7 @@ export const Navbar = ({ isProductList = false }) => {
                 <span 
                   style={{ 
                     fontSize: isMobile ? '12px' : '13px', 
-                    fontWeight: 500, 
+                    fontWeight: 600, 
                     color: isProductFilterOpen ? '#000000' : '#374151' 
                   }}
                 >
@@ -455,38 +458,40 @@ export const Navbar = ({ isProductList = false }) => {
               </button>
             )}
 
-            {/* CENTER: Search Bar */}
-              <select
-                value={searchCategory}
-                onChange={(e) => setSearchCategory(e.target.value)}
-                style={getSelectStyles()}
-              >
-                <option value="all">{t('navbar.all')}</option>
-                <option value="products">{t('navbar.products')}</option>
-                <option value="brands">{t('navbar.brands')}</option>
-              </select>
-
-              <input
-                type="text"
-                placeholder={t('navbar.search')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                style={getInputStyles()}
-              />
-
-              <button onClick={handleSearch} style={getSearchBtnStyles()}>
-                <svg style={{ width: isMobile ? '16px' : '20px', height: isMobile ? '16px' : '20px', color: '#ffffff' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            {/* INTEGRATED UIVERSE SEARCH BAR */}
+            <form onSubmit={handleSearch} className="search-form">
+              {/* Search Submit Icon */}
+              <button type="submit" aria-label="Search">
+                <svg width="17" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+                  <path d="M7.667 12.667A5.333 5.333 0 107.667 2a5.333 5.333 0 000 10.667zM14.334 14l-2.9-2.9" stroke="currentColor" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
+
+              {/* Controlled Input */}
+              <input 
+                className="search-input" 
+                placeholder={t('navbar.search', 'Search SKSuperStore...')} 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
+              {/* Reset/Clear Button */}
+              <button 
+                className="search-reset" 
+                type="button"
+                onClick={handleResetSearch}
+                aria-label="Clear search"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </form>
+
           </div>
         </nav>
- 
       </header>
-
-      {/* Mobile search spacer */}
-      {isMobile && mobileSearchOpen && <div style={{ height: '46px' }} />}
     </>
   );
 };

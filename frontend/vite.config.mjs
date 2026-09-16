@@ -20,5 +20,13 @@ export default defineConfig({
       },
     },
   },
-  build: { outDir: 'build', sourcemap: true },
+  build: { 
+    outDir: 'build', sourcemap: true 
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+    css: true,
+  },
 });

@@ -221,14 +221,6 @@ export const SearchPage = () => {
   const [viewMode, setViewMode] = useState('grid') 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'relevance')
-
-  const query = searchParams.get('q') || ''
-  const activeCategory = searchParams.get('category') || ''
-  const activeBrand = searchParams.get('brand') || ''
-  const activePack = searchParams.get('pack') || ''
-  const activeStock = searchParams.get('stock') || ''
-  const page = parseInt(searchParams.get('page') || '1', 10)
-
   const [searchInput, setSearchInput] = useState(query)
   const [openSections, setOpenSections] = useState({
     category: true,
@@ -236,6 +228,13 @@ export const SearchPage = () => {
     packaging: true,
     availability: true,
   })
+
+  const query = searchParams.get('q') || ''
+  const activeCategory = searchParams.get('category') || ''
+  const activeBrand = searchParams.get('brand') || ''
+  const activePack = searchParams.get('pack') || ''
+  const activeStock = searchParams.get('stock') || ''
+  const page = parseInt(searchParams.get('page') || '1', 10)
 
   const toggleSection = (section) => {
     setOpenSections(prev => ({

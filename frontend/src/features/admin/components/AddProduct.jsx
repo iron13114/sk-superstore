@@ -101,7 +101,6 @@ export const AddProduct = () => {
             type: data.type,
             thumbnail: data.thumbnail,
             images: validImages.length > 0 ? validImages : [data.thumbnail],
-            // Root-level fields for backward compatibility
             price: singleSalePrice,
             stockQuantity: singleStock,
             tiers: [
@@ -156,8 +155,8 @@ export const AddProduct = () => {
         },
         { 
             key: 'pack', 
-            label: t('productDetails.packOf', { qty: 10 }), 
-            defaultQty: 10, 
+            label: t('productDetails.packOf', { qty: 12 }), 
+            defaultQty: 12, 
             qtyReadOnly: false,
             color: 'bg-[#0055A4] text-white' 
         },
@@ -200,7 +199,6 @@ export const AddProduct = () => {
                         <Controller
                             name="brand"
                             control={control}
-                            rules={{ required: t('productForm.brandRequired') }}
                             render={({ field }) => (
                                 <select {...field} className={errors.brand ? inputError : inputBase}>
                                     <option value="">{t('productForm.selectBrand')}</option>

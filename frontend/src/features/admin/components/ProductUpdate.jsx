@@ -147,7 +147,6 @@ export const ProductUpdate = () => {
             type: data.type,
             thumbnail: data.thumbnail,
             images: validImages.length > 0 ? validImages : [data.thumbnail],
-            // Root-level fields for backward compatibility
             price: singleSalePrice,
             stockQuantity: singleStock,
             tiers: [
@@ -246,7 +245,6 @@ export const ProductUpdate = () => {
                         <Controller
                             name="brand"
                             control={control}
-                            rules={{ required: t('productForm.brandRequired') }}
                             render={({ field }) => (
                                 <select {...field} className={errors.brand ? inputError : inputBase}>
                                     <option value="">{t('productForm.selectBrand')}</option>

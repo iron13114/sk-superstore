@@ -89,7 +89,7 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
         }
 
         try {
-            const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000"
+            const API_BASE = import.meta.env.VITE_API_URL || ''
             const res = await axios.get(`${API_BASE}/products?category=${child._id}`)
             const data = Array.isArray(res.data) ? res.data : (res.data?.products || [])
             setCategoryProducts(data)

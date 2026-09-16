@@ -78,7 +78,6 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
         setIsDocked(true)
         setIsOffscreen(false)
 
-        // Smoothly bring clicked tab into the docked starting position
         if (element) {
             setTimeout(() => {
                 element.scrollIntoView({
@@ -90,18 +89,13 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
         }
 
         try {
-            const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+            const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000"
             const res = await axios.get(`${API_BASE}/products?category=${child._id}`)
             const data = Array.isArray(res.data) ? res.data : (res.data?.products || [])
             setCategoryProducts(data)
         } catch (error) {
-            try {
-                const fallbackRes = await axios.get(`/products?category=${child._id}`)
-                const data = Array.isArray(fallbackRes.data) ? fallbackRes.data : (fallbackRes.data?.products || [])
-                setCategoryProducts(data)
-            } catch (fallbackErr) {
-                setCategoryProducts([])
-            }
+            console.error('Failed to fetch category products:', error)
+            setCategoryProducts([])
         } finally {
             setIsLoading(false)
         }

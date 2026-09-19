@@ -147,11 +147,11 @@
     "biscuits": "Biscuits",
     "grocery": "Grocery",
     "snacks": "Snacks",
-    "faceWash": "Face Wash",
+    "face-wash": "Face Wash",
     "perfume": "Perfume",
-    "roomSpray": "Room Spray",
-    "airFreshener": "Air Freshener",
-    "faceCream": "Face Cream",
+    "room_spray": "Room Spray",
+    "air_freshener": "Air Freshener",
+    "face_cream": "Face Cream",
     "powder": "Powder"
   },
     "productCard": {

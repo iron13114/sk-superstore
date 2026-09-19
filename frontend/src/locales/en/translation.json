@@ -146,7 +146,13 @@
     "namkeen": "Namkeen",
     "biscuits": "Biscuits",
     "grocery": "Grocery",
-    "snacks": "Snacks"
+    "snacks": "Snacks",
+    "faceWash": "Face Wash",
+    "perfume": "Perfume",
+    "roomSpray": "Room Spray",
+    "airFreshener": "Air Freshener",
+    "faceCream": "Face Cream",
+    "powder": "Powder"
   },
     "productCard": {
       "addedToCart": "Added to cart",

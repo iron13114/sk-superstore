@@ -115,16 +115,14 @@ export const Homepage = () => {
 
             {/* 5. Main Product Catalog Section */}
             <div ref={productListRef} id="products-section">
-                <ScrollReveal y={30}>
-                    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 w-full border-t border-gray-200">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
-                                {t('homepage.allProducts')}
-                            </h2>
-                        </div>
-                        <ProductList />
-                    </section>
-                </ScrollReveal>
+                <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12 w-full border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+                            {t('homepage.allProducts')}
+                        </h2>
+                    </div>
+                    <ProductList />
+                </section>
             </div>
         </div>
     )

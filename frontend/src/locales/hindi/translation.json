@@ -67,7 +67,7 @@
   },
   "footer": {
     "contact": "संपर्क करें",
-    "address": "सकरी स्टेशन रोड, ब्रह्मपुर, मधुबनी, बिहार",
+    "address": "पता",
     "account": "खाता",
     "myAccount": "मेरा खाता",
     "loginRegister": "लॉगिन / रजिस्टर",
@@ -78,7 +78,9 @@
     "privacyPolicy": "गोपनीयता नीति",
     "termsOfUse": "उपयोग की शर्तें",
     "faq": "सामान्य प्रश्न",
-    "allRightsReserved": "सर्वाधिकार सुरक्षित"
+    "allRightsReserved": "सर्वाधिकार सुरक्षित",
+    "gmail" : "Gmail",
+    "call" : "हमसे बात करें"
   },
   "productList": {
     "newArrivals": "नई आगमन",

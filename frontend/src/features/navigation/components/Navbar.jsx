@@ -224,13 +224,11 @@ export const Navbar = ({ isProductList = false }) => {
           width: 32px;
           height: 24px;
           background: transparent;
+          border: none;
+          padding: 0;
           cursor: pointer;
           display: block;
           flex-shrink: 0;
-        }
-
-        .burger input {
-          display: none;
         }
 
         .burger span {
@@ -244,6 +242,7 @@ export const Navbar = ({ isProductList = false }) => {
           left: 0;
           transform: rotate(0deg);
           transition: .25s ease-in-out;
+          pointer-events: none;
         }
 
         .burger span:nth-of-type(1) {
@@ -263,18 +262,18 @@ export const Navbar = ({ isProductList = false }) => {
           transform: translateY(-100%);
         }
 
-        .burger input:checked ~ span:nth-of-type(1) {
+        .burger.open span:nth-of-type(1) {
           transform: rotate(45deg);
           top: 1px;
           left: 4px;
         }
 
-        .burger input:checked ~ span:nth-of-type(2) {
+        .burger.open span:nth-of-type(2) {
           width: 0%;
           opacity: 0;
         }
 
-        .burger input:checked ~ span:nth-of-type(3) {
+        .burger.open span:nth-of-type(3) {
           transform: rotate(-45deg);
           top: 23px;
           left: 4px;
@@ -476,21 +475,17 @@ export const Navbar = ({ isProductList = false }) => {
             
             {/* Animated Burger Toggle */}
             {isProductList && (
-              <label 
-                className="burger" 
-                htmlFor="burger-filter-toggle"
+              <button
+                type="button"
+                onClick={handleToggleFilters}
+                className={`burger ${isProductFilterOpen ? 'open' : ''}`}
                 title={isProductFilterOpen ? t('navbar.closeFilters', 'Close filters') : t('navbar.openFilters', 'Open filters')}
+                aria-label="Toggle filters"
               >
-                <input 
-                  type="checkbox" 
-                  id="burger-filter-toggle" 
-                  checked={Boolean(isProductFilterOpen)} 
-                  onChange={handleToggleFilters} 
-                />
                 <span></span>
                 <span></span>
                 <span></span>
-              </label>
+              </button>
             )}
 
             {/* Uiverse Search Bar */}

@@ -24,10 +24,10 @@ export const Footer = () => {
                         {t('footer.address')}
                     </a>
                     <a href="mailto:skgeneralstores2016@gmail.com" className={linkClass}>
-                        skgeneralstores2016@gmail.com
+                        {t('footer.gmail')}
                     </a>
                     <a href="tel:9386042504" className={linkClass}>
-                        +91 9386042504
+                        {t('footer.call')}
                     </a>
                 </div>
 

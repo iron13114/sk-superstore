@@ -237,7 +237,7 @@ export const WholesaleSections = () => {
                         href="https://wa.me/9386042504"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#E31837] hover:bg-red-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#4de368] hover:bg-green-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-full shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
                     >
                         <span>{t('homepage.whatsappCta') || 'Chat Now'}</span>
                         <span className="text-base leading-none">→</span>

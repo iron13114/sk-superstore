@@ -119,22 +119,6 @@ export const Navbar = ({ isProductList = false }) => {
     gap: isMobile ? '6px' : '16px',
   });
 
-  const getFilterBtnStyles = () => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    height: isMobile ? '34px' : '38px',
-    padding: isMobile ? '0 8px' : '0 12px',
-    backgroundColor: 'transparent',
-    border: '1px solid #d1d5db',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    outline: 'none',
-    whiteSpace: 'nowrap',
-    transition: 'background-color 0.15s ease',
-    flexShrink: 0,
-  });
-
   const getAvatarStyles = () => ({
     width: isMobile ? '28px' : '36px',
     height: isMobile ? '28px' : '36px',
@@ -186,11 +170,12 @@ export const Navbar = ({ isProductList = false }) => {
     padding: isMobile ? '4px 8px' : '6px 12px',
     fontSize: isMobile ? '12px' : '14px',
     border: '1px solid #d1d5db',
-    borderRadius: '4px',
     textDecoration: 'none',
-    color: '#111827',
+    color: '#FFFFFF',
+    background: '#0055A4',
     fontWeight: 500,
     whiteSpace: 'nowrap',
+    borderRadius: '9999px',
   });
 
   const getAdminBadgeStyles = () => ({
@@ -233,6 +218,69 @@ export const Navbar = ({ isProductList = false }) => {
     <>
       {/* Inline Scoped Styles */}
       <style>{`
+        /* Animated Burger Toggle */
+        .burger {
+          position: relative;
+          width: 32px;
+          height: 24px;
+          background: transparent;
+          cursor: pointer;
+          display: block;
+          flex-shrink: 0;
+        }
+
+        .burger input {
+          display: none;
+        }
+
+        .burger span {
+          display: block;
+          position: absolute;
+          height: 3px;
+          width: 100%;
+          background: #111827;
+          border-radius: 9px;
+          opacity: 1;
+          left: 0;
+          transform: rotate(0deg);
+          transition: .25s ease-in-out;
+        }
+
+        .burger span:nth-of-type(1) {
+          top: 0px;
+          transform-origin: left center;
+        }
+
+        .burger span:nth-of-type(2) {
+          top: 50%;
+          transform: translateY(-50%);
+          transform-origin: left center;
+        }
+
+        .burger span:nth-of-type(3) {
+          top: 100%;
+          transform-origin: left center;
+          transform: translateY(-100%);
+        }
+
+        .burger input:checked ~ span:nth-of-type(1) {
+          transform: rotate(45deg);
+          top: 1px;
+          left: 4px;
+        }
+
+        .burger input:checked ~ span:nth-of-type(2) {
+          width: 0%;
+          opacity: 0;
+        }
+
+        .burger input:checked ~ span:nth-of-type(3) {
+          transform: rotate(-45deg);
+          top: 23px;
+          left: 4px;
+        }
+
+        /* Search Form Styles */
         .search-form {
           --timing: 0.3s;
           --height-of-input: 38px;
@@ -422,52 +470,37 @@ export const Navbar = ({ isProductList = false }) => {
           </div>
         </nav>
 
-        {/* Second Row: Shop Filter Toggle + Animated Search Bar */}
+        {/* Second Row: Burger Toggle + Search Bar */}
         <nav style={{ borderTop: '1px solid #f3f4f6', padding: '6px 0 8px 0' }}>
-          <div style={{ ...getContainerStyles(), height: 'auto', gap: '8px' }}>
+          <div style={{ ...getContainerStyles(), height: 'auto', gap: isMobile ? '10px' : '14px' }}>
             
-            {/* Optional Shop Filter Button */}
+            {/* Animated Burger Toggle */}
             {isProductList && (
-              <button 
-                onClick={handleToggleFilters}
-                style={getFilterBtnStyles()}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              <label 
+                className="burger" 
+                htmlFor="burger-filter-toggle"
+                title={isProductFilterOpen ? t('navbar.closeFilters', 'Close filters') : t('navbar.openFilters', 'Open filters')}
               >
-                <svg 
-                  style={{ 
-                    width: isMobile ? '16px' : '18px', 
-                    height: isMobile ? '16px' : '18px', 
-                    color: isProductFilterOpen ? '#000000' : '#4b5563' 
-                  }} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                <span 
-                  style={{ 
-                    fontSize: isMobile ? '12px' : '13px', 
-                    fontWeight: 600, 
-                    color: isProductFilterOpen ? '#000000' : '#374151' 
-                  }}
-                >
-                  Shop
-                </span>
-              </button>
+                <input 
+                  type="checkbox" 
+                  id="burger-filter-toggle" 
+                  checked={Boolean(isProductFilterOpen)} 
+                  onChange={handleToggleFilters} 
+                />
+                <span></span>
+                <span></span>
+                <span></span>
+              </label>
             )}
 
-            {/* INTEGRATED UIVERSE SEARCH BAR */}
+            {/* Uiverse Search Bar */}
             <form onSubmit={handleSearch} className="search-form">
-              {/* Search Submit Icon */}
               <button type="submit" aria-label="Search">
                 <svg width="17" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
                   <path d="M7.667 12.667A5.333 5.333 0 107.667 2a5.333 5.333 0 000 10.667zM14.334 14l-2.9-2.9" stroke="currentColor" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
 
-              {/* Controlled Input */}
               <input 
                 className="search-input" 
                 placeholder={t('navbar.search', 'Search SKSuperStore...')} 
@@ -476,7 +509,6 @@ export const Navbar = ({ isProductList = false }) => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
 
-              {/* Reset/Clear Button */}
               <button 
                 className="search-reset" 
                 type="button"

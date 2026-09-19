@@ -307,8 +307,9 @@
     "bestMargin": "सबसे ज़्यादा मुनाफ़ा",
     "savingsMarginNote": "जितनी ज़्यादा मात्रा = दुकान के लिए उतना बड़ा मुनाफ़ा",
     "heroTitleLine1": "थोक मूल्य।",
-    "heroTitleLine2": "रिटेलर मार्जिन।",
-    "bulkSavingsBadge": "10–50% थोक बचत"
+    "heroTitleLine2": "खुदरा लाभांश।",
+    "bulkSavingsBadge": "10–50% थोक बचत",
+    "whatsappHelp": "मदद चाहिए? हमसे संपर्क करें"
   },
   "search": {
     "placeholder": "उत्पाद, ब्रांड, श्रेणियाँ खोजें...",

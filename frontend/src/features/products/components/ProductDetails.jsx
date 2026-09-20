@@ -6,24 +6,36 @@ import { addToCartAsync, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
 import { fetchReviewsByProductIdAsync, selectReviewFetchStatus, selectReviews } from '../../review/ReviewSlice'
 import { Reviews } from '../../review/components/Reviews'
-import { showToast } from '../../../utils/toast';
+import { showToast } from '../../../utils/toast'
 import { createWishlistItemAsync, deleteWishlistItemByIdAsync, selectWishlistItems } from '../../wishlist/WishlistSlice'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
-import { useTranslation } from 'react-i18next';
-import TruckLoader from '../../../components/TruckLoader';
+import { useTranslation } from 'react-i18next'
+import TruckLoader from '../../../components/TruckLoader'
+
+const TIER_BADGES = {
+    single: 'bg-gray-100 text-gray-800',
+    pack: 'bg-[#0055A4] text-white',
+    box: 'bg-purple-700 text-white',
+    jar: 'bg-amber-600 text-white',
+    carton: 'bg-[#111827] text-white',
+    bundle: 'bg-teal-700 text-white',
+    dozen: 'bg-indigo-700 text-white',
+    strip: 'bg-rose-700 text-white',
+    bag: 'bg-emerald-700 text-white',
+}
 
 const useMediaQuery = (query) => {
-    const [matches, setMatches] = useState(false);
+    const [matches, setMatches] = useState(false)
     useEffect(() => {
-        const media = window.matchMedia(query);
-        setMatches(media.matches);
-        const listener = (e) => setMatches(e.matches);
-        media.addEventListener('change', listener);
-        return () => media.removeEventListener('change', listener);
-    }, [query]);
-    return matches;
-};
+        const media = window.matchMedia(query)
+        setMatches(media.matches)
+        const listener = (e) => setMatches(e.matches)
+        media.addEventListener('change', listener)
+        return () => media.removeEventListener('change', listener)
+    }, [query])
+    return matches
+}
 
 const HeartCheckbox = ({ checked, onChange }) => (
     <label className="cursor-pointer relative inline-flex">
@@ -38,25 +50,10 @@ const HeartCheckbox = ({ checked, onChange }) => (
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
     </label>
-);
-
-const ReadOnlyRating = ({ value }) => (
-    <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-            <svg
-                key={star}
-                className={`w-5 h-5 ${star <= value ? 'text-yellow-400' : 'text-gray-300'}`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-            >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-        ))}
-    </div>
 )
 
 const TierPriceDisplay = ({ basePrice, price, discount }) => {
-    const hasDiscount = discount > 0 && basePrice > price;
+    const hasDiscount = discount > 0 && basePrice > price
     return (
         <div className="flex items-baseline gap-1.5 flex-wrap mt-0.5">
             {hasDiscount && (
@@ -67,8 +64,8 @@ const TierPriceDisplay = ({ basePrice, price, discount }) => {
                 <span className="text-[10px] text-green-600 font-medium">({discount}% off)</span>
             )}
         </div>
-    );
-};
+    )
+}
 
 export const ProductDetails = () => {
     const { id } = useParams()
@@ -76,7 +73,7 @@ export const ProductDetails = () => {
     const loggedInUser = useSelector(selectLoggedInUser)
     const dispatch = useDispatch()
     const cartItemAddStatus = useSelector(selectCartItemAddStatus)
-    const { t } = useTranslation();
+    const { t } = useTranslation()
     const [quantities, setQuantities] = useState({})
 
     const reviews = useSelector(selectReviews)
@@ -85,9 +82,7 @@ export const ProductDetails = () => {
     const is1420 = useMediaQuery('(max-width: 1420px)')
     const is990 = useMediaQuery('(max-width: 990px)')
     const is840 = useMediaQuery('(max-width: 840px)')
-    const is500 = useMediaQuery('(max-width: 500px)')
     const is480 = useMediaQuery('(max-width: 480px)')
-    const is340 = useMediaQuery('(max-width: 340px)')
 
     const wishlistItems = useSelector(selectWishlistItems)
     const isProductAlreadyinWishlist = wishlistItems.some((item) => item.product?._id === id)
@@ -96,7 +91,7 @@ export const ProductDetails = () => {
 
     const totalReviewRating = reviews.reduce((acc, review) => acc + review.rating, 0)
     const totalReviews = reviews.length
-    const averageRating = totalReviews > 0 ? Math.ceil(totalReviewRating / totalReviews) : 0;
+    const averageRating = totalReviews > 0 ? Math.ceil(totalReviewRating / totalReviews) : 0
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "instant" })
@@ -109,13 +104,14 @@ export const ProductDetails = () => {
         }
     }, [id, dispatch])
 
+    // Initialize quantities for all tiers present on the product
     useEffect(() => {
-        if (product?.tiers?.length > 0) {
+        if (product?.tiers && product.tiers.length > 0) {
             const init = {}
             product.tiers.forEach(tier => { init[tier.type] = 0 })
             setQuantities(init)
         } else if (product) {
-            setQuantities({ single: 0, pack: 0, carton: 0 })
+            setQuantities({ single: 0 })
         }
     }, [product])
 
@@ -125,124 +121,91 @@ export const ProductDetails = () => {
         } else if (cartItemAddStatus === 'rejected') {
             showToast.error(t('productDetails.errorAddingToCart'))
         }
-    }, [cartItemAddStatus, dispatch, t])
+    }, [cartItemAddStatus, t])
 
     const handleAddWholeSaleToCart = () => {
-        if (!product) return; 
+        if (!product) return
 
-        const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0);
+        const selectedTiers = Object.entries(quantities).filter(([_, qty]) => qty > 0)
 
         if (selectedTiers.length === 0) {
-            showToast.info(t('productDetails.selectAtLeastOneTier'));
-            return;
+            showToast.info(t('productDetails.selectAtLeastOneTier'))
+            return
         }
 
         selectedTiers.forEach(([tierType, qty]) => {
-            const tier = product?.tiers?.find(t => t.type === tierType)  
+            const tier = product?.tiers?.find(t => t.type === tierType)
 
-            const fallbackLabel = tierType === 'single' ? t('productDetails.singleUnit') 
-                                : tierType === 'pack' ? t('productDetails.packOf', { qty: 10 }) 
-                                : t('productDetails.cartonOf', { qty: 50 })
-
-            const fallbackPrice = tierType === 'pack' ? (product?.price || 0) * 10 * 0.95
-                                : tierType === 'carton' ? (product?.price || 0) * 50 * 0.90
-                                : (product?.price || 0)
+            const fallbackPrice = product?.price || 0
+            const fallbackLabel = tierType.toUpperCase()
 
             const wholesaleItem = {
-                user: loggedInUser?._id,        
-                product: product,                
+                user: loggedInUser?._id,
+                product: product,
                 quantity: qty,
                 packagingTier: tierType,
                 variantLabel: tier?.label || fallbackLabel,
                 variantPrice: tier ? tier.price : fallbackPrice
-            };
-            dispatch(addToCartAsync(wholesaleItem));
-        });
+            }
+            dispatch(addToCartAsync(wholesaleItem))
+        })
 
         const resetQty = {}
-        Object.keys(quantities).forEach(k => resetQty[k] = 0)
-        setQuantities(resetQty);
+        Object.keys(quantities).forEach(k => { resetQty[k] = 0 })
+        setQuantities(resetQty)
     }
 
-    const handleUpdateTierQty = (tier, operation) => {
+    const handleUpdateTierQty = (tierType, operation) => {
         setQuantities(prev => {
-            const currentQty = prev[tier] || 0;
+            const currentQty = prev[tierType] || 0
             if (operation === 'dec' && currentQty > 0) {
-                return { ...prev, [tier]: currentQty - 1 };
+                return { ...prev, [tierType]: currentQty - 1 }
             }
-            if (operation === 'inc' && currentQty < 50) {
-                return { ...prev, [tier]: currentQty + 1 };
+            if (operation === 'inc' && currentQty < 100) {
+                return { ...prev, [tierType]: currentQty + 1 }
             }
-            return prev;
-        });
+            return prev
+        })
     }
 
     const handleAddRemoveFromWishlist = (e) => {
         if (e.target.checked) {
             const data = { user: loggedInUser?._id, product: id }
             dispatch(createWishlistItemAsync(data))
-        } else if (!e.target.checked) {
+        } else {
             const index = wishlistItems.findIndex((item) => item.product._id === id)
-            dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id));
-        }
-    }
-
-    const [activeStep, setActiveStep] = useState(0);
-    const swiperRef = useRef(null);
-    const maxSteps = product?.images?.length || 0;
-
-    const handleNext = () => {
-        if (swiperRef.current) swiperRef.current.slideNext();
-    };
-
-    const handleBack = () => {
-        if (swiperRef.current) swiperRef.current.slidePrev();
-    };
-
-    const getTierDisplay = (tierType) => {
-        if (product?.tiers?.length > 0) {
-            const tier = product.tiers.find(t => t.type === tierType)
-            if (tier) {
-                return {
-                    label: tier.label,
-                    price: tier.price,
-                    basePrice: tier.basePrice || tier.price,
-                    stock: tier.stockQuantity,
-                    discount: tier.discountPercentage || 0,
-                    qty: tier.quantity
-                }
+            if (index !== -1) {
+                dispatch(deleteWishlistItemByIdAsync(wishlistItems[index]._id))
             }
         }
-        const basePrice = product?.price || 0
-        if (tierType === 'pack') return { 
-            label: t('productDetails.packOf', { qty: 10 }), 
-            price: Math.round(basePrice * 10 * 0.95),
-            basePrice: basePrice * 10,
-            stock: product?.stockQuantity || 0,
-            discount: 5,
-            qty: 10
-        }
-        if (tierType === 'carton') return { 
-            label: t('productDetails.cartonOf', { qty: 50 }), 
-            price: Math.round(basePrice * 50 * 0.90),
-            basePrice: basePrice * 50,
-            stock: product?.stockQuantity || 0,
-            discount: 10,
-            qty: 50
-        }
-        return { 
-            label: t('productDetails.singleUnit'), 
-            price: basePrice,
-            basePrice: basePrice,
-            stock: product?.stockQuantity || 0,
-            discount: 0,
-            qty: 1
-        }
     }
 
-    const tierTypes = product?.tiers?.length > 0 
-        ? product.tiers.map(t => t.type) 
-        : ['single', 'pack', 'carton']
+    const [activeStep, setActiveStep] = useState(0)
+    const swiperRef = useRef(null)
+    const maxSteps = product?.images?.length || 0
+
+    const handleNext = () => {
+        if (swiperRef.current) swiperRef.current.slideNext()
+    }
+
+    const handleBack = () => {
+        if (swiperRef.current) swiperRef.current.slidePrev()
+    }
+
+    // Dynamic tiers fallback: use existing tiers or render single base price
+    const availableTiers = product?.tiers && product.tiers.length > 0
+        ? product.tiers
+        : [
+            {
+                type: 'single',
+                label: t('productDetails.singleUnit') || 'Single Unit',
+                quantity: 1,
+                price: product?.price || 0,
+                basePrice: product?.price || 0,
+                stockQuantity: product?.stockQuantity || 0,
+                discountPercentage: product?.discountPercentage || 0
+            }
+        ]
 
     if (productFetchStatus === 'rejected' && reviewFetchStatus === 'rejected') {
         return (
@@ -282,7 +245,7 @@ export const ProductDetails = () => {
                         mx-auto
                     `}>
 
-                        {/* Left Side: Images */}
+                        {/* Left Column: Product Images */}
                         <div className={`flex flex-row gap-x-6 self-start ${is480 ? "w-full" : ""}`}>
                             {!is1420 && product?.images?.length > 0 && (
                                 <div className="flex flex-col gap-y-6 h-full overflow-y-auto">
@@ -380,77 +343,80 @@ export const ProductDetails = () => {
                             </div>
                         </div>
 
-                        {/* Right Side: Product Details & Wholesale Purchase Card */}
+                        {/* Right Column: Dynamic Tiers Purchase Card */}
                         <div className="space-y-3 w-full">
                             {!loggedInUser?.isAdmin && (
                                 <div className="p-4 sm:p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
                                     <h2 className="text-lg font-semibold mb-4">{t('productDetails.selectWholesaleOptions')}</h2>
+                                    <div className="flex flex-col gap-5">
+                                        {availableTiers.map((tier) => {
+                                            const badgeColor = TIER_BADGES[tier.type] || 'bg-gray-800 text-white'
+                                            const tierQtyCount = quantities[tier.type] || 0
+                                            const basePrice = tier.basePrice ?? tier.price
+                                            const salePrice = tier.price
+                                            const discount = tier.discountPercentage || 0
+                                            const stock = tier.stockQuantity
 
-                                    {product && !product.tiers?.length && !product.price ? (
-                                        <div className="py-4 text-sm text-gray-500">
-                                            Loading pricing information...
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col gap-5">
-                                            {tierTypes.map((tierType) => {
-                                                const display = getTierDisplay(tierType)
-                                                return (
-                                                    <div key={tierType} className="flex flex-row justify-between items-center gap-2">
-                                                        <div className="min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase shrink-0 ${
-                                                                    tierType === 'single' ? 'bg-gray-100 text-gray-800' :
-                                                                    tierType === 'pack' ? 'bg-[#0055A4] text-white' :
-                                                                    'bg-[#111827] text-white'
-                                                                }`}>
-                                                                    QTY {display.qty}
-                                                                </span>
-                                                                <p className="text-base font-medium truncate">
-                                                                    {display.label}
-                                                                </p>
-                                                            </div>
+                                            // Colored section badge text
+                                            const badgeText = (tier.type !== 'single' && tier.quantity && Number(tier.quantity) > 1)
+                                                ? `QTY ${tier.quantity}`
+                                                : tier.type.toUpperCase()
 
-                                                            <TierPriceDisplay 
-                                                                basePrice={display.basePrice} 
-                                                                price={display.price} 
-                                                                discount={display.discount} 
-                                                            />
+                                            // Display label next to the badge
+                                            const displayLabel = tier.label || (tier.type.charAt(0).toUpperCase() + tier.type.slice(1))
 
-                                                            <p className={`text-xs mt-0.5 ${
-                                                                display.stock > 10 ? 'text-green-600' : display.stock === 0 ? 'text-red-500' : 'text-orange-600'
-                                                            }`}>
-                                                                {display.stock === 0 
-                                                                    ? 'Out of stock' 
-                                                                    : display.stock <= 10 
-                                                                        ? t('productDetails.onlyXLeft', { count: display.stock })
-                                                                        : t('productDetails.inBulkStock')
-                                                                }
+                                            return (
+                                                <div key={tier.type} className="flex flex-row justify-between items-center gap-2">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            {/* Colored Badge Section */}
+                                                            <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase shrink-0 rounded ${badgeColor}`}>
+                                                                {badgeText}
+                                                            </span>
+                                                            <p className="text-base font-medium truncate">
+                                                                {displayLabel}
                                                             </p>
                                                         </div>
 
-                                                        <div className="flex flex-row items-center shrink-0">
-                                                            <button 
-                                                                onClick={() => handleUpdateTierQty(tierType, 'dec')}
-                                                                className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
-                                                            >
-                                                                -
-                                                            </button>
-                                                            <span className="mx-3 min-w-[20px] text-center font-medium text-sm">
-                                                                {quantities[tierType] || 0}
-                                                            </span>
-                                                            <button 
-                                                                onClick={() => handleUpdateTierQty(tierType, 'inc')}
-                                                                className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
-                                                            >
-                                                                +
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    )}
+                                                        <TierPriceDisplay 
+                                                            basePrice={basePrice} 
+                                                            price={salePrice} 
+                                                            discount={discount} 
+                                                        />
 
+                                                        <p className={`text-xs mt-0.5 ${
+                                                            stock > 10 ? 'text-green-600' : stock === 0 ? 'text-red-500' : 'text-orange-600'
+                                                        }`}>
+                                                            {stock === 0 
+                                                                ? 'Out of stock' 
+                                                                : stock <= 10 
+                                                                    ? t('productDetails.onlyXLeft', { count: stock })
+                                                                    : t('productDetails.inBulkStock')
+                                                            }
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="flex flex-row items-center shrink-0">
+                                                        <button 
+                                                            onClick={() => handleUpdateTierQty(tier.type, 'dec')}
+                                                            className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="mx-3 min-w-[20px] text-center font-medium text-sm">
+                                                            {tierQtyCount}
+                                                        </span>
+                                                        <button 
+                                                            onClick={() => handleUpdateTierQty(tier.type, 'inc')}
+                                                            className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
                                     <hr className="my-6 border-gray-200" />
 
                                     <div className="flex flex-row gap-4 items-center">
@@ -481,3 +447,5 @@ export const ProductDetails = () => {
         </div>
     )
 }
+
+export default ProductDetails

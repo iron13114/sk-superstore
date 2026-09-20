@@ -120,25 +120,6 @@ export const PrivacyPolicyPage = () => {
                 <Section number="10" title="Changes to This Policy">
                     <p>We may update this policy as the platform grows or as regulations change. We'll update the "last updated" date at the top of this page whenever we do.</p>
                 </Section>
-
-                {/* Contact Box */}
-                <div className="bg-[#0055A4] text-white p-6 mt-8">
-                    <h3 className="text-lg font-bold mb-4 uppercase tracking-wide">Contact Us</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Email</p>
-                            <p className="font-medium">{email || '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Phone</p>
-                            <p className="font-medium">{phone || '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Address</p>
-                            <p className="font-medium">{address || '—'}</p>
-                        </div>
-                    </div>
-                </div>
             </main>
 
             <Footer />

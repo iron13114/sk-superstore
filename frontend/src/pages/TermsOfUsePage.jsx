@@ -129,25 +129,6 @@ export const TermsOfUsePage = () => {
                 <Section number="13" title="Changes to These Terms">
                     <p>We may update these terms as the platform evolves. Continuing to use SKSuperStore after an update means you accept the revised terms.</p>
                 </Section>
-
-                {/* Contact Box */}
-                <div className="bg-[#0055A4] text-white p-6 mt-8">
-                    <h3 className="text-lg font-bold mb-4 uppercase tracking-wide">Contact Us</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Email</p>
-                            <p className="font-medium">{email || '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Phone</p>
-                            <p className="font-medium">{phone || '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Address</p>
-                            <p className="font-medium">{address || '—'}</p>
-                        </div>
-                    </div>
-                </div>
             </main>
             <Footer />
         </div>

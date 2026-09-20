@@ -117,25 +117,6 @@ export const FaqPage = () => {
                     ))}
                 </div>
 
-                {/* Contact Box */}
-                <div className="bg-[#0055A4] text-white p-6 mt-8">
-                    <h3 className="text-lg font-bold mb-4 uppercase tracking-wide">Contact Us</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Email</p>
-                            <p className="font-medium">{email || '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Phone</p>
-                            <p className="font-medium">{phone || '—'}</p>
-                        </div>
-                        <div>
-                            <p className="text-blue-200 text-xs uppercase font-semibold mb-1">Address</p>
-                            <p className="font-medium">{address || '—'}</p>
-                        </div>
-                    </div>
-                </div>
-
                 {/* WhatsApp CTA */}
                 <div className="mt-6 p-6 bg-white border border-gray-200 text-center">
                     <p className="text-gray-900 font-semibold mb-1">Still have questions?</p>
@@ -144,7 +125,7 @@ export const FaqPage = () => {
                         href={whatsappNum ? `https://wa.me/${whatsappNum}` : '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#E31837] text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#02c526] text-white text-sm font-semibold rounded-full hover:bg-green-600 transition-colors"
                     >
                         <span>💬</span> Chat on WhatsApp
                     </a>

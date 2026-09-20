@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -8,12 +8,24 @@ import {
     updateProductByIdAsync,
     fetchProductByIdAsync
 } from '../../products/ProductSlice'
-import { useForm, Controller, useWatch } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { selectBrands } from '../../brands/BrandSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
-import { showToast } from '../../../utils/toast';
+import { showToast } from '../../../utils/toast'
 import { useTranslation } from 'react-i18next'
 import { ImageUploader } from '../../../components/ImageUploader'
+
+export const AVAILABLE_TIERS = [
+    { type: 'single', label: 'Single Unit', defaultQty: 1, isFixedQty: true, badge: 'bg-gray-100 text-gray-800' },
+    { type: 'pack', label: 'Pack', defaultQty: 10, minQty: 2, badge: 'bg-[#0055A4] text-white' },
+    { type: 'box', label: 'Box', defaultQty: 20, minQty: 2, badge: 'bg-purple-700 text-white' },
+    { type: 'jar', label: 'Jar', defaultQty: 30, minQty: 2, badge: 'bg-amber-600 text-white' },
+    { type: 'carton', label: 'Carton', defaultQty: 50, minQty: 2, badge: 'bg-[#111827] text-white' },
+    { type: 'bundle', label: 'Bundle', defaultQty: 5, minQty: 2, badge: 'bg-teal-700 text-white' },
+    { type: 'dozen', label: 'Dozen', defaultQty: 12, isFixedQty: true, badge: 'bg-indigo-700 text-white' },
+    { type: 'strip', label: 'Strip', defaultQty: 10, minQty: 2, badge: 'bg-rose-700 text-white' },
+    { type: 'bag', label: 'Bag', defaultQty: 25, minQty: 2, badge: 'bg-emerald-700 text-white' },
+]
 
 const SalePricePreview = ({ basePrice, discount }) => {
     const bp = Number(basePrice) || 0
@@ -48,33 +60,53 @@ export const ProductUpdate = () => {
     const productUpdateStatus = useSelector(selectProductUpdateStatus)
     const selectedProduct = useSelector(selectSelectedProduct)
 
-    const { register, handleSubmit, control, reset, formState: { errors }, watch } = useForm()
+    const { register, handleSubmit, control, reset, formState: { errors } } = useForm()
 
-    // Watch all tier fields for live preview
-    const watchedSinglePrice = watch('singlePrice')
-    const watchedSingleDiscount = watch('singleDiscount')
-    const watchedPackPrice = watch('packPrice')
-    const watchedPackDiscount = watch('packDiscount')
-    const watchedCartonPrice = watch('cartonPrice')
-    const watchedCartonDiscount = watch('cartonDiscount')
+    const [tiers, setTiers] = useState([])
+    const [selectedTierToAdd, setSelectedTierToAdd] = useState('')
 
-    // Fetch product on mount
+    // Fetch product details on mount
     useEffect(() => {
         if (id) {
             dispatch(fetchProductByIdAsync(id))
         }
     }, [id, dispatch])
 
-    // Prefill form when product loads
+    // Remember and pre-populate previous product values
     useEffect(() => {
         if (selectedProduct) {
-            const tiers = selectedProduct.tiers || []
-            const singleTier = tiers.find(t => t.type === 'single') || {}
-            const packTier = tiers.find(t => t.type === 'pack') || {}
-            const cartonTier = tiers.find(t => t.type === 'carton') || {}
+            const rawTiers = selectedProduct.tiers || []
+
+            if (rawTiers.length > 0) {
+                setTiers(rawTiers.map(t => {
+                    const fallbackQty = t.type === 'single' ? 1 : ''
+                    const preservedQty = (t.quantity !== undefined && t.quantity !== null && t.quantity !== 0) 
+                        ? t.quantity 
+                        : fallbackQty
+
+                    return {
+                        type: t.type,
+                        label: t.label || t.type,
+                        quantity: preservedQty,
+                        basePrice: t.basePrice ?? t.price ?? '',
+                        discountPercentage: t.discountPercentage ?? 0,
+                        stockQuantity: t.stockQuantity ?? ''
+                    }
+                }))
+            } else {
+                setTiers([
+                    {
+                        type: 'single',
+                        label: 'Single Unit',
+                        quantity: 1,
+                        basePrice: selectedProduct.price ?? '',
+                        discountPercentage: selectedProduct.discountPercentage ?? 0,
+                        stockQuantity: selectedProduct.stockQuantity ?? ''
+                    }
+                ])
+            }
 
             const images = selectedProduct.images || []
-
             reset({
                 title: selectedProduct.title || '',
                 brand: selectedProduct.brand?._id || selectedProduct.brand || '',
@@ -86,20 +118,6 @@ export const ProductUpdate = () => {
                 image1: images[1] || '',
                 image2: images[2] || '',
                 image3: images[3] || '',
-                // Single tier — use basePrice if available, fallback to price
-                singlePrice: singleTier.basePrice ?? singleTier.price ?? '',
-                singleDiscount: singleTier.discountPercentage ?? '',
-                singleStock: singleTier.stockQuantity ?? '',
-                // Pack tier
-                packQuantity: packTier.quantity ?? 10,
-                packPrice: packTier.basePrice ?? packTier.price ?? '',
-                packDiscount: packTier.discountPercentage ?? '',
-                packStock: packTier.stockQuantity ?? '',
-                // Carton tier
-                cartonQuantity: cartonTier.quantity ?? 50,
-                cartonPrice: cartonTier.basePrice ?? cartonTier.price ?? '',
-                cartonDiscount: cartonTier.discountPercentage ?? '',
-                cartonStock: cartonTier.stockQuantity ?? '',
             })
         }
     }, [selectedProduct, reset])
@@ -125,18 +143,95 @@ export const ProductUpdate = () => {
         return Math.round(bp * (1 - disc / 100))
     }
 
+    const handleAddTier = () => {
+        if (!selectedTierToAdd) return
+        const def = AVAILABLE_TIERS.find(t => t.type === selectedTierToAdd)
+        if (!def) return
+
+        if (tiers.some(t => t.type === selectedTierToAdd)) {
+            showToast.warning(`${def.label} tier is already added`)
+            return
+        }
+
+        setTiers(prev => [
+            ...prev,
+            {
+                type: def.type,
+                label: def.label,
+                quantity: '',
+                basePrice: '',
+                discountPercentage: 0,
+                stockQuantity: ''
+            }
+        ])
+        setSelectedTierToAdd('')
+    }
+
+    const handleRemoveTier = (index) => {
+        if (tiers.length <= 1) {
+            showToast.warning('At least one pricing tier is required')
+            return
+        }
+        setTiers(prev => prev.filter((_, i) => i !== index))
+    }
+
+    const handleTierChange = (index, field, value) => {
+        setTiers(prev => {
+            const updated = [...prev]
+            const tier = { ...updated[index], [field]: value }
+
+            // Auto-update label when quantity changes
+            if (field === 'quantity') {
+                const def = AVAILABLE_TIERS.find(t => t.type === tier.type)
+                if (def && def.type !== 'single') {
+                    if (value && Number(value) > 1) {
+                        tier.label = `${def.label} of ${value}`
+                    } else {
+                        tier.label = def.label
+                    }
+                }
+            }
+
+            updated[index] = tier
+            return updated
+        })
+    }
+
     const handleProductUpdate = (data) => {
+        for (const tier of tiers) {
+            if (!tier.basePrice || Number(tier.basePrice) <= 0) {
+                showToast.error(`Please enter a valid price for ${tier.label}`)
+                return
+            }
+            if (tier.stockQuantity === '' || Number(tier.stockQuantity) < 0) {
+                showToast.error(`Please enter stock quantity for ${tier.label}`)
+                return
+            }
+        }
+
         const rawImages = [data?.image0, data?.image1, data?.image2, data?.image3]
         const validImages = rawImages.filter((img) => img && img.trim() !== "")
 
-        const singleQty = 1
-        const packQty = Number(data.packQuantity) || 10
-        const cartonQty = Number(data.cartonQuantity) || 50
+        const formattedTiers = tiers.map(t => {
+            const bp = Number(t.basePrice) || 0
+            const disc = Number(t.discountPercentage) || 0
+            const sp = computeSalePrice(bp, disc)
+            const parsedQty = (t.quantity !== '' && t.quantity !== null && !isNaN(Number(t.quantity)) && Number(t.quantity) > 0)
+                ? Number(t.quantity)
+                : (t.type === 'single' ? 1 : null)
 
-        const singleBasePrice = Number(data.singlePrice) || 0
-        const singleDiscount = Number(data.singleDiscount) || 0
-        const singleSalePrice = computeSalePrice(singleBasePrice, singleDiscount)
-        const singleStock = Number(data.singleStock) || 0
+            return {
+                type: t.type,
+                label: t.label || t.type,
+                quantity: parsedQty,
+                basePrice: bp,
+                price: sp,
+                discountPercentage: disc,
+                stockQuantity: Number(t.stockQuantity) || 0
+            }
+        })
+
+        const singleTier = formattedTiers.find(t => t.type === 'single') || formattedTiers[0]
 
         const updatedProduct = {
             _id: id,
@@ -147,37 +242,9 @@ export const ProductUpdate = () => {
             type: data.type,
             thumbnail: data.thumbnail,
             images: validImages.length > 0 ? validImages : [data.thumbnail],
-            price: singleSalePrice,
-            stockQuantity: singleStock,
-            tiers: [
-                { 
-                    type: 'single', 
-                    label: t('productDetails.singleUnit'), 
-                    quantity: singleQty, 
-                    basePrice: singleBasePrice,
-                    price: singleSalePrice, 
-                    discountPercentage: singleDiscount,
-                    stockQuantity: singleStock
-                },
-                { 
-                    type: 'pack', 
-                    label: t('productDetails.packOf', { qty: packQty }), 
-                    quantity: packQty,
-                    basePrice: Number(data.packPrice) || 0,
-                    price: computeSalePrice(data.packPrice, data.packDiscount), 
-                    discountPercentage: Number(data.packDiscount) || 0,
-                    stockQuantity: Number(data.packStock) || 0
-                },
-                { 
-                    type: 'carton', 
-                    label: t('productDetails.cartonOf', { qty: cartonQty }), 
-                    quantity: cartonQty,
-                    basePrice: Number(data.cartonPrice) || 0,
-                    price: computeSalePrice(data.cartonPrice, data.cartonDiscount), 
-                    discountPercentage: Number(data.cartonDiscount) || 0,
-                    stockQuantity: Number(data.cartonStock) || 0
-                }
-            ]
+            price: singleTier.price,
+            stockQuantity: singleTier.stockQuantity,
+            tiers: formattedTiers
         }
 
         dispatch(updateProductByIdAsync(updatedProduct))
@@ -191,35 +258,9 @@ export const ProductUpdate = () => {
     const inputError = "w-full px-4 py-2.5 border border-[#E31837] text-sm focus:outline-none focus:ring-1 focus:ring-[#E31837] focus:border-[#E31837]"
     const labelCls = "block text-sm font-medium text-[#111827] mb-1.5"
 
-    const tierConfigs = [
-        { 
-            key: 'single', 
-            label: t('productDetails.singleUnit'), 
-            defaultQty: 1, 
-            qtyReadOnly: true,
-            color: 'bg-gray-100 text-gray-800' 
-        },
-        { 
-            key: 'pack', 
-            label: t('productDetails.packOf', { qty: 10 }), 
-            defaultQty: 10, 
-            qtyReadOnly: false,
-            color: 'bg-[#0055A4] text-white' 
-        },
-        { 
-            key: 'carton', 
-            label: t('productDetails.cartonOf', { qty: 50 }), 
-            defaultQty: 50, 
-            qtyReadOnly: false,
-            color: 'bg-[#111827] text-white' 
-        },
-    ]
-
-    const tierWatchMap = {
-        single: { price: watchedSinglePrice, discount: watchedSingleDiscount },
-        pack: { price: watchedPackPrice, discount: watchedPackDiscount },
-        carton: { price: watchedCartonPrice, discount: watchedCartonDiscount },
-    }
+    const availableTiersToAdd = AVAILABLE_TIERS.filter(
+        at => !tiers.some(t => t.type === at.type)
+    )
 
     return (
         <div className="px-4 py-8 flex justify-center bg-white min-h-screen">
@@ -297,79 +338,126 @@ export const ProductUpdate = () => {
                     {errors.type && <p className="mt-1 text-xs text-[#E31837]">{errors.type.message}</p>}
                 </div>
 
-                {/* Wholesale Tiers */}
-                <div className="border border-gray-200 p-5 space-y-4 bg-gray-50">
-                    <h3 className="text-base font-bold text-[#111827] uppercase tracking-wide border-b border-gray-300 pb-2">
-                        {t('productForm.wholesaleTiers')}
-                    </h3>
-
-                    {tierConfigs.map((tier) => (
-                        <div key={tier.key} className="bg-white border border-gray-200 p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className={`inline-block px-2 py-0.5 text-xs font-bold ${tier.color}`}>
-                                    {tier.qtyReadOnly ? `QTY ${tier.defaultQty}` : 'QTY CUSTOM'}
-                                </span>
-                                <span className="text-sm font-semibold text-[#111827]">
-                                    {tier.key === 'single' ? tier.label : 
-                                     tier.key === 'pack' ? t('productDetails.packOf', { qty: tier.defaultQty }) :
-                                     t('productDetails.cartonOf', { qty: tier.defaultQty })}
-                                </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                {/* Quantity field for pack/carton */}
-                                {!tier.qtyReadOnly && (
-                                    <div>
-                                        <label className={labelCls}>Quantity per {tier.key}</label>
-                                        <input
-                                            type="number"
-                                            min={2}
-                                            {...register(`${tier.key}Quantity`, { 
-                                                required: `${tier.key} quantity is required`,
-                                                min: { value: 2, message: 'Must be at least 2' }
-                                            })}
-                                            className={errors[`${tier.key}Quantity`] ? inputError : inputBase}
-                                        />
-                                        {errors[`${tier.key}Quantity`] && (
-                                            <p className="mt-1 text-xs text-[#E31837]">{errors[`${tier.key}Quantity`].message}</p>
-                                        )}
-                                    </div>
-                                )}
-                                <div>
-                                    <label className={labelCls}>Base Price / MRP (₹)</label>
-                                    <input
-                                        type="number"
-                                        {...register(`${tier.key}Price`, { required: t('productForm.priceRequired') })}
-                                        className={errors[`${tier.key}Price`] ? inputError : inputBase}
-                                    />
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('productForm.discount')} (%)</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={100}
-                                        {...register(`${tier.key}Discount`, { required: t('productForm.discountRequired') })}
-                                        className={errors[`${tier.key}Discount`] ? inputError : inputBase}
-                                    />
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('productForm.stock')}</label>
-                                    <input
-                                        type="number"
-                                        {...register(`${tier.key}Stock`, { required: t('productForm.stockRequired') })}
-                                        className={errors[`${tier.key}Stock`] ? inputError : inputBase}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Live Sale Price Preview */}
-                            <SalePricePreview 
-                                basePrice={tierWatchMap[tier.key].price} 
-                                discount={tierWatchMap[tier.key].discount} 
-                            />
+                {/* Wholesale Tiers Configuration */}
+                <div className="border border-gray-200 p-5 space-y-4 bg-gray-50 rounded-lg">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-300 pb-3">
+                        <div>
+                            <h3 className="text-base font-bold text-[#111827] uppercase tracking-wide">
+                                Wholesale Tiers Manager
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                                Configure which packaging tiers are enabled for this product.
+                            </p>
                         </div>
-                    ))}
+
+                        {availableTiersToAdd.length > 0 && (
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={selectedTierToAdd}
+                                    onChange={(e) => setSelectedTierToAdd(e.target.value)}
+                                    className="px-3 py-1.5 border border-gray-300 bg-white text-xs rounded focus:outline-none focus:border-[#0055A4]"
+                                >
+                                    <option value="">+ Choose Tier to Add</option>
+                                    {availableTiersToAdd.map(at => (
+                                        <option key={at.type} value={at.type}>{at.label}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={handleAddTier}
+                                    disabled={!selectedTierToAdd}
+                                    className="px-3 py-1.5 bg-[#0055A4] text-white text-xs font-semibold rounded hover:bg-[#003d7a] disabled:opacity-40 transition-colors"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-4">
+                        {tiers.map((tier, index) => {
+                            const def = AVAILABLE_TIERS.find(t => t.type === tier.type) || {}
+                            const isSingle = tier.type === 'single'
+
+                            return (
+                                <div key={tier.type} className="bg-white border border-gray-200 p-4 rounded shadow-xs relative">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-0.5 text-xs font-bold uppercase rounded ${def.badge || 'bg-gray-800 text-white'}`}>
+                                                {def.label || tier.type}
+                                            </span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveTier(index)}
+                                            className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                                        >
+                                            Remove Tier
+                                        </button>
+                                    </div>
+
+                                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${isSingle ? 'md:grid-cols-3' : 'md:grid-cols-4'} gap-4`}>
+                                        {/* Quantity input only rendered for non-single tiers */}
+                                        {!isSingle && (
+                                            <div>
+                                                <label className={labelCls}>
+                                                    Units per {def.label || 'Tier'} <span className="text-gray-400 font-normal text-xs">(Optional)</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    value={tier.quantity ?? ''}
+                                                    onChange={(e) => handleTierChange(index, 'quantity', e.target.value)}
+                                                    placeholder="Optional"
+                                                    className={inputBase}
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label className={labelCls}>Base Price / MRP (₹)</label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                value={tier.basePrice}
+                                                onChange={(e) => handleTierChange(index, 'basePrice', e.target.value)}
+                                                className={inputBase}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelCls}>Discount (%)</label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={100}
+                                                value={tier.discountPercentage}
+                                                onChange={(e) => handleTierChange(index, 'discountPercentage', e.target.value)}
+                                                className={inputBase}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelCls}>Stock (Units)</label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                value={tier.stockQuantity}
+                                                onChange={(e) => handleTierChange(index, 'stockQuantity', e.target.value)}
+                                                className={inputBase}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <SalePricePreview
+                                        basePrice={tier.basePrice}
+                                        discount={tier.discountPercentage}
+                                    />
+                                </div>
+                            )
+                        })}
+                    </div>
                 </div>
 
                 {/* Thumbnail */}
@@ -392,7 +480,6 @@ export const ProductUpdate = () => {
                 {/* Product Images */}
                 <div className="space-y-3">
                     <label className={labelCls}>{t('productForm.productImages')}</label>
-
                     <Controller
                         name="image0"
                         control={control}
@@ -433,3 +520,5 @@ export const ProductUpdate = () => {
         </div>
     )
 }
+
+export default ProductUpdate

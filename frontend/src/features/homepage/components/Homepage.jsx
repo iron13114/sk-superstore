@@ -22,7 +22,7 @@ import { HeroSection } from './HeroSection'
 import { CategoryGroups } from './CategoryGroups'
 import { FeaturedProducts } from './FeaturedProducts'
 import { WholesaleSections } from './WholesaleSections'
-
+import { BrandsSection } from './BrandsSection'
 export const Homepage = () => {
     const dispatch = useDispatch()
     const [searchParams] = useSearchParams()
@@ -95,6 +95,11 @@ export const Homepage = () => {
                     categoryTree={categoryTree} 
                     onAddRemoveWishlist={handleAddRemoveFromWishlist} 
                 />
+            </ScrollReveal>
+
+            {/* ===== BRANDS WE STOCK ===== */}
+            <ScrollReveal y={24}>
+                <BrandsSection />
             </ScrollReveal>
 
             {/* 3. Featured Products Grid (Scroll Reveal) */}

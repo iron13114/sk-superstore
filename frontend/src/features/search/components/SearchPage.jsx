@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,10 +11,23 @@ import { ProductCard } from '../../products/components/ProductCard'
 
 const getCatKey = (name) => name?.replace(/\s+/g, '_')?.replace(/[^a-zA-Z0-9_]/g, '') || 'unknown'
 
+const ALL_PACKAGING_TIERS = [
+  'single',
+  'pack',
+  'box',
+  'jar',
+  'carton',
+  'bundle',
+  'dozen',
+  'strip',
+  'bag'
+]
+
 const QuickFilterChip = ({ label, active, onClick, count }) => (
   <button
+    type="button"
     onClick={onClick}
-    className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+    className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all shrink-0 cursor-pointer ${
       active 
         ? 'bg-[#E31837] text-white border-[#E31837]' 
         : 'bg-white text-gray-700 border-gray-200 hover:border-[#E31837] hover:text-[#E31837]'
@@ -33,16 +46,14 @@ const FilterSection = ({
   return (
     <div className="border-b border-gray-100 last:border-0">
       <button
+        type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between py-3 text-sm font-semibold text-gray-900"
+        className="w-full flex items-center justify-between py-3 text-sm font-semibold text-gray-900 cursor-pointer"
       >
         {title}
-
         <ChevronDown
           size={14}
-          className={`transition-transform ${
-            open ? 'rotate-180' : ''
-          }`}
+          className={`transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -63,15 +74,19 @@ const FilterSection = ({
 }
 
 const FilterCheckbox = ({ label, count, checked, onChange }) => (
-  <label className="flex items-center gap-2 py-1.5 cursor-pointer group">
-    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+  <label className="flex items-center gap-2 py-1.5 cursor-pointer group select-none">
+    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ${
       checked ? 'bg-[#0055A4] border-[#0055A4]' : 'border-gray-300 group-hover:border-[#0055A4]'
     }`}>
-      {checked && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5"/></svg>}
+      {checked && (
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
     </div>
     <input type="checkbox" checked={checked} onChange={onChange} className="hidden" />
-    <span className="text-sm text-gray-700 flex-1">{label}</span>
-    {count !== undefined && <span className="text-xs text-gray-400">{count}</span>}
+    <span className="text-sm text-gray-700 flex-1 truncate">{label}</span>
+    {count !== undefined && <span className="text-xs text-gray-400">({count})</span>}
   </label>
 )
 
@@ -80,17 +95,22 @@ const MobileFilterDrawer = ({ open, onClose, children }) => (
     {open && (
       <>
         <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose} className="fixed inset-0 bg-black/40 z-[400] md:hidden"
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }}
+          onClick={onClose} 
+          className="fixed inset-0 bg-black/40 z-[400] md:hidden"
         />
         <motion.div
-          initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+          initial={{ x: '100%' }} 
+          animate={{ x: 0 }} 
+          exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className="fixed right-0 top-0 h-full w-[85vw] max-w-sm bg-white z-[500] md:hidden overflow-y-auto"
         >
           <div className="flex items-center justify-between p-4 border-b">
-            <h3 className="font-semibold text-gray-900">{children?.props?.title || 'Filters'}</h3>
-            <button onClick={onClose}><X size={20} /></button>
+            <h3 className="font-semibold text-gray-900">Filters</h3>
+            <button type="button" onClick={onClose}><X size={20} /></button>
           </div>
           <div className="p-4">{children}</div>
         </motion.div>
@@ -103,11 +123,12 @@ const FilterContent = ({
   t,
   categories,
   brands,
-  activeCategory,
-  activeBrand,
-  activePack,
+  activeCategories,
+  activeBrands,
+  activePacks,
   activeStock,
   packagingTiers,
+  toggleMultiFilter,
   updateFilter,
   clearFilters,
   hasActiveFilters,
@@ -115,77 +136,68 @@ const FilterContent = ({
   toggleSection,
 }) => (
   <div className="space-y-1">
+    {/* Category Filter (Multi-select) */}
     <FilterSection
-      title={t('search.category')}
+      title={t('search.category', 'Category')}
       open={openSections.category}
       onToggle={() => toggleSection('category')}
     >
-      <div className="space-y-0.5 max-h-48 overflow-y-auto">
+      <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
         {categories.map(cat => (
           <FilterCheckbox
             key={cat._id}
             label={t(`categories.${getCatKey(cat.name)}`, cat.name)}
-            checked={activeCategory === cat._id}
-            onChange={() =>
-              updateFilter(
-                'category',
-                activeCategory === cat._id ? '' : cat._id
-              )
-            }
+            checked={activeCategories.includes(cat._id)}
+            onChange={() => toggleMultiFilter('category', cat._id)}
           />
         ))}
       </div>
     </FilterSection>
 
+    {/* Brand Filter (Multi-select) */}
     <FilterSection
-      title={t('search.brand')}
+      title={t('search.brand', 'Brand')}
       open={openSections.brand}
       onToggle={() => toggleSection('brand')}
     >
-      <div className="space-y-0.5 max-h-48 overflow-y-auto">
+      <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
         {brands.map(b => (
           <FilterCheckbox
             key={b._id}
             label={b.name}
-            checked={activeBrand === b._id}
-            onChange={() =>
-              updateFilter(
-                'brand',
-                activeBrand === b._id ? '' : b._id
-              )
-            }
+            checked={activeBrands.includes(b._id)}
+            onChange={() => toggleMultiFilter('brand', b._id)}
           />
         ))}
       </div>
     </FilterSection>
 
+    {/* Packaging Tiers Filter (Multi-select) */}
     <FilterSection
-      title={t('search.packagingTitle')}
+      title={t('search.packagingTitle', 'Packaging Option')}
       open={openSections.packaging}
       onToggle={() => toggleSection('packaging')}
     >
-      {packagingTiers.map(tier => (
-        <FilterCheckbox
-          key={tier}
-          label={t(`search.packaging.${tier}`)}
-          checked={activePack === tier}
-          onChange={() =>
-            updateFilter(
-              'pack',
-              activePack === tier ? '' : tier
-            )
-          }
-        />
-      ))}
+      <div className="space-y-0.5 max-h-48 overflow-y-auto pr-1">
+        {packagingTiers.map(tier => (
+          <FilterCheckbox
+            key={tier}
+            label={t(`search.packaging.${tier}`, tier.charAt(0).toUpperCase() + tier.slice(1))}
+            checked={activePacks.includes(tier)}
+            onChange={() => toggleMultiFilter('pack', tier)}
+          />
+        ))}
+      </div>
     </FilterSection>
 
+    {/* Availability Filter */}
     <FilterSection
-      title={t('search.availability')}
+      title={t('search.availability', 'Availability')}
       open={openSections.availability}
       onToggle={() => toggleSection('availability')}
     >
       <FilterCheckbox
-        label={t('search.inStockOnly')}
+        label={t('search.inStockOnly', 'In Stock Only')}
         checked={activeStock === 'true'}
         onChange={() =>
           updateFilter(
@@ -198,10 +210,11 @@ const FilterContent = ({
 
     {hasActiveFilters && (
       <button
+        type="button"
         onClick={clearFilters}
-        className="w-full mt-4 py-2 text-sm text-[#E31837] font-medium border border-[#E31837]"
+        className="w-full mt-4 py-2 text-sm text-[#E31837] font-medium border border-[#E31837] hover:bg-red-50 transition-colors"
       >
-        {t('search.clearAllFilters')}
+        {t('search.clearAllFilters', 'Clear All Filters')}
       </button>
     )}
   </div>
@@ -213,19 +226,22 @@ export const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const { t } = useTranslation()
 
+  // 1. URL Query Extraction with Array-Parsing for Multi-Select
   const query = searchParams.get('q') || ''
-  const activeCategory = searchParams.get('category') || ''
-  const activeBrand = searchParams.get('brand') || ''
-  const activePack = searchParams.get('pack') || ''
+  const activeCategories = useMemo(() => searchParams.get('category')?.split(',').filter(Boolean) || [], [searchParams])
+  const activeBrands = useMemo(() => searchParams.get('brand')?.split(',').filter(Boolean) || [], [searchParams])
+  const activePacks = useMemo(() => searchParams.get('pack')?.split(',').filter(Boolean) || [], [searchParams])
   const activeStock = searchParams.get('stock') || ''
   const sortBy = searchParams.get('sort') || 'relevance'
   const page = parseInt(searchParams.get('page') || '1', 10)
 
+  // 2. Redux State
   const products = useSelector(selectProducts)
   const totalResults = useSelector(selectProductTotalResults)
   const categories = useSelector(selectCategories)
   const brands = useSelector(selectBrands)
 
+  // 3. Local UI State
   const [viewMode, setViewMode] = useState('grid') 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [searchInput, setSearchInput] = useState(query)
@@ -247,8 +263,6 @@ export const SearchPage = () => {
     setSearchInput(query)
   }, [query])
 
-  const packagingTiers = ['single', 'pack', 'carton']
-
   const sortOptions = [
     { value: 'relevance', labelKey: 'search.sort.relevance' },
     { value: 'price-low', labelKey: 'search.sort.priceLow' },
@@ -256,22 +270,118 @@ export const SearchPage = () => {
     { value: 'stock', labelKey: 'search.sort.stock' }
   ]
 
+  // 4. API Query Builder (Dispatches structured arrays & comma-delimited strings)
   useEffect(() => {
-    const filters = {}
+    let sortObj = {}
+    if (sortBy === 'price-low') sortObj = { _sort: 'price', _order: 'asc' }
+    else if (sortBy === 'price-high') sortObj = { _sort: 'price', _order: 'desc' }
+    else if (sortBy === 'stock') sortObj = { _sort: 'stockQuantity', _order: 'desc' }
 
-    if (query) filters.search = query
-    if (activeCategory) filters.category = activeCategory
-    if (activeBrand) filters.brand = activeBrand
-    if (activePack) filters.pack = activePack
-    if (activeStock === 'true') filters.inStock = true
+    const filterPayload = {
+      filter: {
+        category: activeCategories,
+        brand: activeBrands,
+        search: query,
+        q: query,
+        pack: activePacks,
+        inStock: activeStock === 'true'
+      },
+      sort: sortObj,
+      pagination: { _page: page, _limit: 24, page, limit: 24 },
 
-    filters.pagination = { page, limit: 12 }
-    filters.sort = sortBy
+      // Flat query parameters for query-string backends
+      search: query,
+      q: query,
+      category: activeCategories.join(','),
+      brand: activeBrands.join(','),
+      pack: activePacks.join(','),
+      inStock: activeStock === 'true',
+      _sort: sortObj._sort,
+      _order: sortObj._order,
+      _page: page,
+      _limit: 24
+    }
 
-    dispatch(fetchProductsAsync(filters))
+    dispatch(fetchProductsAsync(filterPayload))
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [dispatch, query, activeCategory, activeBrand, activePack, activeStock, sortBy, page])
+  }, [dispatch, query, activeCategories, activeBrands, activePacks, activeStock, sortBy, page])
 
+  // 5. Client-Side Real-Time Filter & Sort (Guarantees multi-select works instantly)
+  const filteredAndSortedProducts = useMemo(() => {
+    if (!products || !Array.isArray(products)) return []
+
+    const filtered = products.filter((product) => {
+      // Search text filter
+      if (query) {
+        const q = query.toLowerCase().trim()
+        const titleMatch = product.title?.toLowerCase().includes(q)
+        const descMatch = product.description?.toLowerCase().includes(q)
+        const brandName = typeof product.brand === 'object' ? product.brand?.name : product.brand
+        const brandMatch = brandName?.toLowerCase().includes(q)
+        if (!titleMatch && !descMatch && !brandMatch) return false
+      }
+
+      // Multi-Category Filter
+      if (activeCategories.length > 0) {
+        const prodCatId = typeof product.category === 'object' ? product.category?._id : product.category
+        if (!activeCategories.includes(prodCatId)) return false
+      }
+
+      // Multi-Brand Filter
+      if (activeBrands.length > 0) {
+        const prodBrandId = typeof product.brand === 'object' ? product.brand?._id : product.brand
+        if (!activeBrands.includes(prodBrandId)) return false
+      }
+
+      // Multi-Packaging Tiers Filter (Product matches if it has ANY of the selected tiers)
+      if (activePacks.length > 0) {
+        const hasMatchingTier = product.tiers?.some(t => activePacks.includes(t.type))
+        if (!hasMatchingTier) return false
+      }
+
+      // Availability Filter
+      if (activeStock === 'true') {
+        if (activePacks.length > 0) {
+          const hasMatchingTierStock = product.tiers?.some(
+            t => activePacks.includes(t.type) && Number(t.stockQuantity) > 0
+          )
+          if (!hasMatchingTierStock) return false
+        } else {
+          const baseStock = Number(product.stockQuantity) || 0
+          const hasAnyTierStock = product.tiers?.some(t => Number(t.stockQuantity) > 0)
+          if (baseStock <= 0 && !hasAnyTierStock) return false
+        }
+      }
+
+      return true
+    })
+
+    // Sort matching results
+    return filtered.sort((a, b) => {
+      const getEffectivePrice = (item) => {
+        if (activePacks.length > 0 && item.tiers) {
+          const matchingTier = item.tiers.find(tier => activePacks.includes(tier.type))
+          if (matchingTier && matchingTier.price) return matchingTier.price
+        }
+        return item.price || 0
+      }
+
+      const getEffectiveStock = (item) => {
+        if (activePacks.length > 0 && item.tiers) {
+          const matchingTier = item.tiers.find(tier => activePacks.includes(tier.type))
+          if (matchingTier && matchingTier.stockQuantity !== undefined) return matchingTier.stockQuantity
+        }
+        return item.stockQuantity || 0
+      }
+
+      if (sortBy === 'price-low') return getEffectivePrice(a) - getEffectivePrice(b)
+      if (sortBy === 'price-high') return getEffectivePrice(b) - getEffectivePrice(a)
+      if (sortBy === 'stock') return getEffectiveStock(b) - getEffectiveStock(a)
+      return 0
+    })
+  }, [products, query, activeCategories, activeBrands, activePacks, activeStock, sortBy])
+
+  // Single-value parameter update (e.g. stock, sort, q)
   const updateFilter = (key, value) => {
     const params = new URLSearchParams(searchParams)
     if (value) {
@@ -280,6 +390,28 @@ export const SearchPage = () => {
       params.delete(key)
     }
     params.set('page', '1') 
+    setSearchParams(params)
+  }
+
+  // Multi-value toggle (e.g. categories, brands, packaging tiers)
+  const toggleMultiFilter = (key, value) => {
+    const params = new URLSearchParams(searchParams)
+    const currentValues = params.get(key)?.split(',').filter(Boolean) || []
+
+    let updatedValues
+    if (currentValues.includes(value)) {
+      updatedValues = currentValues.filter(item => item !== value)
+    } else {
+      updatedValues = [...currentValues, value]
+    }
+
+    if (updatedValues.length > 0) {
+      params.set(key, updatedValues.join(','))
+    } else {
+      params.delete(key)
+    }
+
+    params.set('page', '1')
     setSearchParams(params)
   }
 
@@ -299,11 +431,16 @@ export const SearchPage = () => {
     setSearchParams(params)
   }
 
-  const hasActiveFilters = activeCategory || activeBrand || activePack || activeStock
+  const hasActiveFilters = Boolean(
+    activeCategories.length > 0 ||
+    activeBrands.length > 0 ||
+    activePacks.length > 0 ||
+    activeStock === 'true'
+  )
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Search Bar Scoped CSS */}
+      {/* Scoped Search Bar CSS */}
       <style>{`
         .search-form {
           --timing: 0.3s;
@@ -387,11 +524,11 @@ export const SearchPage = () => {
         }
       `}</style>
 
-      {/* Sticky Top Header */}
+      {/* Sticky Header */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-3">
-            {/* Home Button */}
+            {/* Home Navigation */}
             <button
               onClick={() => navigate('/')}
               className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
@@ -404,14 +541,12 @@ export const SearchPage = () => {
             {/* Integrated Animated Search Bar */}
             <div className="flex-1 min-w-0">
               <form onSubmit={handleSearch} className="search-form">
-                {/* Search Submit Icon */}
                 <button type="submit" aria-label="Search">
                   <svg width="17" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
                     <path d="M7.667 12.667A5.333 5.333 0 107.667 2a5.333 5.333 0 000 10.667zM14.334 14l-2.9-2.9" stroke="currentColor" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
 
-                {/* Search Input */}
                 <input
                   type="text"
                   value={searchInput}
@@ -420,7 +555,6 @@ export const SearchPage = () => {
                   className="search-input"
                 />
 
-                {/* Clear / Reset Button */}
                 <button 
                   className="search-reset" 
                   type="button"
@@ -434,29 +568,34 @@ export const SearchPage = () => {
               </form>
             </div>
 
-            {/* Mobile Filters Toggle */}
+            {/* Mobile Filters Toggle Button */}
             <button 
               onClick={() => setMobileFiltersOpen(true)}
-              className="md:hidden p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
-              aria-label={t('search.filters')}
+              className="md:hidden p-2.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shrink-0 cursor-pointer"
+              aria-label={t('search.filters', 'Filters')}
             >
               <SlidersHorizontal size={18} />
             </button>
           </div>
 
-          {/* Quick Filter Chips */}
+          {/* Quick Filter Packaging Chips */}
           <div className="flex gap-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
             <QuickFilterChip 
-              label={t('search.all')} 
-              active={!activePack} 
-              onClick={() => updateFilter('pack', '')} 
+              label={t('search.all', 'All Tiers')} 
+              active={activePacks.length === 0} 
+              onClick={() => {
+                const params = new URLSearchParams(searchParams)
+                params.delete('pack')
+                params.set('page', '1')
+                setSearchParams(params)
+              }} 
             />
-            {packagingTiers.map(tier => (
+            {ALL_PACKAGING_TIERS.map(tier => (
               <QuickFilterChip
                 key={tier}
-                label={t(`search.packaging.${tier}`)}
-                active={activePack === tier}
-                onClick={() => updateFilter('pack', activePack === tier ? '' : tier)}
+                label={t(`search.packaging.${tier}`, tier.charAt(0).toUpperCase() + tier.slice(1))}
+                active={activePacks.includes(tier)}
+                onClick={() => toggleMultiFilter('pack', tier)}
               />
             ))}
           </div>
@@ -467,10 +606,10 @@ export const SearchPage = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-lg font-bold text-gray-900">
-              {query ? t('search.resultsFor', { query }) : t('search.allProducts')}
+              {query ? t('search.resultsFor', { query, defaultValue: `Results for "${query}"` }) : t('search.allProducts', 'All Wholesale Products')}
             </h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              {t('search.productsFound', { count: totalResults })}
+              {t('search.productsFound', { count: filteredAndSortedProducts.length, defaultValue: `${filteredAndSortedProducts.length} items available` })}
             </p>
           </div>
 
@@ -479,10 +618,12 @@ export const SearchPage = () => {
               <select
                 value={sortBy}
                 onChange={(e) => updateFilter('sort', e.target.value)}
-                className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:border-[#0055A4]"
+                className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:border-[#0055A4] cursor-pointer"
               >
                 {sortOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
+                  <option key={opt.value} value={opt.value}>
+                    {t(opt.labelKey, opt.value)}
+                  </option>
                 ))}
               </select>
               <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
@@ -490,15 +631,17 @@ export const SearchPage = () => {
 
             <div className="hidden sm:flex border border-gray-200 rounded-lg overflow-hidden">
               <button 
+                type="button"
                 onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`p-2 cursor-pointer ${viewMode === 'grid' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
                 aria-label="Grid view"
               >
                 <Grid3X3 size={18} />
               </button>
               <button 
+                type="button"
                 onClick={() => setViewMode('list')}
-                className={`p-2 ${viewMode === 'list' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`p-2 cursor-pointer ${viewMode === 'list' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
                 aria-label="List view"
               >
                 <List size={18} />
@@ -508,20 +651,22 @@ export const SearchPage = () => {
         </div>
 
         <div className="flex gap-8">
+          {/* Desktop Filter Sidebar */}
           <aside className="hidden md:block w-64 flex-shrink-0">
             <div className="sticky top-28">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <SlidersHorizontal size={16} /> {t('search.filters')}
+                <SlidersHorizontal size={16} /> {t('search.filters', 'Filters')}
               </h3>
               <FilterContent
                 t={t}
                 categories={categories}
                 brands={brands}
-                activeCategory={activeCategory}
-                activeBrand={activeBrand}
-                activePack={activePack}
+                activeCategories={activeCategories}
+                activeBrands={activeBrands}
+                activePacks={activePacks}
                 activeStock={activeStock}
-                packagingTiers={packagingTiers}
+                packagingTiers={ALL_PACKAGING_TIERS}
+                toggleMultiFilter={toggleMultiFilter}
                 updateFilter={updateFilter}
                 clearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
@@ -531,16 +676,18 @@ export const SearchPage = () => {
             </div>
           </aside>
 
+          {/* Mobile Filter Drawer */}
           <MobileFilterDrawer open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)}>
             <FilterContent
               t={t}
               categories={categories}
               brands={brands}
-              activeCategory={activeCategory}
-              activeBrand={activeBrand}
-              activePack={activePack}
+              activeCategories={activeCategories}
+              activeBrands={activeBrands}
+              activePacks={activePacks}
               activeStock={activeStock}
-              packagingTiers={packagingTiers}
+              packagingTiers={ALL_PACKAGING_TIERS}
+              toggleMultiFilter={toggleMultiFilter}
               updateFilter={updateFilter}
               clearFilters={clearFilters}
               hasActiveFilters={hasActiveFilters}
@@ -549,22 +696,26 @@ export const SearchPage = () => {
             />
           </MobileFilterDrawer>
 
+          {/* Product Cards Grid Area */}
           <main className="flex-1 min-w-0">
-            {products.length === 0 ? (
+            {filteredAndSortedProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <AlertCircle size={28} className="text-gray-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('search.noProductsFound')}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {t('search.noProductsFound', 'No Products Match Your Filters')}
+                </h3>
                 <p className="text-sm text-gray-500 mb-6 max-w-xs">
-                  {t('search.noProductsDescription')}
+                  {t('search.noProductsDescription', 'Try clearing some of your selected filters or checking your search query.')}
                 </p>
                 {hasActiveFilters && (
                   <button 
+                    type="button"
                     onClick={clearFilters}
-                    className="px-6 py-2 bg-[#E31837] text-white text-sm font-medium hover:bg-red-700 transition-colors"
+                    className="px-6 py-2 bg-[#E31837] text-white text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
                   >
-                    {t('search.clearFilters')}
+                    {t('search.clearFilters', 'Reset Filters')}
                   </button>
                 )}
               </div>
@@ -575,16 +726,16 @@ export const SearchPage = () => {
                   animate="visible"
                   variants={{
                     hidden: { opacity: 0 },
-                    visible: { opacity: 1, transition: { staggerChildren: 0.06 } }
+                    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
                   }}
                   className={viewMode === 'grid' 
                     ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4" 
                     : "flex flex-col gap-3"
                   }
                 >
-                  {products.map((product) => {
-                    const selectedTier = activePack
-                      ? product.tiers?.find(t => t.type === activePack)
+                  {filteredAndSortedProducts.map((product) => {
+                    const selectedTier = activePacks.length > 0
+                      ? product.tiers?.find(t => activePacks.includes(t.type))
                       : null
 
                     const effectivePrice = selectedTier ? selectedTier.price : product.price
@@ -596,7 +747,7 @@ export const SearchPage = () => {
                       <motion.div
                         key={product._id}
                         variants={{
-                          hidden: { opacity: 0, y: 20 },
+                          hidden: { opacity: 0, y: 15 },
                           visible: { opacity: 1, y: 0 }
                         }}
                       >
@@ -617,24 +768,25 @@ export const SearchPage = () => {
                     )
                   })}
                 </motion.div>
-                {totalResults > 12 && (
+
+                {totalResults > 24 && (
                   <div className="flex items-center justify-center gap-2 mt-10">
                     <button
                       disabled={page === 1}
                       onClick={() => updateFilter('page', String(page - 1))}
-                      className="px-4 py-2 border border-gray-200 text-sm disabled:opacity-40 hover:border-[#0055A4] hover:text-[#0055A4] transition-colors"
+                      className="px-4 py-2 border border-gray-200 text-sm disabled:opacity-40 hover:border-[#0055A4] hover:text-[#0055A4] transition-colors cursor-pointer"
                     >
-                      {t('search.previous')}
+                      {t('search.previous', 'Previous')}
                     </button>
                     <span className="px-4 py-2 bg-[#0055A4] text-white text-sm font-medium">
                       {page}
                     </span>
                     <button
-                      disabled={page * 12 >= totalResults}
+                      disabled={page * 24 >= totalResults}
                       onClick={() => updateFilter('page', String(page + 1))}
-                      className="px-4 py-2 border border-gray-200 text-sm disabled:opacity-40 hover:border-[#0055A4] hover:text-[#0055A4] transition-colors"
+                      className="px-4 py-2 border border-gray-200 text-sm disabled:opacity-40 hover:border-[#0055A4] hover:text-[#0055A4] transition-colors cursor-pointer"
                     >
-                      {t('search.next')}
+                      {t('search.next', 'Next')}
                     </button>
                   </div>
                 )}
@@ -646,3 +798,5 @@ export const SearchPage = () => {
     </div>
   )
 }
+
+export default SearchPage

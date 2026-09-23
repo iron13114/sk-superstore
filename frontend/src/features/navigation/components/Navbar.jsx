@@ -392,17 +392,6 @@ export const Navbar = ({ isProductList = false }) => {
 
                   {anchorElUser && (
                     <div style={getDropdownStyles()}>
-                      {loggedInUser?.isAdmin && (
-                        <Link 
-                          to="/admin/add-product" 
-                          onClick={handleCloseUserMenu}
-                          style={getLinkStyles()}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        >
-                          {t('navbar.addNewProduct')}
-                        </Link>
-                      )}
                       {settings.map((setting) => (
                         <Link
                           key={setting.name}
@@ -450,21 +439,6 @@ export const Navbar = ({ isProductList = false }) => {
                 </button>
               )}
 
-              {!loggedInUser?.isAdmin && (
-                <Link 
-                  to="/wishlist" 
-                  style={getIconBtnStyles()}
-                >
-                  <svg style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  {wishlistItems?.length > 0 && (
-                    <span style={getBadgeStyles()}>
-                      {wishlistItems.length}
-                    </span>
-                  )}
-                </Link>
-              )}
             </div>
           </div>
         </nav>

@@ -234,7 +234,7 @@ export const WholesaleSections = () => {
                     </div>
 
                     <a
-                        href="https://wa.me/9386042504"
+                        href="https://wa.me/919386042504?text=Namaste%2C%20mujhe%20SK%20Superstore%20se%20kuch%20samaan%20order%20karna%20hai"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#4de368] hover:bg-green-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-full shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"

@@ -119,7 +119,7 @@ export const BrandsSection = () => {
       </div>
 
       {/* Marquee Carousel with Fade Edges */}
-      <div className="relative w-full">
+      <div className="relative max-w-[1200px] mx-auto">
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-r from-gray-50 to-transparent z-10" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-l from-gray-50 to-transparent z-10" />
 

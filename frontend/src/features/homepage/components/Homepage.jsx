@@ -38,11 +38,10 @@ export const Homepage = () => {
     // Initial data fetch
     useEffect(() => {
         dispatch(fetchCategoryTreeAsync())
-        dispatch(fetchProductsAsync({ pagination: { page: 1, limit: 8 } }))
+        dispatch(fetchProductsAsync({ pagination: { page: 1, limit: 15 } }))
         if (!loggedInUser) dispatch(loadGuestWishlist())
     }, [dispatch, loggedInUser])
 
-    // Smooth scroll when category query param changes
     useEffect(() => {
         const categoryQuery = searchParams.get('category')
         if (categoryQuery && productListRef.current) {
@@ -89,7 +88,7 @@ export const Homepage = () => {
                 onShopNowClick={scrollToProducts} 
             />
 
-            {/* 2. Parent Category Groups (Scroll Reveal) */}
+            {/* 2. Parent Category Groups */}
             <ScrollReveal y={36}>
                 <CategoryGroups 
                     categoryTree={categoryTree} 
@@ -102,7 +101,7 @@ export const Homepage = () => {
                 <BrandsSection />
             </ScrollReveal>
 
-            {/* 3. Featured Products Grid (Scroll Reveal) */}
+            {/* 3. Featured Products Grid */}
             {featuredProducts.length > 0 && (
                 <ScrollReveal y={36} delay={0.08}>
                     <FeaturedProducts 
@@ -113,7 +112,7 @@ export const Homepage = () => {
                 </ScrollReveal>
             )}
 
-            {/* 4. Wholesale Perks & Value Props (Scroll Reveal) */}
+            {/* 4. Wholesale Perks & Value Props */}
             <ScrollReveal y={36}>
                 <WholesaleSections />
             </ScrollReveal>

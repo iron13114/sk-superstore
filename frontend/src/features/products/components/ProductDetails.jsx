@@ -342,6 +342,101 @@ export const ProductDetails = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Right Column: Dynamic Tiers Purchase Card */}
+                        <div className="space-y-3 w-full">
+                            {!loggedInUser?.isAdmin && (
+                                <div className="p-4 sm:p-6 rounded-lg border border-gray-200 bg-[#f9f9f9]">
+                                    <h2 className="text-lg font-semibold mb-4">{t('productDetails.selectWholesaleOptions')}</h2>
+                                    <div className="flex flex-col gap-5">
+                                        {availableTiers.map((tier) => {
+                                            const badgeColor = TIER_BADGES[tier.type] || 'bg-gray-800 text-white'
+                                            const tierQtyCount = quantities[tier.type] || 0
+                                            const basePrice = tier.basePrice ?? tier.price
+                                            const salePrice = tier.price
+                                            const discount = tier.discountPercentage || 0
+                                            const stock = tier.stockQuantity
+
+                                            // Colored section badge text
+                                            const badgeText = (tier.type !== 'single' && tier.quantity && Number(tier.quantity) > 1)
+                                                ? `QTY ${tier.quantity}`
+                                                : tier.type.toUpperCase()
+
+                                            // Display label next to the badge
+                                            const displayLabel = tier.label || (tier.type.charAt(0).toUpperCase() + tier.type.slice(1))
+
+                                            return (
+                                                <div key={tier.type} className="flex flex-row justify-between items-center gap-2">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            {/* Colored Badge Section */}
+                                                            <span className={`inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase shrink-0 rounded ${badgeColor}`}>
+                                                                {badgeText}
+                                                            </span>
+                                                            <p className="text-base font-medium truncate">
+                                                                {displayLabel}
+                                                            </p>
+                                                        </div>
+
+                                                        <TierPriceDisplay 
+                                                            basePrice={basePrice} 
+                                                            price={salePrice} 
+                                                            discount={discount} 
+                                                        />
+
+                                                        <p className={`text-xs mt-0.5 ${
+                                                            stock > 10 ? 'text-green-600' : stock === 0 ? 'text-red-500' : 'text-orange-600'
+                                                        }`}>
+                                                            {stock === 0 
+                                                                ? 'Out of stock' 
+                                                                : stock <= 10 
+                                                                    ? t('productDetails.onlyXLeft', { count: stock })
+                                                                    : t('productDetails.inBulkStock')
+                                                            }
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="flex flex-row items-center shrink-0">
+                                                        <button 
+                                                            onClick={() => handleUpdateTierQty(tier.type, 'dec')}
+                                                            className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="mx-3 min-w-[20px] text-center font-medium text-sm">
+                                                            {tierQtyCount}
+                                                        </span>
+                                                        <button 
+                                                            onClick={() => handleUpdateTierQty(tier.type, 'inc')}
+                                                            className="min-w-[35px] px-2 py-1 border border-gray-300 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    <hr className="my-6 border-gray-200" />
+
+                                    <div className="flex flex-row gap-4 items-center">
+                                        <button 
+                                            onClick={handleAddWholeSaleToCart}
+                                            className="flex-1 bg-black text-white py-3 rounded-lg hover:bg-[#222] transition-colors text-sm font-medium"
+                                        >
+                                            {t('productDetails.addWholesaleToCart')}
+                                        </button>
+
+                                        <div className="border border-gray-300 rounded-lg p-1 flex items-center justify-center">
+                                            <HeartCheckbox 
+                                                checked={isProductAlreadyinWishlist} 
+                                                onChange={handleAddRemoveFromWishlist} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className={`${is1420 ? "w-full px-3" : 'w-[88rem]'} ${is480 ? "p-2" : "p-0"} mx-auto`}>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
@@ -14,8 +14,7 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
     const [categoryProducts, setCategoryProducts] = useState([])
     const [isLoading, setIsLoading] = useState(false)
 
-    // Scroll state tracking
-    const [isDocked, setIsDocked] = useState(true)
+    // Only track if the tab has scrolled off-screen on mobile
     const [isOffscreen, setIsOffscreen] = useState(false)
 
     const scrollContainerRefs = useRef({})
@@ -30,8 +29,8 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
 
     const safeTree = Array.isArray(categoryTree) ? categoryTree : []
 
-    // Check if the active tab is still aligned with the drawer or scrolled away
-    const checkTabAlignment = useCallback(() => {
+    // Check if the active tab left the visible area during horizontal scrolling
+    const checkTabOffscreen = useCallback(() => {
         if (!activeChildId || !activeTabRef.current || !activeParentId) return
         const container = scrollContainerRefs.current[activeParentId]
         const tab = activeTabRef.current
@@ -40,14 +39,7 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
         const containerRect = container.getBoundingClientRect()
         const tabRect = tab.getBoundingClientRect()
 
-        // Tab is docked if its left edge is near the container's left padding (~24px)
-        const offsetFromLeft = tabRect.left - containerRect.left
-        const currentlyDocked = offsetFromLeft >= 10 && offsetFromLeft <= 40
-
-        // Tab is offscreen if it leaves the horizontal container's view
         const currentlyOffscreen = tabRect.right < containerRect.left || tabRect.left > containerRect.right
-
-        setIsDocked(currentlyDocked)
         setIsOffscreen(currentlyOffscreen)
     }, [activeChildId, activeParentId])
 
@@ -55,7 +47,7 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
         if (activeTabRef.current) {
             activeTabRef.current.scrollIntoView({
                 behavior: 'smooth',
-                inline: 'start',
+                inline: 'nearest',
                 block: 'nearest',
             })
         }
@@ -75,14 +67,13 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
         setActiveChildName(child.name)
         setIsLoading(true)
         setCategoryProducts([])
-        setIsDocked(true)
         setIsOffscreen(false)
 
         if (element) {
             setTimeout(() => {
                 element.scrollIntoView({
                     behavior: 'smooth',
-                    inline: 'start',
+                    inline: 'nearest',
                     block: 'nearest',
                 })
             }, 50)
@@ -124,11 +115,12 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
                             {/* Horizontal Tabs Scroller */}
                             <div
                                 ref={(el) => (scrollContainerRefs.current[parent._id] = el)}
-                                onScroll={checkTabAlignment}
+                                onScroll={checkTabOffscreen}
                                 className="relative flex items-end gap-2.5 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth pt-3 pl-6 sm:pl-8 pr-6 scroll-pl-6 sm:scroll-pl-8"
                             >
                                 {(parent.children || []).map((child) => {
                                     const isSelected = activeChildId === child._id
+                                    const childImg = child.image || child.thumbnail
 
                                     return (
                                         <div
@@ -136,51 +128,33 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
                                             ref={isSelected ? activeTabRef : null}
                                             className="relative shrink-0 flex flex-col items-center"
                                         >
-                                            {/* Sliding Active Tab Background */}
+                                            {/* Swiggy Sliding Active Tab Background */}
                                             {isSelected && (
                                                 <motion.div
                                                     layoutId={`active-tab-highlight-${parent._id}`}
-                                                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                                                    transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                                                     className="absolute inset-0 z-20 pointer-events-none"
                                                 >
-                                                    {/* Scoop Wings (Only visible when docked in resting position) */}
-                                                    <AnimatePresence>
-                                                        {isDocked && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                                animate={{ opacity: 1, scale: 1 }}
-                                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                                transition={{ duration: 0.2 }}
-                                                            >
-                                                                {/* Left Wing */}
-                                                                <span className="absolute -left-[13px] -bottom-[1px] w-[14px] h-[14px] z-30">
-                                                                    <svg viewBox="0 0 14 14" fill="none" className="w-full h-full overflow-visible">
-                                                                        <path d="M 14 0 Q 14 14 0 14 L 14 14 Z" fill="#ffffff" />
-                                                                        <rect x="12" y="0" width="2.5" height="14" fill="#ffffff" />
-                                                                        <path d="M 14 0 Q 14 14 0 14" stroke="#e5e7eb" strokeWidth="1.5" />
-                                                                    </svg>
-                                                                </span>
+                                                    {/* Left Scoop Wing */}
+                                                    <span className="absolute -left-[13px] -bottom-[1px] w-[14px] h-[14px] z-30">
+                                                        <svg viewBox="0 0 14 14" fill="none" className="w-full h-full overflow-visible">
+                                                            <path d="M 14 0 Q 14 14 0 14 L 14 14 Z" fill="#ffffff" />
+                                                            <rect x="12" y="0" width="2.5" height="14" fill="#ffffff" />
+                                                            <path d="M 14 0 Q 14 14 0 14" stroke="#e5e7eb" strokeWidth="1.5" />
+                                                        </svg>
+                                                    </span>
 
-                                                                {/* Right Wing */}
-                                                                <span className="absolute -right-[13px] -bottom-[1px] w-[14px] h-[14px] z-30">
-                                                                    <svg viewBox="0 0 14 14" fill="none" className="w-full h-full overflow-visible">
-                                                                        <path d="M 0 0 Q 0 14 14 14 L 0 14 Z" fill="#ffffff" />
-                                                                        <rect x="-0.5" y="0" width="2.5" height="14" fill="#ffffff" />
-                                                                        <path d="M 0 0 Q 0 14 14 14" stroke="#e5e7eb" strokeWidth="1.5" />
-                                                                    </svg>
-                                                                </span>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
+                                                    {/* Right Scoop Wing */}
+                                                    <span className="absolute -right-[13px] -bottom-[1px] w-[14px] h-[14px] z-30">
+                                                        <svg viewBox="0 0 14 14" fill="none" className="w-full h-full overflow-visible">
+                                                            <path d="M 0 0 Q 0 14 14 14 L 0 14 Z" fill="#ffffff" />
+                                                            <rect x="-0.5" y="0" width="2.5" height="14" fill="#ffffff" />
+                                                            <path d="M 0 0 Q 0 14 14 14" stroke="#e5e7eb" strokeWidth="1.5" />
+                                                        </svg>
+                                                    </span>
 
-                                                    {/* Card Body: morphs bottom corners when scrolled away */}
-                                                    <div
-                                                        className={`w-full h-full bg-white border border-gray-200 transition-all duration-300 shadow-sm ${
-                                                            isDocked
-                                                                ? 'rounded-t-2xl border-b-transparent -mb-[1px]'
-                                                                : 'rounded-2xl border-b-gray-200 shadow-md ring-2 ring-[#0055A4]/20'
-                                                        }`}
-                                                    />
+                                                    {/* Seamless Tab Body with open bottom */}
+                                                    <div className="w-full h-full bg-white border border-gray-200 border-b-transparent rounded-t-2xl -mb-[1px] shadow-2xs" />
                                                 </motion.div>
                                             )}
 
@@ -193,24 +167,29 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
                                                         : 'bg-[#f4f6f8] hover:bg-gray-100 py-2.5 px-2 sm:px-3 rounded-2xl mb-1'
                                                 }`}
                                             >
+                                                {/* Image Container with blend mode */}
                                                 <div className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center transition-transform duration-200 ${
-                                                    isSelected ? 'scale-110 -translate-y-0.5' : 'opacity-85'
+                                                    isSelected ? 'scale-105' : 'opacity-90'
                                                 }`}>
-                                                    {child.image ? (
+                                                    {childImg ? (
                                                         <img
-                                                            src={child.image}
+                                                            src={childImg}
                                                             alt={t(`categories.${getCatKey(child.name)}`, child.name)}
-                                                            className="w-full h-full object-contain"
+                                                            className="w-full h-full object-contain mix-blend-multiply select-none"
                                                             loading="lazy"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none'
+                                                                if (e.target.nextSibling) e.target.nextSibling.style.display = 'block'
+                                                            }}
                                                         />
-                                                    ) : (
-                                                        <span className="text-2xl sm:text-3xl select-none">
-                                                            {t(`categories.${getCatKey(child.name)}_icon`, child.icon || '📦')}
-                                                        </span>
-                                                    )}
+                                                    ) : null}
+
+                                                    <span className={`text-2xl sm:text-3xl select-none ${childImg ? 'hidden' : 'block'}`}>
+                                                        {t(`categories.${getCatKey(child.name)}_icon`, child.icon || '📦')}
+                                                    </span>
                                                 </div>
 
-                                                <span className={`text-[11px] sm:text-xs text-center leading-tight mt-1 line-clamp-2 min-h-[2rem] flex items-center justify-center w-full px-0.5 ${
+                                                <span className={`text-[11px] sm:text-xs text-center leading-tight mt-1 line-clamp-2 min-h-[2rem] flex items-center justify-center w-full px-0.5 tracking-tight ${
                                                     isSelected
                                                         ? 'font-bold text-gray-900'
                                                         : 'font-semibold text-gray-600'
@@ -231,11 +210,9 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
                                         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                                        className={`relative z-10 -mt-[1px] bg-white border border-gray-200 rounded-3xl p-5 sm:p-7 shadow-sm overflow-hidden transition-all duration-300 ${
-                                            !isDocked ? 'border-t-gray-200 shadow-md mt-2' : ''
-                                        }`}
+                                        className="relative z-10 -mt-[1px] bg-white border border-gray-200 rounded-3xl p-5 sm:p-7 shadow-xs overflow-hidden"
                                     >
-                                        {/* Sub-header with Return Chip if scrolled away */}
+                                        {/* Sub-header with Return Chip if scrolled away on mobile */}
                                         <div className="flex items-center justify-between pb-3 mb-5 border-b border-gray-100">
                                             <div className="flex items-center gap-2 sm:gap-3">
                                                 <span className="w-2.5 h-2.5 rounded-full bg-[#0055A4]" />
@@ -249,7 +226,7 @@ export const CategoryGroups = ({ categoryTree = [], onAddRemoveWishlist }) => {
                                                     </span>
                                                 )}
 
-                                                {/* Animated Jump-back Chip when scrolled off-screen */}
+                                                {/* Jump-back Button if Scrolled Offscreen on mobile */}
                                                 <AnimatePresence>
                                                     {isOffscreen && (
                                                         <motion.button

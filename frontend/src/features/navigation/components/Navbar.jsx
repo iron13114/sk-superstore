@@ -94,6 +94,7 @@ export const Navbar = ({ isProductList = false }) => {
   const settings = [
     { name: t('navbar.home'), to: "/" },
     { name: t('navbar.profile'), to: loggedInUser?.isAdmin ? "/admin/profile" : "/profile" },
+    ...(!loggedInUser?.isAdmin ? [{ name: t('navbar.wishlist', 'Wishlist'), to: "/wishlist" }] : []),
     { name: loggedInUser?.isAdmin ? t('navbar.orders') : t('navbar.myOrders'), to: loggedInUser?.isAdmin ? "/admin/orders" : "/orders" },
     { name: t('navbar.logout'), to: "/logout" },
   ];
@@ -196,6 +197,8 @@ export const Navbar = ({ isProductList = false }) => {
     background: 'transparent',
     cursor: 'pointer',
     display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   });
 
   const getBadgeStyles = () => ({
@@ -377,7 +380,7 @@ export const Navbar = ({ isProductList = false }) => {
             <LanguageSwitcher />
           </div>
 
-          {/* RIGHT: User, Cart, Wishlist */}
+          {/* RIGHT: User, Wishlist, Cart */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: isMobile ? '6px' : '12px', flexShrink: 0 }}>
             {loggedInUser ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '8px' }}>
@@ -425,10 +428,42 @@ export const Navbar = ({ isProductList = false }) => {
             )}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '12px' }}>
+              {/* Restored Wishlist Action Button */}
+              {!loggedInUser?.isAdmin && (
+                <Link 
+                  to="/wishlist" 
+                  style={getIconBtnStyles()}
+                  title={t('navbar.wishlist', 'Wishlist')}
+                  aria-label="Wishlist"
+                >
+                  <svg 
+                    style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px', color: '#374151' }} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                    />
+                  </svg>
+                  {wishlistItems?.length > 0 && (
+                    <span style={getBadgeStyles()}>
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </Link>
+              )}
+
+              {/* Cart Action Button */}
               {cartItems?.length > 0 && (
                 <button 
                   onClick={() => navigate("/cart")}
                   style={getIconBtnStyles()}
+                  title={t('navbar.cart', 'Cart')}
+                  aria-label="Cart"
                 >
                   <svg style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px', color: '#374151' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -438,7 +473,6 @@ export const Navbar = ({ isProductList = false }) => {
                   </span>
                 </button>
               )}
-
             </div>
           </div>
         </nav>
@@ -462,7 +496,7 @@ export const Navbar = ({ isProductList = false }) => {
               </button>
             )}
 
-            {/* Uiverse Search Bar */}
+            {/* Search Bar */}
             <form onSubmit={handleSearch} className="search-form">
               <button type="submit" aria-label="Search">
                 <svg width="17" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">

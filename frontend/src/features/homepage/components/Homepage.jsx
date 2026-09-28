@@ -38,7 +38,7 @@ export const Homepage = () => {
     // Initial data fetch
     useEffect(() => {
         dispatch(fetchCategoryTreeAsync())
-        dispatch(fetchProductsAsync({ pagination: { page: 1, limit: 15 } }))
+        dispatch(fetchProductsAsync({ pagination: { page: 1, limit: 150 } }))
         if (!loggedInUser) dispatch(loadGuestWishlist())
     }, [dispatch, loggedInUser])
 

@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { FaWhatsapp } from 'react-icons/fa'
 import { MdStorefront } from 'react-icons/md'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { selectProducts } from '../../products/ProductSlice'
 
 const TrustBadge = ({ number, label }) => (
     <div className="text-center px-2 sm:px-4">
@@ -13,16 +16,79 @@ const TrustBadge = ({ number, label }) => (
 
 export const HeroSection = ({ featuredProducts = [], onShopNowClick }) => {
     const { t } = useTranslation()
+    const navigate = useNavigate()
 
-    // Smooth staggered container
+    // ─── CONNECT TO FULL DATABASE PRODUCT LIST ───
+    const storeProducts = useSelector(selectProducts)
+    
+    // Use the full DB product catalog; fallback to prop if store is empty
+    const allProducts = Array.isArray(storeProducts) && storeProducts.length > 0 
+        ? storeProducts 
+        : (Array.isArray(featuredProducts) ? featuredProducts : [])
+
+    const total = allProducts.length
+
+    // ─── CARD DECK STATE ───
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [exitDirection, setExitDirection] = useState(1)
+    const hasDragged = useRef(false)
+
+    // Circular rotation over the entire DB catalog
+    const currentProduct = total > 0 ? allProducts[currentIndex % total] : null
+    const nextProduct = total > 1 ? allProducts[(currentIndex + 1) % total] : null
+
+    // ─── SWIPE THRESHOLDS ───
+    const SWIPE_OFFSET = 80
+    const SWIPE_VELOCITY = 500
+
+    const handleCardClick = () => {
+        if (hasDragged.current) return
+        if (currentProduct?._id) navigate(`/product-details/${currentProduct._id}`)
+    }
+
+    const handleDragEnd = (_, info) => {
+        const dir = info.offset.x >= 0 ? 1 : -1
+        const shouldDismiss =
+            Math.abs(info.offset.x) > SWIPE_OFFSET ||
+            Math.abs(info.velocity.x) > SWIPE_VELOCITY
+
+        if (shouldDismiss && total > 1) {
+            setExitDirection(dir)
+            setCurrentIndex((prev) => prev + 1)
+        }
+
+        setTimeout(() => { hasDragged.current = false }, 80)
+    }
+
+    const cardVariants = {
+        hidden: (dir) => ({
+            opacity: 0,
+            scale: 0.92,
+            x: dir === 0 ? 0 : -dir * 40,
+            y: 12,
+        }),
+        visible: {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotate: 0,
+            transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+        },
+        exit: (dir) => ({
+            x: dir * 350,
+            rotate: dir * 16,
+            opacity: 0,
+            scale: 0.95,
+            transition: { duration: 0.28, ease: 'easeIn' },
+        }),
+    }
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: {
-                staggerChildren: 0.12,
-                delayChildren: 0.1,
-            },
+            transition: { staggerChildren: 0.12, delayChildren: 0.1 },
         },
     }
 
@@ -90,64 +156,110 @@ export const HeroSection = ({ featuredProducts = [], onShopNowClick }) => {
                         initial={{ opacity: 0, scale: 0.94 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                        className="lg:col-span-5 relative flex items-center justify-center py-4 lg:py-0"
+                        className="lg:col-span-5 relative flex items-center justify-center py-6 lg:py-0"
                     >
                         <div className="absolute w-72 h-72 bg-blue-100/60 rounded-full blur-3xl -z-10" />
 
-                        <div className="relative w-full max-w-[340px] sm:max-w-[380px] h-[300px] sm:h-[340px] flex items-center justify-center">
-                            {/* Pack Card */}
-                            <div className="absolute left-2 sm:left-4 bottom-10 w-36 sm:w-44 bg-white p-3 rounded-2xl border border-gray-200/80 shadow-md -rotate-6 transform hover:rotate-0 transition-transform duration-300">
-                                <div className="w-full h-32 sm:h-40 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden p-2">
+                        {/* Centered Anchor Container */}
+                        <div className="relative w-[320px] sm:w-[360px] h-[340px] sm:h-[370px] flex items-center justify-center">
+                            
+                            {/* Pack Card (Left Background — Fixed Template) */}
+                            <div className="absolute left-2 sm:left-4 bottom-8 w-36 sm:w-42 h-[220px] sm:h-[240px] bg-white p-2.5 sm:p-3 rounded-2xl border border-gray-200/80 shadow-md -rotate-8 transform transition-transform duration-300 pointer-events-none z-0 flex flex-col justify-between">
+                                <div className="w-full h-32 sm:h-38 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden p-2">
                                     <img
-                                        src={featuredProducts[1]?.thumbnail || '/kurkure-1000x1000.jpg'}
-                                        alt="Bulk Snack Pack"
-                                        className="max-h-full max-w-full object-contain"
+                                        src={nextProduct?.thumbnail || '/kurkure-1000x1000.jpg'}
+                                        alt={nextProduct?.title || 'Next product'}
+                                        className="max-h-full max-w-full object-contain mix-blend-multiply"
                                     />
                                 </div>
-                                <div className="mt-2 text-center">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Pack of 12</span>
+                                <div className="text-center mt-1">
+                                    <span className="text-[9px] font-extrabold text-[#0055A4] uppercase tracking-widest block">
+                                        {t('homepage.upNext', 'UP NEXT')}
+                                    </span>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide truncate">
+                                        {nextProduct?.title || t('homepage.packOf12', 'Pack of 12')}
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Master Carton Badge */}
-                            <div className="absolute right-2 sm:right-4 top-4 w-32 sm:w-36 bg-amber-50/90 border border-amber-200/80 p-2.5 rounded-xl shadow-xs rotate-6 transform hover:rotate-0 transition-transform duration-300">
+                            {/* Master Carton Badge (Top Right Background — Fixed Template) */}
+                            <div className="absolute right-2 sm:right-4 top-2 w-32 sm:w-36 bg-[#FFFBEB] border border-amber-200/90 p-2.5 rounded-2xl shadow-xs rotate-8 transform transition-transform duration-300 pointer-events-none z-0">
                                 <div className="text-center">
                                     <span className="text-xl">📦</span>
-                                    <p className="text-[10px] font-black text-amber-900 uppercase tracking-wider mt-1">Master Carton</p>
+                                    <p className="text-[10px] font-black text-amber-900 uppercase tracking-wider mt-1">MASTER CARTON</p>
                                     <p className="text-[9px] text-amber-700 font-semibold">50 Units / Box</p>
                                 </div>
                             </div>
 
-                            {/* Center Product Card */}
-                            <div className="relative z-10 w-44 sm:w-52 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-xl scale-105">
-                                <div className="w-full h-40 sm:h-48 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden p-2">
-                                    <img
-                                        src={featuredProducts[0]?.thumbnail || '/kurkure-1000x1000.jpg'}
-                                        alt="Hero Wholesale Product"
-                                        className="max-h-full max-w-full object-contain"
-                                    />
-                                </div>
-                                <div className="mt-2 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[10px] text-gray-400 font-medium">Bestseller</p>
-                                        <p className="text-xs font-bold text-gray-900">Direct Distributor</p>
-                                    </div>
-                                    <span className="text-xs font-black text-[#0055A4]">Wholesale</span>
-                                </div>
-                            </div>
+                            {/* ─── CENTER PRODUCT CARD: Locked Dimensions & PopLayout (Never distorts) ─── */}
+                            <AnimatePresence mode="popLayout" custom={exitDirection}>
+                                {currentProduct && (
+                                    <motion.div
+                                        key={`${currentProduct._id || 'card'}-${currentIndex}`}
+                                        custom={exitDirection}
+                                        variants={cardVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="exit"
+                                        drag={total > 1 ? 'x' : false}
+                                        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                                        dragElastic={0.65}
+                                        dragMomentum={false}
+                                        whileDrag={{ scale: 1.04 }}
+                                        whileHover={{ scale: 1.02 }}
+                                        onDragStart={() => { hasDragged.current = true }}
+                                        onDragEnd={handleDragEnd}
+                                        onClick={handleCardClick}
+                                        style={{ touchAction: 'pan-y' }}
+                                        className="absolute z-10 w-48 sm:w-54 h-[270px] sm:h-[300px] shrink-0 bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200 shadow-xl cursor-grab active:cursor-grabbing select-none flex flex-col justify-between"
+                                    >
+                                        {/* Product Image Area with Uniform Box */}
+                                        <div className="w-full h-40 sm:h-46 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden p-2.5">
+                                            <img
+                                                src={currentProduct.thumbnail || '/kurkure-1000x1000.jpg'}
+                                                alt={currentProduct.title || 'Wholesale Product'}
+                                                className="max-h-full max-w-full object-contain pointer-events-none mix-blend-multiply"
+                                                draggable={false}
+                                            />
+                                        </div>
+
+                                        {/* Card Text & Wholesale Badge */}
+                                        <div className="mt-2 flex items-center justify-between gap-2">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider truncate">
+                                                    {currentProduct.title || t('homepage.new_arrivals')}
+                                                </p>
+                                                <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                                                    {t('homepage.direct_distributor', 'प्रत्यक्ष वितरक')}
+                                                </p>
+                                            </div>
+                                            <span className="text-xs sm:text-sm font-black text-[#0055A4] shrink-0">
+                                                {t('homepage.wholesale', 'थोक')}
+                                            </span>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* Bulk Savings Pill */}
-                            <div className="absolute -bottom-3 right-0 sm:right-2 z-20 bg-[#E31837] text-white px-3.5 py-1.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1.5">
+                            <div className="absolute -bottom-3 right-0 sm:right-2 z-20 bg-[#E31837] text-white px-3.5 py-1.5 rounded-full shadow-lg border-2 border-white flex items-center gap-1.5 pointer-events-none">
                                 <span className="text-xs font-black tracking-wide uppercase">
-                                    {t('homepage.bulkSavingsBadge', '10–50% Bulk Savings')}
+                                    {t('homepage.bulkSavingsBadge', '10–50% थोक बचत')}
                                 </span>
                             </div>
+
+                            {/* Swipe Hint */}
+                            {total > 1 && (
+                                <p className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 font-medium tracking-wide whitespace-nowrap pointer-events-none">
+                                    {t('homepage.swipeHint', '← hold & swipe →')}
+                                </p>
+                            )}
                         </div>
                     </motion.div>
 
                 </div>
 
-                {/* BOTTOM TRUST STATS BAR (Scroll fade) */}
+                {/* BOTTOM TRUST STATS BAR */}
                 <motion.div 
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -163,7 +275,7 @@ export const HeroSection = ({ featuredProducts = [], onShopNowClick }) => {
                 </motion.div>
             </div>
 
-            {/* FLOATING WHATSAPP BUTTON (With message pre-fill) */}
+            {/* FLOATING WHATSAPP BUTTON */}
             <a
                 href="https://wa.me/919386042504?text=Namaste%2C%20mujhe%20SK%20Superstore%20se%20kuch%20samaan%20order%20karna%20hai"
                 target="_blank"
@@ -179,3 +291,5 @@ export const HeroSection = ({ featuredProducts = [], onShopNowClick }) => {
         </section>
     )
 }
+
+export default HeroSection

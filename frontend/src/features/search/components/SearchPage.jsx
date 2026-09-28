@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import Fuse from "fuse.js";
 import { useDispatch, useSelector } from 'react-redux'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -270,7 +271,7 @@ export const SearchPage = () => {
     { value: 'stock', labelKey: 'search.sort.stock' }
   ]
 
-  // 4. API Query Builder (Dispatches structured arrays & comma-delimited strings)
+  // 4. API Query Builder 
   useEffect(() => {
     let sortObj = {}
     if (sortBy === 'price-low') sortObj = { _sort: 'price', _order: 'asc' }
@@ -308,79 +309,196 @@ export const SearchPage = () => {
 
   // 5. Client-Side Real-Time Filter & Sort (Guarantees multi-select works instantly)
   const filteredAndSortedProducts = useMemo(() => {
-    if (!products || !Array.isArray(products)) return []
+    if (!products || !Array.isArray(products)) return [];
 
+    // -----------------------------------------
+    // 1. Apply non-search filters first
+    // -----------------------------------------
     const filtered = products.filter((product) => {
-      // Search text filter
-      if (query) {
-        const q = query.toLowerCase().trim()
-        const titleMatch = product.title?.toLowerCase().includes(q)
-        const descMatch = product.description?.toLowerCase().includes(q)
-        const brandName = typeof product.brand === 'object' ? product.brand?.name : product.brand
-        const brandMatch = brandName?.toLowerCase().includes(q)
-        if (!titleMatch && !descMatch && !brandMatch) return false
-      }
-
       // Multi-Category Filter
       if (activeCategories.length > 0) {
-        const prodCatId = typeof product.category === 'object' ? product.category?._id : product.category
-        if (!activeCategories.includes(prodCatId)) return false
+        const prodCatId =
+          typeof product.category === "object"
+            ? product.category?._id
+            : product.category;
+
+        if (!activeCategories.includes(prodCatId)) return false;
       }
 
       // Multi-Brand Filter
       if (activeBrands.length > 0) {
-        const prodBrandId = typeof product.brand === 'object' ? product.brand?._id : product.brand
-        if (!activeBrands.includes(prodBrandId)) return false
+        const prodBrandId =
+          typeof product.brand === "object"
+            ? product.brand?._id
+            : product.brand;
+
+        if (!activeBrands.includes(prodBrandId)) return false;
       }
 
-      // Multi-Packaging Tiers Filter (Product matches if it has ANY of the selected tiers)
+      // Multi-Packaging Tiers Filter
       if (activePacks.length > 0) {
-        const hasMatchingTier = product.tiers?.some(t => activePacks.includes(t.type))
-        if (!hasMatchingTier) return false
+        const hasMatchingTier = product.tiers?.some((tier) =>
+          activePacks.includes(tier.type)
+        );
+
+        if (!hasMatchingTier) return false;
       }
 
       // Availability Filter
-      if (activeStock === 'true') {
+      if (activeStock === "true") {
         if (activePacks.length > 0) {
           const hasMatchingTierStock = product.tiers?.some(
-            t => activePacks.includes(t.type) && Number(t.stockQuantity) > 0
-          )
-          if (!hasMatchingTierStock) return false
+            (tier) =>
+              activePacks.includes(tier.type) &&
+              Number(tier.stockQuantity) > 0
+          );
+
+          if (!hasMatchingTierStock) return false;
         } else {
-          const baseStock = Number(product.stockQuantity) || 0
-          const hasAnyTierStock = product.tiers?.some(t => Number(t.stockQuantity) > 0)
-          if (baseStock <= 0 && !hasAnyTierStock) return false
+          const baseStock = Number(product.stockQuantity) || 0;
+
+          const hasAnyTierStock = product.tiers?.some(
+            (tier) => Number(tier.stockQuantity) > 0
+          );
+
+          if (baseStock <= 0 && !hasAnyTierStock) return false;
         }
       }
 
-      return true
-    })
+      return true;
+    });
 
-    // Sort matching results
-    return filtered.sort((a, b) => {
-      const getEffectivePrice = (item) => {
-        if (activePacks.length > 0 && item.tiers) {
-          const matchingTier = item.tiers.find(tier => activePacks.includes(tier.type))
-          if (matchingTier && matchingTier.price) return matchingTier.price
+    // -----------------------------------------
+    // 2. Fuzzy search
+    // -----------------------------------------
+    let searchedProducts = filtered;
+
+    if (query?.trim()) {
+      const brandName = (product) =>
+        typeof product.brand === "object"
+          ? product.brand?.name || ""
+          : product.brand || "";
+
+      const categoryName = (product) =>
+        typeof product.category === "object"
+          ? product.category?.name || ""
+          : "";
+
+      const searchableProducts = filtered.map((product) => ({
+        product,
+
+        title: product.title || "",
+
+        description: product.description || "",
+
+        brand: brandName(product),
+
+        category: categoryName(product),
+
+        tags: Array.isArray(product.tags)
+          ? product.tags.join(" ")
+          : "",
+
+        // Also search tier/package names
+        tiers: Array.isArray(product.tiers)
+          ? product.tiers.map((tier) => tier.type).join(" ")
+          : "",
+      }));
+
+      const fuse = new Fuse(searchableProducts, {
+        keys: [
+          {
+            name: "title",
+            weight: 0.45,
+          },
+          {
+            name: "brand",
+            weight: 0.25,
+          },
+          {
+            name: "category",
+            weight: 0.10,
+          },
+          {
+            name: "tags",
+            weight: 0.10,
+          },
+          {
+            name: "description",
+            weight: 0.07,
+          },
+          {
+            name: "tiers",
+            weight: 0.03,
+          },
+        ],
+
+        threshold: 0.35,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+        includeScore: true,
+      });
+
+      searchedProducts = fuse
+        .search(query.trim())
+        .map((result) => result.item.product);
+    }
+
+    // 3. Sorting
+    const getEffectivePrice = (item) => {
+      if (activePacks.length > 0 && item.tiers) {
+        const matchingTier = item.tiers.find((tier) =>
+          activePacks.includes(tier.type)
+        );
+
+        if (matchingTier && matchingTier.price) {
+          return Number(matchingTier.price);
         }
-        return item.price || 0
       }
 
-      const getEffectiveStock = (item) => {
-        if (activePacks.length > 0 && item.tiers) {
-          const matchingTier = item.tiers.find(tier => activePacks.includes(tier.type))
-          if (matchingTier && matchingTier.stockQuantity !== undefined) return matchingTier.stockQuantity
+      return Number(item.price) || 0;
+    };
+
+    const getEffectiveStock = (item) => {
+      if (activePacks.length > 0 && item.tiers) {
+        const matchingTier = item.tiers.find((tier) =>
+          activePacks.includes(tier.type)
+        );
+
+        if (
+          matchingTier &&
+          matchingTier.stockQuantity !== undefined
+        ) {
+          return Number(matchingTier.stockQuantity);
         }
-        return item.stockQuantity || 0
       }
 
-      if (sortBy === 'price-low') return getEffectivePrice(a) - getEffectivePrice(b)
-      if (sortBy === 'price-high') return getEffectivePrice(b) - getEffectivePrice(a)
-      if (sortBy === 'stock') return getEffectiveStock(b) - getEffectiveStock(a)
-      return 0
-    })
-  }, [products, query, activeCategories, activeBrands, activePacks, activeStock, sortBy])
+      return Number(item.stockQuantity) || 0;
+    };
 
+    return [...searchedProducts].sort((a, b) => {
+      if (sortBy === "price-low") {
+        return getEffectivePrice(a) - getEffectivePrice(b);
+      }
+
+      if (sortBy === "price-high") {
+        return getEffectivePrice(b) - getEffectivePrice(a);
+      }
+
+      if (sortBy === "stock") {
+        return getEffectiveStock(b) - getEffectiveStock(a);
+      }
+      return 0;
+    });
+  }, [
+    products,
+    query,
+    activeCategories,
+    activeBrands,
+    activePacks,
+    activeStock,
+    sortBy,
+  ]);
   // Single-value parameter update (e.g. stock, sort, q)
   const updateFilter = (key, value) => {
     const params = new URLSearchParams(searchParams)

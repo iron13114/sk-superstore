@@ -180,7 +180,10 @@
     "onlyXLeft": "केवल {{count}} बचे हैं",
     "inBulkStock": "थोक स्टॉक में उपलब्ध",
     "selectWholesaleOptions": "थोक आपूर्ति विकल्प चुनें:",
-    "addWholesaleToCart": "थोक चयन को कार्ट में जोड़ें"
+    "addWholesaleToCart": "थोक चयन को कार्ट में जोड़ें",
+    "errorLoading": "लोड करते समय त्रुटि",
+    "tryAgainLater": "कृपया बाद में पुनः प्रयास करें",
+    "retry": "पुनः प्रयास करें"
   },
   "wishlist": {
     "title": "आपकी इच्छा सूची",

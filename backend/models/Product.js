@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 
 const tierSchema = new mongoose.Schema({
   type: { type: String, required: true },          
-  label: { type: String, required: true },          
+  label: { type: String, required: true }, 
+  quantity: { type: Number },
+  basePrice: { type: Number, required: true }, 
+  price: { type: Number, required: true },            
   price: { type: Number, required: true },         
   discountPercentage: { type: Number, default: 0 },
   stockQuantity: { type: Number, default: 0 }
@@ -11,6 +14,7 @@ const tierSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
+  basePrice: { type: Number },
   price: { type: Number, required: true },          
   discountPercentage: { type: Number, default: 0 },
   brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' },

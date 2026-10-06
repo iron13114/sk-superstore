@@ -65,14 +65,13 @@ export const ProductUpdate = () => {
     const [tiers, setTiers] = useState([])
     const [selectedTierToAdd, setSelectedTierToAdd] = useState('')
 
-    // Fetch product details on mount
     useEffect(() => {
         if (id) {
             dispatch(fetchProductByIdAsync(id))
         }
     }, [id, dispatch])
 
-    // Remember and pre-populate previous product values
+    // Pre-populate with automatic recovery of eroded base prices
     useEffect(() => {
         if (selectedProduct) {
             const rawTiers = selectedProduct.tiers || []
@@ -84,23 +83,44 @@ export const ProductUpdate = () => {
                         ? t.quantity 
                         : fallbackQty
 
+                    const disc = Number(t.discountPercentage) || 0
+                    let recoveredBasePrice = ''
+
+                    // Prioritize explicit basePrice; recover original MRP if previously degraded
+                    if (t.basePrice !== undefined && t.basePrice !== null && Number(t.basePrice) > 0) {
+                        recoveredBasePrice = t.basePrice
+                    } else if (t.price !== undefined && t.price !== null && Number(t.price) > 0) {
+                        recoveredBasePrice = (disc > 0 && disc < 100)
+                            ? Math.round(Number(t.price) / (1 - disc / 100))
+                            : t.price
+                    }
+
                     return {
                         type: t.type,
                         label: t.label || t.type,
                         quantity: preservedQty,
-                        basePrice: t.basePrice ?? t.price ?? '',
-                        discountPercentage: t.discountPercentage ?? 0,
+                        basePrice: recoveredBasePrice,
+                        discountPercentage: disc,
                         stockQuantity: t.stockQuantity ?? ''
                     }
                 }))
             } else {
+                const disc = Number(selectedProduct.discountPercentage) || 0
+                let rootBasePrice = selectedProduct.basePrice
+
+                if (!rootBasePrice && selectedProduct.price) {
+                    rootBasePrice = (disc > 0 && disc < 100)
+                        ? Math.round(Number(selectedProduct.price) / (1 - disc / 100))
+                        : selectedProduct.price
+                }
+
                 setTiers([
                     {
                         type: 'single',
                         label: 'Single Unit',
                         quantity: 1,
-                        basePrice: selectedProduct.price ?? '',
-                        discountPercentage: selectedProduct.discountPercentage ?? 0,
+                        basePrice: rootBasePrice ?? '',
+                        discountPercentage: disc,
                         stockQuantity: selectedProduct.stockQuantity ?? ''
                     }
                 ])
@@ -158,7 +178,7 @@ export const ProductUpdate = () => {
             {
                 type: def.type,
                 label: def.label,
-                quantity: '',
+                quantity: def.defaultQty || '',
                 basePrice: '',
                 discountPercentage: 0,
                 stockQuantity: ''
@@ -180,7 +200,6 @@ export const ProductUpdate = () => {
             const updated = [...prev]
             const tier = { ...updated[index], [field]: value }
 
-            // Auto-update label when quantity changes
             if (field === 'quantity') {
                 const def = AVAILABLE_TIERS.find(t => t.type === tier.type)
                 if (def && def.type !== 'single') {
@@ -224,8 +243,8 @@ export const ProductUpdate = () => {
                 type: t.type,
                 label: t.label || t.type,
                 quantity: parsedQty,
-                basePrice: bp,
-                price: sp,
+                basePrice: bp,                // Base MRP stored permanently
+                price: sp,                    // Storefront discounted price
                 discountPercentage: disc,
                 stockQuantity: Number(t.stockQuantity) || 0
             }
@@ -242,7 +261,9 @@ export const ProductUpdate = () => {
             type: data.type,
             thumbnail: data.thumbnail,
             images: validImages.length > 0 ? validImages : [data.thumbnail],
-            price: singleTier.price,
+            basePrice: singleTier.basePrice,                // Root Base Price
+            price: singleTier.price,                        // Root Discounted Selling Price
+            discountPercentage: singleTier.discountPercentage,
             stockQuantity: singleTier.stockQuantity,
             tiers: formattedTiers
         }
@@ -398,7 +419,6 @@ export const ProductUpdate = () => {
                                     </div>
 
                                     <div className={`grid grid-cols-1 sm:grid-cols-2 ${isSingle ? 'md:grid-cols-3' : 'md:grid-cols-4'} gap-4`}>
-                                        {/* Quantity input only rendered for non-single tiers */}
                                         {!isSingle && (
                                             <div>
                                                 <label className={labelCls}>
@@ -505,7 +525,7 @@ export const ProductUpdate = () => {
                 <div className="flex justify-end gap-3 pt-4">
                     <button
                         type="submit"
-                        className="px-6 py-2.5 bg-[#111827] text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+                        className="px-6 py-2.5 bg-[#111827] text-white text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
                     >
                         {t('productForm.updateProduct')}
                     </button>

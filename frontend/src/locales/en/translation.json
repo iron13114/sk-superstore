@@ -161,7 +161,7 @@
       "imageAlt": "Banner Image {{number}}",
       "goToSlide": "Go to slide {{number}}"
     },
-    "productDetails": {
+    "productDetails": { 
       "itemsAddedToCart": "Items added to cart",
       "errorAddingToCart": "Error adding to cart",
       "selectAtLeastOneTier": "Select at least one tier",
@@ -177,7 +177,10 @@
       "onlyXLeft": "Only {{count}} left",
       "inBulkStock": "In stock",
       "selectWholesaleOptions": "Select wholesale option",
-      "addWholesaleToCart": "Add to cart"
+      "addWholesaleToCart": "Add to cart",
+      "errorLoading": "Error Loading",
+      "tryAgainLater": "Try again later",
+      "retry": "Retry"
     },
     "wishlist": {
       "title": "Your wishlist",

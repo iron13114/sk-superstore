@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { SlidersHorizontal, Grid3X3, List, ChevronDown, X, AlertCircle, Home } from 'lucide-react'
 import { selectProducts, selectProductTotalResults, fetchProductsAsync } from '../../products/ProductSlice'
 import { selectCategories } from '../../categories/CategoriesSlice'
-import { selectBrands } from '../../brands/BrandSlice'
+import { selectBrands, fetchAllBrandsAsync } from '../../brands/BrandSlice'
 import { ProductCard } from '../../products/components/ProductCard'
 
 const getCatKey = (name) => name?.replace(/\s+/g, '_')?.replace(/[^a-zA-Z0-9_]/g, '') || 'unknown'
@@ -238,9 +238,14 @@ export const SearchPage = () => {
 
   // 2. Redux State
   const products = useSelector(selectProducts)
-  const totalResults = useSelector(selectProductTotalResults)
   const categories = useSelector(selectCategories)
   const brands = useSelector(selectBrands)
+
+  useEffect(() => {
+    if (!brands || brands.length === 0) {
+      dispatch(fetchAllBrandsAsync())
+    }
+  }, [dispatch, brands])
 
   // 3. Local UI State
   const [viewMode, setViewMode] = useState('grid') 
@@ -271,7 +276,7 @@ export const SearchPage = () => {
     { value: 'stock', labelKey: 'search.sort.stock' }
   ]
 
-  // 4. API Query Builder 
+// 4. API Query Builder 
   useEffect(() => {
     let sortObj = {}
     if (sortBy === 'price-low') sortObj = { _sort: 'price', _order: 'asc' }
@@ -282,224 +287,182 @@ export const SearchPage = () => {
       filter: {
         category: activeCategories,
         brand: activeBrands,
-        search: query,
-        q: query,
         pack: activePacks,
         inStock: activeStock === 'true'
       },
       sort: sortObj,
-      pagination: { _page: page, _limit: 24, page, limit: 24 },
-
-      // Flat query parameters for query-string backends
-      search: query,
-      q: query,
-      category: activeCategories.join(','),
-      brand: activeBrands.join(','),
-      pack: activePacks.join(','),
-      inStock: activeStock === 'true',
-      _sort: sortObj._sort,
-      _order: sortObj._order,
-      _page: page,
-      _limit: 24
+      pagination: { 
+        _page: query ? 1 : page, 
+        _limit: query ? 1000 : 24 
+      } 
     }
 
     dispatch(fetchProductsAsync(filterPayload))
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [dispatch, query, activeCategories, activeBrands, activePacks, activeStock, sortBy, page])
-
+  
   // 5. Client-Side Real-Time Filter & Sort (Guarantees multi-select works instantly)
   const filteredAndSortedProducts = useMemo(() => {
-    if (!products || !Array.isArray(products)) return [];
+      if (!products || !Array.isArray(products)) return [];
 
-    // -----------------------------------------
-    // 1. Apply non-search filters first
-    // -----------------------------------------
-    const filtered = products.filter((product) => {
-      // Multi-Category Filter
-      if (activeCategories.length > 0) {
-        const prodCatId =
-          typeof product.category === "object"
-            ? product.category?._id
-            : product.category;
-
-        if (!activeCategories.includes(prodCatId)) return false;
-      }
-
-      // Multi-Brand Filter
-      if (activeBrands.length > 0) {
-        const prodBrandId =
-          typeof product.brand === "object"
-            ? product.brand?._id
-            : product.brand;
-
-        if (!activeBrands.includes(prodBrandId)) return false;
-      }
-
-      // Multi-Packaging Tiers Filter
-      if (activePacks.length > 0) {
-        const hasMatchingTier = product.tiers?.some((tier) =>
-          activePacks.includes(tier.type)
-        );
-
-        if (!hasMatchingTier) return false;
-      }
-
-      // Availability Filter
-      if (activeStock === "true") {
-        if (activePacks.length > 0) {
-          const hasMatchingTierStock = product.tiers?.some(
-            (tier) =>
-              activePacks.includes(tier.type) &&
-              Number(tier.stockQuantity) > 0
-          );
-
-          if (!hasMatchingTierStock) return false;
-        } else {
-          const baseStock = Number(product.stockQuantity) || 0;
-
-          const hasAnyTierStock = product.tiers?.some(
-            (tier) => Number(tier.stockQuantity) > 0
-          );
-
-          if (baseStock <= 0 && !hasAnyTierStock) return false;
+      // -------------------------------------------------------------
+      // Helper: Resolve Brand & Category names (handles populated objects or raw IDs)
+      // -------------------------------------------------------------
+      const resolveBrandName = (product) => {
+        if (typeof product.brand === "object" && product.brand?.name) {
+          return product.brand.name;
         }
-      }
+        const match = brands.find((b) => b._id === product.brand);
+        return match ? match.name : "";
+      };
 
-      return true;
-    });
+      const resolveCategoryName = (product) => {
+        if (typeof product.category === "object" && product.category?.name) {
+          return product.category.name;
+        }
+        const match = categories.find((c) => c._id === product.category);
+        return match ? match.name : "";
+      };
 
-    // -----------------------------------------
-    // 2. Fuzzy search
-    // -----------------------------------------
-    let searchedProducts = filtered;
+      // -------------------------------------------------------------
+      // 1. Apply Sidebar / Checkbox Filters
+      // -------------------------------------------------------------
+      const filtered = products.filter((product) => {
+        // Category filter
+        if (activeCategories.length > 0) {
+          const prodCatId =
+            typeof product.category === "object"
+              ? product.category?._id
+              : product.category;
+          if (!activeCategories.includes(prodCatId)) return false;
+        }
 
-    if (query?.trim()) {
-      const brandName = (product) =>
-        typeof product.brand === "object"
-          ? product.brand?.name || ""
-          : product.brand || "";
+        // Brand filter
+        if (activeBrands.length > 0) {
+          const prodBrandId =
+            typeof product.brand === "object"
+              ? product.brand?._id
+              : product.brand;
+          if (!activeBrands.includes(prodBrandId)) return false;
+        }
 
-      const categoryName = (product) =>
-        typeof product.category === "object"
-          ? product.category?.name || ""
-          : "";
+        // Packaging tiers filter
+        if (activePacks.length > 0) {
+          const hasMatchingTier = product.tiers?.some((tier) =>
+            activePacks.includes(tier.type)
+          );
+          if (!hasMatchingTier) return false;
+        }
 
-      const searchableProducts = filtered.map((product) => ({
-        product,
+        // Availability filter
+        if (activeStock === "true") {
+          if (activePacks.length > 0) {
+            const hasMatchingTierStock = product.tiers?.some(
+              (tier) =>
+                activePacks.includes(tier.type) && Number(tier.stockQuantity) > 0
+            );
+            if (!hasMatchingTierStock) return false;
+          } else {
+            const baseStock = Number(product.stockQuantity) || 0;
+            const hasAnyTierStock = product.tiers?.some(
+              (tier) => Number(tier.stockQuantity) > 0
+            );
+            if (baseStock <= 0 && !hasAnyTierStock) return false;
+          }
+        }
 
-        title: product.title || "",
-
-        description: product.description || "",
-
-        brand: brandName(product),
-
-        category: categoryName(product),
-
-        tags: Array.isArray(product.tags)
-          ? product.tags.join(" ")
-          : "",
-
-        // Also search tier/package names
-        tiers: Array.isArray(product.tiers)
-          ? product.tiers.map((tier) => tier.type).join(" ")
-          : "",
-      }));
-
-      const fuse = new Fuse(searchableProducts, {
-        keys: [
-          {
-            name: "title",
-            weight: 0.45,
-          },
-          {
-            name: "brand",
-            weight: 0.25,
-          },
-          {
-            name: "category",
-            weight: 0.10,
-          },
-          {
-            name: "tags",
-            weight: 0.10,
-          },
-          {
-            name: "description",
-            weight: 0.07,
-          },
-          {
-            name: "tiers",
-            weight: 0.03,
-          },
-        ],
-
-        threshold: 0.35,
-        ignoreLocation: true,
-        minMatchCharLength: 2,
-        includeScore: true,
+        return true;
       });
 
-      searchedProducts = fuse
-        .search(query.trim())
-        .map((result) => result.item.product);
-    }
+      // -------------------------------------------------------------
+      // 2. Client-Side Fuse Search (Title, Brand, Category, Tags)
+      // -------------------------------------------------------------
+      let searchedProducts = filtered;
 
-    // 3. Sorting
-    const getEffectivePrice = (item) => {
-      if (activePacks.length > 0 && item.tiers) {
-        const matchingTier = item.tiers.find((tier) =>
-          activePacks.includes(tier.type)
-        );
+      if (query?.trim()) {
+        const searchableProducts = filtered.map((product) => ({
+          product,
+          title: product.title || "",
+          brand: resolveBrandName(product),
+          category: resolveCategoryName(product),
+          description: product.description || "",
+          tags: Array.isArray(product.tags) ? product.tags.join(" ") : "",
+          tiers: Array.isArray(product.tiers)
+            ? product.tiers.map((tier) => tier.type).join(" ")
+            : "",
+        }));
 
-        if (matchingTier && matchingTier.price) {
-          return Number(matchingTier.price);
-        }
+        const fuse = new Fuse(searchableProducts, {
+          keys: [
+            { name: "title", weight: 0.50 },
+            { name: "brand", weight: 0.25 },   
+            { name: "category", weight: 0.15 }, 
+            { name: "tags", weight: 0.10 },
+            { name: "description", weight: 0.05 },
+          ],
+          threshold: 0.3,       
+          ignoreLocation: true,  
+          minMatchCharLength: 2,
+          includeScore: true,
+        });
+
+        searchedProducts = fuse
+          .search(query.trim())
+          .map((result) => result.item.product);
       }
 
-      return Number(item.price) || 0;
-    };
-
-    const getEffectiveStock = (item) => {
-      if (activePacks.length > 0 && item.tiers) {
-        const matchingTier = item.tiers.find((tier) =>
-          activePacks.includes(tier.type)
-        );
-
-        if (
-          matchingTier &&
-          matchingTier.stockQuantity !== undefined
-        ) {
-          return Number(matchingTier.stockQuantity);
+      // -------------------------------------------------------------
+      // 3. Sorting & Pagination
+      // -------------------------------------------------------------
+      const getEffectivePrice = (item) => {
+        if (activePacks.length > 0 && item.tiers) {
+          const matchingTier = item.tiers.find((tier) =>
+            activePacks.includes(tier.type)
+          );
+          if (matchingTier && matchingTier.price) return Number(matchingTier.price);
         }
-      }
+        return Number(item.price) || 0;
+      };
 
-      return Number(item.stockQuantity) || 0;
-    };
+      const getEffectiveStock = (item) => {
+        if (activePacks.length > 0 && item.tiers) {
+          const matchingTier = item.tiers.find((tier) =>
+            activePacks.includes(tier.type)
+          );
+          if (matchingTier && matchingTier.stockQuantity !== undefined) {
+            return Number(matchingTier.stockQuantity);
+          }
+        }
+        return Number(item.stockQuantity) || 0;
+      };
 
-    return [...searchedProducts].sort((a, b) => {
+      let result = [...searchedProducts];
+
       if (sortBy === "price-low") {
-        return getEffectivePrice(a) - getEffectivePrice(b);
+        result.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b));
+      } else if (sortBy === "price-high") {
+        result.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a));
+      } else if (sortBy === "stock") {
+        result.sort((a, b) => getEffectiveStock(b) - getEffectiveStock(a));
       }
 
-      if (sortBy === "price-high") {
-        return getEffectivePrice(b) - getEffectivePrice(a);
-      }
+      return result;
+    }, [
+      products,
+      brands,          
+      categories,      
+      query,
+      activeCategories,
+      activeBrands,
+      activePacks,
+      activeStock,
+      sortBy,
+    ]);
 
-      if (sortBy === "stock") {
-        return getEffectiveStock(b) - getEffectiveStock(a);
-      }
-      return 0;
-    });
-  }, [
-    products,
-    query,
-    activeCategories,
-    activeBrands,
-    activePacks,
-    activeStock,
-    sortBy,
-  ]);
-  // Single-value parameter update (e.g. stock, sort, q)
+  const serverTotalResults = useSelector(selectProductTotalResults);
+  const totalResults = query ? filteredAndSortedProducts.length : serverTotalResults;  
+
+  // Single-value parameter update 
   const updateFilter = (key, value) => {
     const params = new URLSearchParams(searchParams)
     if (value) {
@@ -511,7 +474,7 @@ export const SearchPage = () => {
     setSearchParams(params)
   }
 
-  // Multi-value toggle (e.g. categories, brands, packaging tiers)
+  // Multi-value toggle 
   const toggleMultiFilter = (key, value) => {
     const params = new URLSearchParams(searchParams)
     const currentValues = params.get(key)?.split(',').filter(Boolean) || []

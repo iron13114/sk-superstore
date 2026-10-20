@@ -1,4 +1,6 @@
 const Product = require("../models/Product");
+const Brand = require("../models/Brand");  
+const Category = require("../models/Category");
 
 exports.create = async (req, res) => {
   try {
@@ -18,13 +20,52 @@ exports.getAll = async (req, res) => {
         let skip = 0;
         let limit = 0;
 
-        // DEBUG: see exactly what the frontend is sending
-        console.log('>>> QUERY PARAMS:', req.query);
-
-        // SEARCH — support both 'q' (SearchPage) and 'search' (ProductList)
         const searchTerm = req.query.q || req.query.search;
-        if (searchTerm && searchTerm !== "undefined") {
-            filter.title = { $regex: searchTerm, $options: "i" };
+        const isSearching = Boolean(searchTerm && searchTerm !== "undefined");
+        
+        if (isSearching) {
+            const mongoose = require('mongoose');
+            const Brand = mongoose.model('Brand');
+            const Category = mongoose.model('Category');
+
+            const exactTerm = searchTerm.trim();
+            let regexPattern = exactTerm;
+
+            if (exactTerm.length > 3) {
+                const safeTerm = exactTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const first3 = safeTerm.substring(0, 3);
+                const half1 = safeTerm.substring(0, Math.ceil(safeTerm.length / 2));
+                const half2 = safeTerm.substring(Math.floor(safeTerm.length / 2));
+                
+                regexPattern = `(${safeTerm}|${first3}|${half1}|${half2})`;
+            }
+
+            const searchRegex = new RegExp(regexPattern, "i");
+            const matchingBrands = await Brand.find({ 
+                name: searchRegex 
+            }).select('_id');
+            
+            const matchingCategories = await Category.find({ 
+                name: searchRegex 
+            }).select('_id');
+
+            const brandIds = matchingBrands.reduce((acc, b) => {
+                acc.push(b._id, b._id.toString());
+                return acc;
+            }, []);
+
+            const categoryIds = matchingCategories.reduce((acc, c) => {
+                acc.push(c._id, c._id.toString());
+                return acc;
+            }, []);
+
+            filter.$or = [
+                { title: searchRegex },
+                { description: searchRegex },
+                { tags: searchRegex },
+                { brand: { $in: brandIds } },
+                { category: { $in: categoryIds } }
+            ];
         }
 
         // BRAND
@@ -39,7 +80,7 @@ exports.getAll = async (req, res) => {
             filter.category = { $in: categories };
         }
 
-        // PACKAGING TIER — query inside the tiers array
+        // PACKAGING TIER 
         const tierParam = req.query.pack || req.query.packagingTier;
         if (tierParam && tierParam !== "undefined") {
             filter['tiers.type'] = tierParam;   
@@ -57,7 +98,6 @@ exports.getAll = async (req, res) => {
             filter.isDeleted = { $ne: true };
         }
 
-        // SORT
         const sortParam = req.query.sort;
         if (sortParam && sortParam !== "undefined") {
             if (sortParam === "price-low") {
@@ -76,21 +116,26 @@ exports.getAll = async (req, res) => {
             sort.createdAt = -1;
         }
 
-        // PAGINATION
         let page = 1;
-        let pageSize = 12;
+        let pageSize = 24;
 
+        // First, check what the frontend asked for
         if (req.query.pagination) {
             try {
                 const pagination = typeof req.query.pagination === "string" ? JSON.parse(req.query.pagination) : req.query.pagination;
                 page = parseInt(pagination.page, 10) || 1;
-                pageSize = parseInt(pagination.limit, 10) || 12;
+                pageSize = parseInt(pagination.limit, 10) || 24;
             } catch (e) {
                 console.log("Pagination parse error", e);
             }
         } else if (req.query.page && req.query.limit) {
             page = parseInt(req.query.page, 10) || 1;
-            pageSize = parseInt(req.query.limit, 10) || 12;
+            pageSize = parseInt(req.query.limit, 10) || 24;
+        }
+
+        // THEN override it if we are searching (forces the limit up so Fuse.js has data)
+        if (isSearching) {
+            pageSize = 100; 
         }
 
         if (pageSize > 0) {
@@ -98,7 +143,7 @@ exports.getAll = async (req, res) => {
             limit = pageSize;
         }
 
-        console.log('>>> FILTER:', filter);
+        console.log('>>> FILTER:', JSON.stringify(filter, null, 2));
         console.log('>>> SORT:', sort);
 
         const totalDocs = await Product.countDocuments(filter).exec();

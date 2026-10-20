@@ -8,44 +8,61 @@ export const addProduct=async(data)=>{
         throw error.response.data
     }
 }
-export const fetchProducts=async(filters)=>{
+export const fetchProducts = async (filters = {}) => {
+    let queryString = '';
 
-    let queryString=''
-
-    if(filters.search){
-        queryString+=`search=${encodeURIComponent(filters.search)}&`
-    }
-    if(filters.brand){
-        filters.brand.map((brand)=>{
-            queryString+=`brand=${brand}&`
-        })
-    }
-    if(filters.category){
-        filters.category.map((category)=>{
-            queryString+=`category=${category}&`
-        })
-    }
-
-    if(filters.pagination){
-        queryString+=`page=${filters.pagination.page}&limit=${filters.pagination.limit}&`
-    }
-
-    if(filters.sort){
-        queryString+=`sort=${filters.sort.sort}&order=${filters.sort.order}&`
-    }
-
-    if(filters.user){
-        queryString+=`user=${filters.user}&`
-    }
+    // 1. Redux drops the search term
+    let searchTerm = filters.search || filters.q || filters.filter?.search || filters.filter?.q;
     
-    try {
-        const res=await axiosi.get(`/products?${queryString}`)
-        const totalResults=await res.headers.get("X-Total-Count")
-        return {data:res.data,totalResults:totalResults}
+    if (!searchTerm && typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        searchTerm = urlParams.get('q') || urlParams.get('search');
+    }
+
+    if (searchTerm) {
+        queryString += `search=${encodeURIComponent(searchTerm)}&q=${encodeURIComponent(searchTerm)}&`;
+    }
+
+    // 2. Brands
+    let brands = filters.brand || filters.filter?.brand;
+    if (brands) {
+        const brandArray = Array.isArray(brands) ? brands : brands.split(',');
+        brandArray.forEach(b => { if(b) queryString += `brand=${b}&` });
+    }
+
+    // 3. Categories
+    let categories = filters.category || filters.filter?.category;
+    if (categories) {
+        const catArray = Array.isArray(categories) ? categories : categories.split(',');
+        catArray.forEach(c => { if(c) queryString += `category=${c}&` });
+    }
+
+    // 4. Pagination
+    const page = filters.pagination?.page || filters._page || 1;
+    const limit = filters.pagination?.limit || filters._limit || 24;
+    queryString += `page=${page}&limit=${limit}&`;
+
+    // 5. Sort
+    if (filters.sort) {
+        const sortField = filters.sort.sort || filters.sort._sort;
+        const sortOrder = filters.sort.order || filters.sort._order || 'asc';
+        if (sortField) queryString += `sort=${sortField}&order=${sortOrder}&`;
+    }
+
+    if (queryString.endsWith('&')) {
+        queryString = queryString.slice(0, -1);
+    }
+
+    try {        
+        const res = await axiosi.get(`/products?${queryString}`);
+        const totalResults = res.headers["x-total-count"] || res.headers.get?.("X-Total-Count") || 0;
+        
+        return { data: res.data, totalResults };
     } catch (error) {
-        throw error.response.data
+        throw error.response?.data || error;
     }
 }
+
 export const fetchProductById=async(id)=>{
     try {
         const res=await axiosi.get(`/products/${id}`)

@@ -610,7 +610,7 @@ export const SearchPage = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-3">
             {/* Home Navigation */}
-            <button
+            <button    
               onClick={() => navigate('/')}
               className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
               title={t('nav.home', 'Home')}
